@@ -42,8 +42,30 @@ class LoginController extends Controller
             // Regenerasi session untuk mencegah session fixation attack
             $request->session()->regenerate();
 
-            // Redirect ke halaman yang tuju sebelumnya (atau ke dashboard/home)
-            return redirect()->intended('/superadmin/dashboard')->with('success', 'Selamat datang kembali!');
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
+            if ($user->isSuperadmin()) {
+                return redirect()->intended('/superadmin/dashboard')->with('success', 'Selamat datang Superadmin!');
+            }
+
+            if ($user->isAdmin()) {
+                return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang di Dashboard Admin!');
+            }
+
+            if ($user->isManager()) {
+                return redirect()->intended('/manager/dashboard')->with('success', 'Selamat datang di Dashboard Manager!');
+            }
+
+            if ($user->isReceptionist()) {
+                return redirect()->intended('/receptionist/dashboard')->with('success', 'Selamat datang di Dashboard Resepsionis!');
+            }
+
+            if ($user->role === 'trainer') {
+                return redirect()->intended('/trainer/dashboard')->with('success', 'Selamat datang di Dashboard Personal Trainer!');
+            }
+
+            return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang kembali!');
         }
 
         // 3. Jika Autentikasi Gagal

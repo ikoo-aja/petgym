@@ -23,11 +23,57 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'tenant_id',
     ];
 
     public function isSuperadmin(): bool
     {
         return $this->role === 'superadmin';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
+    public function isReceptionist(): bool
+    {
+        return $this->role === 'receptionist';
+    }
+
+    public function isTenantUser(): bool
+    {
+        return in_array($this->role, ['admin', 'manager', 'receptionist', 'trainer']) || !is_null($this->tenant_id);
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function manager()
+    {
+        return $this->hasOne(Manager::class);
+    }
+
+    public function receptionist()
+    {
+        return $this->hasOne(Receptionist::class);
+    }
+
+    public function trainerProfile()
+    {
+        return $this->hasOne(Trainer::class);
     }
 
     /**
