@@ -211,7 +211,7 @@
         <div class="row align-items-center justify-content-center text-center">
           <div class="col-md-8" data-aos="fade-up">
             <h2>Pilih Paket Sesuai Kebutuhan Bisnis Anda</h2>
-            <p class="lead mx-auto desc mb-5 text-black font-semibold">Investasi transparan tanpa biaya tersembunyi untuk mendukung pertumbuhan gym Anda.</p>
+            <p>Investasi transparan tanpa biaya tersembunyi untuk mendukung pertumbuhan gym Anda.</p>
           </div>
         </div>
       </div>
@@ -224,7 +224,7 @@
           <div class="col-md-8 section-heading" data-aos="fade-up">
             <span class="subheading">Harga Transparan</span>
             <h2 class="heading mb-3">Paket Sewa Website Gym</h2>
-            <p>Informasi harga yang transparan dengan batasan kuota yang jelas agar pemilik gym bisa memilih sesuai ukuran bisnis mereka.</p>
+            <p class="text-black font-semibold">Informasi harga yang transparan dengan batasan kuota yang jelas agar pemilik gym bisa memilih sesuai ukuran bisnis mereka.</p>
           </div>
         </div>
 
