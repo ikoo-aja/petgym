@@ -38,7 +38,7 @@
     <header class="site-navbar py-4 js-sticky-header site-navbar-target" role="banner">
       <div class="container-fluid">
         <div class="d-flex align-items-center">
-          <div class="site-logo"><a href="#">Pet Gym<span>.</span></a></div>
+          <div class="site-logo"><a href="/">Pet Gym<span>.</span></a></div>
           <div class="ml-auto">
             <nav class="site-navigation position-relative text-right" role="navigation">
               <ul class="site-menu main-menu js-clone-nav mr-auto d-none d-lg-block">
@@ -46,6 +46,7 @@
                 <li><a href="#cara-kerja-section" class="nav-link">Cara Kerja</a></li>
                 <li><a href="#fitur-section" class="nav-link">Fitur Utama</a></li>
                 <li><a href="#pricing-section" class="nav-link">Paket Harga</a></li>
+                <li><a href="#contact-section" class="nav-link">Kontak</a></li>
               </ul>
             </nav>
             <a href="#" class="d-inline-block d-lg-none site-menu-toggle js-menu-toggle float-right"><span class="icon-menu h3"></span></a>
@@ -78,7 +79,7 @@
           <div class="col-md-8 section-heading" data-aos="fade-up">
             <span class="subheading">Alur Operasional</span>
             <h2 class="heading mb-3">Cara Kerja Tanpa Hambatan</h2>
-            <p>Bagian ini menceritakan betapa mudahnya pemilik gym beralih ke sistem digital kami tanpa pusing memikirkan teknis IT.</p>
+            <p class="text-black font-semibold">Bagian ini menceritakan betapa mudahnya pemilik gym beralih ke sistem digital kami tanpa pusing memikirkan teknis IT.</p>
           </div>
         </div>
 
@@ -144,7 +145,7 @@
           <div class="col-md-8 section-heading" data-aos="fade-up">
             <span class="subheading">Solusi Bisnis</span>
             <h2 class="heading mb-3">Fitur Utama</h2>
-            <p>Penjelasan fitur yang langsung menjawab <em>pain points</em> yang sering dialami pengelola gym.</p>
+            <p class="text-black font-semibold">Penjelasan fitur yang langsung menjawab <em>pain points</em> yang sering dialami pengelola gym.</p>
           </div>
         </div>
 
@@ -210,7 +211,7 @@
         <div class="row align-items-center justify-content-center text-center">
           <div class="col-md-8" data-aos="fade-up">
             <h2>Pilih Paket Sesuai Kebutuhan Bisnis Anda</h2>
-            <p class="lead mx-auto desc mb-5">Investasi transparan tanpa biaya tersembunyi untuk mendukung pertumbuhan gym Anda.</p>
+            <p class="lead mx-auto desc mb-5 text-black font-semibold">Investasi transparan tanpa biaya tersembunyi untuk mendukung pertumbuhan gym Anda.</p>
           </div>
         </div>
       </div>
@@ -296,6 +297,20 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="site-section bg-light" id="contact-section">
+      <div class="container">
+        <div class="row justify-content-center text-center mb-5">
+          <div class="col-md-8 section-heading" data-aos="fade-up">
+            <span class="subheading">Kontak Kami</span>
+            <h2 class="heading mb-3">Contact</h2>
+            <p class="text-black font-semibold">Hubungi kami untuk informasi lebih lanjut tentang paket layanan kami.</p>
+          </div>
+        </div>
+
+
       </div>
     </div>
 
