@@ -42,7 +42,7 @@
           <div class="ml-auto">
             <nav class="site-navigation position-relative text-right" role="navigation">
               <ul class="site-menu main-menu js-clone-nav mr-auto d-none d-lg-block">
-                <li><a href="#home-section" class="nav-link">Home</a></li>
+                <li><a href="#home-section" class="nav-link">Beranda</a></li>
                 <li><a href="#cara-kerja-section" class="nav-link">Cara Kerja</a></li>
                 <li><a href="#fitur-section" class="nav-link">Fitur Utama</a></li>
                 <li><a href="#pricing-section" class="nav-link">Paket Harga</a></li>
@@ -300,30 +300,116 @@
       </div>
     </div>
 
-    <div class="site-section bg-light" id="contact-section">
-      <div class="container">
-        <div class="row justify-content-center text-center mb-5">
-          <div class="col-md-8 section-heading" data-aos="fade-up">
-            <span class="subheading">Kontak Kami</span>
-            <h2 class="heading mb-3">Contact</h2>
-            <p class="text-black font-semibold">Hubungi kami untuk informasi lebih lanjut tentang paket layanan kami.</p>
-          </div>
-        </div>
+    <!-- 5. KONTAK SECTION -->
 
-
-      </div>
-    </div>
 
     <!-- Footer -->
-    <footer class="footer-section bg-dark py-5">
-      <div class="container text-center">
-        <h3 class="text-white mb-3">Pet Gym SaaS Management</h3>
-        <p class="text-white-50 mb-4">Platform terpadu kendali operasional, presensi member, POS kasir, dan manajemen kelas gym Anda.</p>
-        <p class="mb-0 text-white-50">
+<footer class="footer-section bg-dark py-5" id="contact-section">
+  <div class="container">
+    <div class="row align-items-stretch">
+
+      <!-- Kolom 1: Hubungi Kami -->
+      <div class="col-lg-4 mb-4" data-aos="fade-up">
+        <!-- bg-transparent & border-0 membuat card menyatu dengan background footer -->
+        <div class="card h-100 border-0 bg-transparent">
+          <div class="card-body p-0 text-left">
+            <h3 class="font-weight-bold text-white mb-2 h4">Hubungi Kami</h3>
+            <p class="text-white-50 small mb-4">Kami siap membantu Anda dengan pertanyaan atau keluhan apa pun.</p>
+
+            <div class="contact-info">
+              <!-- Telepon -->
+              <div class="d-flex align-items-center mb-3">
+                <div class="icon-wrap mr-3 bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                  <span class="icon-phone h6 mb-0"></span>
+                </div>
+                <div>
+                  <small class="text-white-50 d-block font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">PHONE NUMBER</small>
+                  <a href="https://wa.me/6288977713600" target="_blank" class="text-white font-weight-bold text-decoration-none">+62 889-7771-3600</a>
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div class="d-flex align-items-center">
+                <div class="icon-wrap mr-3 bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                  <span class="icon-envelope h6 mb-0"></span>
+                </div>
+                <div>
+                  <small class="text-white-50 d-block font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">EMAIL</small>
+                  <a href="mailto:shfwn121984@gmail.com" class="text-white font-weight-bold text-decoration-none">shfwn121984@gmail.com</a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Kolom 2: Layanan Utama -->
+      <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card h-100 border-0 bg-transparent">
+          <div class="card-body p-0 text-left">
+            <h3 class="font-weight-bold text-white mb-2 h4">Layanan Utama</h3>
+            <p class="text-white-50 small mb-4">Nikmati berbagai program kebugaran terbaik dari kami.</p>
+
+            <ul class="list-unstyled mb-0">
+              <li class="mb-2">
+                <a href="index.html#classes-section" class="text-white-50 font-weight-bold text-decoration-none d-flex align-items-center">
+                  <span class="icon-check text-primary mr-2"></span> Membership / Paket
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="index.html#trainer-section" class="text-white-50 font-weight-bold text-decoration-none d-flex align-items-center">
+                  <span class="icon-check text-primary mr-2"></span> Personal Trainer
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="index.html#schedule-section" class="text-white-50 font-weight-bold text-decoration-none d-flex align-items-center">
+                  <span class="icon-check text-primary mr-2"></span> Jadwal Kelas
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="index.html#services-section" class="text-white-50 font-weight-bold text-decoration-none d-flex align-items-center">
+                  <span class="icon-check text-primary mr-2"></span> Fasilitas Gym
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kolom 3: Kemitraan & Informasi -->
+      <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="card h-100 border-0 bg-transparent">
+          <div class="card-body p-0 text-left">
+            <h3 class="font-weight-bold text-white mb-2 h4">Kemitraan & Informasi</h3>
+            <p class="text-white-50 small mb-4">Terbuka untuk kerjasama perusahaan dan media.</p>
+
+            <div class="mb-3">
+              <small class="text-white-50 d-block font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">PARTNERSHIP</small>
+              <a href="mailto:partnership@petgym.com" class="text-white font-weight-bold text-decoration-none">partnership@petgym.com</a>
+            </div>
+
+            <div class="mb-0">
+              <small class="text-white-50 d-block font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">JAM OPERASIONAL</small>
+              <span class="text-white font-weight-bold">Senin - Minggu (06.00 - 22.00)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Copyright -->
+    <div class="row pt-4 text-center border-top border-secondary">
+      <div class="col-md-12">
+        <p class="text-white-50 small mb-0">
           Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | Pet Gym Management System
         </p>
       </div>
-    </footer>
+    </div>
+
+  </div>
+</footer>
 
   </div>
   <!-- .site-wrap -->
