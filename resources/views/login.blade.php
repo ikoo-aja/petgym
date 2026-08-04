@@ -5,6 +5,7 @@
   <title>Login Portal — Pet Gym Management System</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="shortcut icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
 
   <link href="https://fonts.googleapis.com/css?family=Muli:300,400,700,900" rel="stylesheet">
   <link rel="stylesheet" href="fonts/icomoon/style.css">
@@ -28,13 +29,11 @@
 
   <div class="site-wrap">
 
-    <!-- Header Logo Sederhana (Tanpa Menu Navbar Navbar Nav Links) -->
-    <div class="py-4 bg-white border-bottom shadow-sm">
+    <!-- Header Logo Sederhana -->
+    <div class="py-3 bg-white border-bottom shadow-sm">
       <div class="container text-center">
-        <div class="site-logo">
-          <a href="{{ url('/') }}" class="text-dark font-weight-bold" style="font-size: 28px; text-decoration: none;">
-            Pet<span class="text-primary">Gym</span>
-          </a>
+        <div class="site-logo d-flex justify-content-center align-items-center">
+          <x-brand-logo type="full" theme="light" size="44" url="/" />
         </div>
       </div>
     </div>

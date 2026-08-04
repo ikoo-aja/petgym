@@ -5,6 +5,7 @@
   <title>@yield('title', 'Superadmin Dashboard &mdash; Workout Website Template by Colorlib')</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="shortcut icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
 
   <link href="https://fonts.googleapis.com/css?family=Muli:300,400,700,900" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('fonts/icomoon/style.css') }}">
@@ -203,8 +204,9 @@
 
     <!-- Sidebar Navigation -->
     <aside class="admin-sidebar">
-      <div class="sidebar-brand">
-        Workout<span>.</span> <small style="font-size: 11px; display:block; color:#888;">SUPERADMIN PANEL</small>
+      <div class="sidebar-brand d-flex align-items-center justify-content-between">
+        <x-brand-logo type="full" theme="dark" size="36" url="/" />
+        <small style="font-size: 9px; color:#9ca3af; font-weight:800; background:#1e293b; padding:2px 6px; border-radius:4px;">SUPERADMIN</small>
       </div>
       <ul class="nav flex-column mt-3">
         <li class="nav-item">

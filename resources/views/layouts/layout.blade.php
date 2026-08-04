@@ -4,6 +4,7 @@
   <title>@yield('title', 'Portal Tenant &mdash; PetGym SaaS')</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="shortcut icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
 
   <link href="https://fonts.googleapis.com/css?family=Muli:300,400,700,900" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('fonts/icomoon/style.css') }}">
@@ -164,9 +165,9 @@
 <div class="admin-wrapper">
   <!-- Dynamic Sidebar per Role -->
   <aside class="admin-sidebar">
-    <div class="sidebar-brand">
-      <h3>PetGym &mdash; {{ ucfirst($userRole) }}</h3>
-      <span class="tenant-badge">{{ $currentUser && $currentUser->tenant ? $currentUser->tenant->name : 'Tenant Gym' }}</span>
+    <div class="sidebar-brand d-flex align-items-center justify-content-between">
+      <x-brand-logo type="full" theme="dark" size="36" url="/" />
+      <span class="tenant-badge" style="margin-left: 5px;">{{ $currentUser && $currentUser->tenant ? $currentUser->tenant->name : 'Tenant' }}</span>
     </div>
 
     <ul class="sidebar-menu">
