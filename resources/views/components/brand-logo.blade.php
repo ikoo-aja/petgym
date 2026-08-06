@@ -6,7 +6,7 @@
   3. Hanya Tulisan: <x-brand-logo type="text" />
 --}}
 @props([
-    'type' => 'full', // 'logo', 'full', 'text'
+    'type' => 'logo', // 'logo', 'full', 'text'
     'theme' => 'light', // 'light' (untuk bg terang) atau 'dark' (untuk bg gelap)
     'size' => '40', // tinggi logo dalam pixel
     'url' => '/'
