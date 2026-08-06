@@ -165,9 +165,9 @@
 <div class="admin-wrapper">
   <!-- Dynamic Sidebar per Role -->
   <aside class="admin-sidebar">
-    <div class="sidebar-brand d-flex align-items-center justify-content-between">
-      <x-brand-logo type="full" theme="dark" size="36" url="/" />
-      <span class="tenant-badge" style="margin-left: 5px;">{{ $currentUser && $currentUser->tenant ? $currentUser->tenant->name : 'Tenant' }}</span>
+    <div class="sidebar-brand d-flex flex-column align-items-center  gap-1 p-2 ">
+      <x-brand-logo type="full" theme="dark" size="49" url="/" />
+      <span class="tenant-badge" style="font-size: 15px;">{{ $currentUser && $currentUser->tenant ? $currentUser->tenant->name : 'Tenant' }}</span>
     </div>
 
     <ul class="sidebar-menu">

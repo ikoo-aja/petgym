@@ -68,7 +68,7 @@
               Tinggalkan pencatatan manual dan sistem kasir yang berantakan. Kami menghadirkan mesin manajemen gym berbasis <em>cloud</em> (SaaS) yang dirancang khusus untuk mempermudah operasional harian. Dari pendaftaran member, riwayat transaksi, hingga presensi kelas, semuanya terintegrasi dalam satu sistem cerdas yang bisa Anda pantau dari mana saja.
             </p>
             <p class="text-center">
-              <a href="login" class="btn btn-outline-white py-3 px-5" style="border-radius: 30px; font-weight: 700;">Mulai Eksekusi Tanpa Ribet - Free Trial 14 Hari</a>
+              <a href="#contact-section" class="nav-link btn btn-outline-white py-3 px-5" style="border-radius: 30px; font-weight: 700;">Mulai Eksekusi Tanpa Ribet - Free Trial 14 Hari</a>
             </p>
           </div>
         </div>
