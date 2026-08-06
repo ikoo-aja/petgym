@@ -605,10 +605,23 @@ h1, h2, h3, h4, h5,
           bottom: 0;
           left: 20px;
           right: 20px; }
+  .sticky-wrapper:not(.is-sticky) .site-navbar .brand-logo-white {
+    display: inline-block !important; }
+  .sticky-wrapper:not(.is-sticky) .site-navbar .brand-logo-dark {
+    display: none !important; }
+  .sticky-wrapper:not(.is-sticky) .site-navbar .brand-logo-text-airs {
+    color: #ffffff !important; }
+
   .sticky-wrapper.is-sticky .site-navbar {
     -webkit-box-shadow: 4px 0 20px -5px rgba(0, 0, 0, 0.2);
     box-shadow: 4px 0 20px -5px rgba(0, 0, 0, 0.2);
     background: #fff; }
+    .sticky-wrapper.is-sticky .site-navbar .brand-logo-white {
+      display: none !important; }
+    .sticky-wrapper.is-sticky .site-navbar .brand-logo-dark {
+      display: inline-block !important; }
+    .sticky-wrapper.is-sticky .site-navbar .brand-logo-text-airs {
+      color: #111827 !important; }
     .sticky-wrapper.is-sticky .site-navbar .site-menu-toggle > span:before {
       color: #000 !important; }
     .sticky-wrapper.is-sticky .site-navbar .site-logo a {
