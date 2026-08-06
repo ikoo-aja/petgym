@@ -642,7 +642,7 @@ h1, h2, h3, h4, h5,
     position: absolute;
     height: 100%;
     width: 100%;
-    background: #ccc;
+    background: transparent;
     border-bottom-right-radius: 0px;
     background-size: cover;
     background-position: center;

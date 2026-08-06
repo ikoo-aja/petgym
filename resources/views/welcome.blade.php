@@ -59,7 +59,7 @@
     </header>
 
     <!-- 1. HERO SECTION -->
-    <div class="intro-section" id="home-section" style="background-image: url('{{ asset('images/hero_bg.png') }}'); background-size: cover; background-position: center;">
+    <div class="intro-section" id="home-section" style="background-image: url('{{ asset('images/bg_1.jpg') }}'); background-size: cover; background-position: center;">
       <div class="container">
         <div class="row align-items-center">
           <div class="col-lg-10 mx-auto text-center" data-aos="fade-up">
