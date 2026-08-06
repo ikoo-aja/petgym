@@ -13,7 +13,7 @@
 ])
 
 @php
-    $logoDark = asset('images/logo.png');
+    $logoDark = asset('images/logo-dark.png');
     $logoWhite = asset('images/logo-white.png');
     $textColor = $theme === 'dark' ? '#ffffff' : '#111827';
     $accentColor = '#c83660';

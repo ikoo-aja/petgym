@@ -5,7 +5,7 @@
   <title>@yield('title', 'Superadmin Dashboard &mdash; Workout Website Template by Colorlib')</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="shortcut icon" href="{{ asset('images/logo.jpg') }}" type="image/x-icon">
+  <x-dynamic-favicon />
 
   <link href="https://fonts.googleapis.com/css?family=Muli:300,400,700,900" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('fonts/icomoon/style.css') }}">
@@ -139,7 +139,7 @@
     .custom-toast.toast-error { border-left-color: #dc3545; }
     .custom-toast.toast-warning { border-left-color: #ffc107; }
     .custom-toast.toast-info { border-left-color: #17a2b8; }
-    
+
     .custom-toast-icon {
       font-size: 20px;
       margin-top: 2px;
