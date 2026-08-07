@@ -7,6 +7,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/home', function () {
+    return redirect('/admin/dashboard');
+});
+
 
 
 // Group Guest (Hanya bisa diakses jika belum login)
