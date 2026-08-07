@@ -15,7 +15,7 @@ class AdminLockerController extends Controller
         $tenant = $user->tenant;
 
         $lockers = Locker::where('tenant_id', $tenant->id)
-            ->orderByRaw('CAST(locker_number AS INTEGER) ASC')
+            ->orderByRaw('CAST(locker_number AS UNSIGNED) ASC')
             ->orderBy('locker_number')
             ->get();
 

@@ -28,7 +28,7 @@
         @forelse($staffs as $st)
           <tr>
             <td class="font-weight-bold text-dark">{{ $st->name }}</td>
-            <td style="font-size: 13.5px;">{{ $st->email }}</td>
+            <td style="font-size: 13.5px;" class="text-dark font-weight-semibold">{{ $st->email }}</td>
             <td>
               @if($st->role === 'admin')
                 <span class="badge badge-primary px-3 py-1">Admin</span>
@@ -42,7 +42,7 @@
                 <span class="badge badge-secondary px-3 py-1">{{ ucfirst($st->role) }}</span>
               @endif
             </td>
-            <td style="font-size: 13px;">{{ $st->created_at ? $st->created_at->format('d M Y H:i') : '-' }}</td>
+            <td style="font-size: 13px;" class="text-dark">{{ $st->created_at ? $st->created_at->format('d M Y H:i') : '-' }}</td>
             <td class="text-right">
               <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-staff" data-id="{{ $st->id }}" data-name="{{ $st->name }}" data-email="{{ $st->email }}" data-role="{{ $st->role }}" style="border-radius: 6px;">Edit</button>
               <button class="btn btn-sm btn-outline-warning mr-1 btn-reset" data-id="{{ $st->id }}" data-name="{{ $st->name }}" style="border-radius: 6px;">Reset Password</button>

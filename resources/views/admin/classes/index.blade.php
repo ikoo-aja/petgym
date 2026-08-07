@@ -38,8 +38,8 @@
                   <div class="font-weight-bold text-secondary">{{ $c->room ?? 'Belum Dialokasikan' }}</div>
                   <small class="text-muted">{{ substr($c->start_time, 0, 5) }} - {{ substr($c->end_time, 0, 5) }} WIB</small>
                 </td>
-                <td style="font-size: 13px;">{{ $c->max_capacity ?? 0 }} Peserta</td>
-                <td style="font-size: 13px;">{{ $c->trainer ? $c->trainer->name : 'N/A' }}</td>
+                <td style="font-size: 13px;" class="text-dark font-weight-bold">{{ $c->max_capacity ?? 0 }} Peserta</td>
+                <td style="font-size: 13px;" class="text-dark font-weight-bold">{{ $c->trainer ? $c->trainer->name : 'N/A' }}</td>
                 <td class="text-right">
                   <button class="btn btn-sm btn-primary btn-edit-class"
                     data-id="{{ $c->id }}"
@@ -91,7 +91,7 @@
                   <div class="font-weight-bold text-dark">{{ $t->name }}</div>
                   <small class="text-muted">{{ $t->phone ?? '-' }}</small>
                 </td>
-                <td style="font-size: 13px;">{{ $t->specialization ?? 'General' }}</td>
+                <td style="font-size: 13px;" class="text-dark">{{ $t->specialization ?? 'General' }}</td>
                 <td class="text-right">
                   <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-trainer"
                     data-id="{{ $t->id }}"

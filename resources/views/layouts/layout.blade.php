@@ -14,7 +14,22 @@
   <style>
     body {
       background-color: #f4f6f9;
+      color: #1f2937 !important;
       font-family: 'Muli', sans-serif;
+    }
+    .admin-content, .admin-content table, .admin-content td, .admin-content th {
+      color: #1f2937;
+    }
+    .admin-sidebar {
+      color: #9ca3af;
+    }
+    ::selection {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    ::-moz-selection {
+      background: #e2e8f0;
+      color: #0f172a;
     }
     .admin-wrapper {
       display: flex;
