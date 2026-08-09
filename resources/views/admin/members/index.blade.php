@@ -48,16 +48,36 @@
             <td style="font-size: 13px;">{{ $m->phone ?? '-' }}</td>
             <td style="font-size: 13px;">{{ $m->gender }}</td>
             <td>
-              @if($m->status === 'active')
+              @php
+                $expiredAt = $m->expired_at ? \Carbon\Carbon::parse($m->expired_at)->startOfDay() : null;
+                $today     = \Carbon\Carbon::today();
+                $isExpired = $expiredAt && $expiredAt->lt($today);
+                $daysLeft  = $expiredAt && !$isExpired ? $today->diffInDays($expiredAt) : 0;
+                $expiringRealSoon = !$isExpired && $daysLeft > 0 && $daysLeft <= 5;
+              @endphp
+              @if(!$expiredAt)
+                <span class="badge badge-secondary px-2 py-1">Belum Aktif</span>
+              @elseif($isExpired)
+                <span class="badge badge-danger px-2 py-1">Expired</span>
+              @elseif($expiringRealSoon)
+                <span class="badge badge-warning text-dark px-2 py-1">Segera Habis</span>
+              @elseif($m->status === 'active')
                 <span class="badge badge-success px-2 py-1">Aktif</span>
               @else
-                <span class="badge badge-danger px-2 py-1">Non-Aktif</span>
+                <span class="badge badge-secondary px-2 py-1">Non-Aktif</span>
               @endif
             </td>
             <td style="font-size: 13px;">
-              {{ $m->expired_at ? $m->expired_at->format('d M Y') : '-' }}
-              @if($m->is_expired)
-                <small class="text-danger font-weight-bold d-block">Expired</small>
+              @if($expiredAt)
+                <span class="font-weight-bold {{ $isExpired ? 'text-danger' : ($expiringRealSoon ? 'text-warning' : 'text-dark') }}">
+                  {{ $expiredAt->format('d M Y') }}
+                </span>
+                <small class="text-muted d-block" style="font-size:10px;">
+                  {{ $isExpired ? 'Habis ' . $expiredAt->diffForHumans() : 'Berakhir ' . $expiredAt->diffForHumans() }}
+                </small>
+              @else
+                <span class="text-muted">-</span>
+                <small class="text-muted d-block" style="font-size:10px;">Belum ada membership</small>
               @endif
             </td>
             <td class="text-right">
@@ -103,8 +123,10 @@
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="alert alert-info py-2" style="font-size: 12px;">
-          Kode Akses PIN unik 6-digit akan dibuatkan secara otomatis oleh sistem saat pendaftaran awal.
+        <div class="alert alert-warning py-2 mb-3" style="font-size: 12px;">
+          <strong>⚠️ Perhatian:</strong> Member baru akan terdaftar dengan status <strong>Belum Aktif</strong>.
+          Setelah pendaftaran, member perlu <strong>membeli paket membership di POS Kasir</strong> agar statusnya berubah menjadi Aktif.
+          Kode Akses PIN 6-digit akan digenerate otomatis oleh sistem.
         </div>
 
         <div class="form-group mb-3">
@@ -130,14 +152,9 @@
           </select>
         </div>
 
-        <div class="form-group mb-3">
+        <div class="form-group mb-0">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Alamat</label>
           <textarea name="address" class="form-control" rows="2"></textarea>
-        </div>
-
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Masa Aktif Awal s/d</label>
-          <input type="date" name="expired_at" class="form-control" value="{{ \Carbon\Carbon::today()->addMonth()->format('Y-m-d') }}">
         </div>
       </div>
       <div class="modal-footer">
@@ -220,14 +237,15 @@
       <div class="modal-body">
         <div id="historyLoading" class="text-center py-4 text-muted">Memuat data histori...</div>
         <div id="historyTableContainer" style="display: none;">
-          <table class="table table-bordered align-middle">
+          <table class="table table-bordered align-middle" style="font-size: 13px;">
             <thead class="bg-light">
               <tr>
                 <th>Invoice</th>
-                <th>Tipe</th>
+                <th>Paket / Item Membership</th>
+                <th>Durasi</th>
                 <th>Total (Rp)</th>
-                <th>Metode Bayar</th>
-                <th>Tanggal</th>
+                <th>Metode</th>
+                <th>Tanggal Beli</th>
               </tr>
             </thead>
             <tbody id="historyTableBody"></tbody>
@@ -258,7 +276,7 @@
     $('.btn-history').on('click', function() {
       var memberId = $(this).data('id');
       var memberName = $(this).data('name');
-      $('#historyMemberTitle').text('Riwayat Transaksi: ' + memberName);
+      $('#historyMemberTitle').text('Riwayat Membership: ' + memberName);
       $('#historyLoading').show();
       $('#historyTableContainer').hide();
       $('#historyModal').modal('show');
@@ -269,16 +287,58 @@
         var html = '';
         if (data.transactions.length > 0) {
           $.each(data.transactions, function(i, t) {
+            // Build paket label from items
+            var paketLabel = '-';
+            var durasiLabel = '-';
+
+            if (t.type === 'membership' && t.items && t.items.length > 0) {
+              var membershipItem = t.items.find(function(item) {
+                return item.item_name && item.item_name.toLowerCase().indexOf('membership') !== -1 ||
+                       item.item_name && item.item_name.toLowerCase().indexOf('paket') !== -1 ||
+                       item.item_name && item.item_name.toLowerCase().indexOf('pass') !== -1;
+              });
+              if (membershipItem) {
+                paketLabel = membershipItem.item_name;
+              } else {
+                paketLabel = t.items.map(function(it) { return it.item_name; }).join(', ');
+              }
+
+              // Hitung durasi dari nama item
+              var itemName = paketLabel.toLowerCase();
+              if (itemName.indexOf('1 tahun') !== -1 || itemName.indexOf('12 bulan') !== -1) {
+                durasiLabel = '12 Bulan (1 Tahun)';
+              } else if (itemName.indexOf('3 bulan') !== -1) {
+                durasiLabel = '3 Bulan';
+              } else if (itemName.indexOf('6 bulan') !== -1) {
+                durasiLabel = '6 Bulan';
+              } else if (itemName.indexOf('1 bulan') !== -1) {
+                durasiLabel = '1 Bulan (30 Hari)';
+              } else if (itemName.indexOf('daily') !== -1 || itemName.indexOf('harian') !== -1) {
+                durasiLabel = '1 Hari (Pass Harian)';
+              } else {
+                durasiLabel = '-';
+              }
+            } else if (t.type === 'inventory' && t.items && t.items.length > 0) {
+              paketLabel = t.items.map(function(it) { return it.item_name + ' x' + it.qty; }).join(', ');
+              durasiLabel = '<span class="badge badge-secondary">Produk Ritel</span>';
+            }
+
+            var tipeLabel = t.type === 'membership'
+              ? '<span class="badge badge-success">Membership</span>'
+              : '<span class="badge badge-info">Inventaris</span>';
+
             html += '<tr>';
-            html += '<td><strong class="text-primary">' + t.invoice_number + '</strong></td>';
-            html += '<td>' + t.type + '</td>';
-            html += '<td>Rp ' + parseInt(t.total_amount).toLocaleString('id-ID') + '</td>';
-            html += '<td><span class="badge badge-info">' + t.payment_method + '</span></td>';
-            html += '<td>' + new Date(t.created_at).toLocaleDateString('id-ID') + '</td>';
+            html += '<td><strong class="text-primary">' + t.invoice_number + '</strong><br>';
+            html += '<small class="text-muted">' + tipeLabel + '</small></td>';
+            html += '<td>' + paketLabel + '</td>';
+            html += '<td>' + durasiLabel + '</td>';
+            html += '<td class="font-weight-bold text-success">Rp ' + parseInt(t.total_amount).toLocaleString('id-ID') + '</td>';
+            html += '<td><span class="badge badge-info">' + t.payment_method.toUpperCase() + '</span></td>';
+            html += '<td>' + new Date(t.created_at).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) + '</td>';
             html += '</tr>';
           });
         } else {
-          html = '<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat transaksi.</td></tr>';
+          html = '<tr><td colspan="6" class="text-center text-muted py-3">Member ini belum pernah melakukan transaksi.</td></tr>';
         }
         $('#historyTableBody').html(html);
       });

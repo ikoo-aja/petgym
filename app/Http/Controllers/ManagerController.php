@@ -467,7 +467,7 @@ class ManagerController extends Controller
 
         // Calculate end_time based on start_time and duration_minutes
         $startTime = Carbon::createFromFormat('H:i', $request->start_time);
-        $endTime = (clone $startTime)->addMinutes($request->duration_minutes);
+        $endTime = (clone $startTime)->addMinutes((int) $request->duration_minutes);
 
         GymClass::create([
             'tenant_id' => $tenant->id,
@@ -494,7 +494,7 @@ class ManagerController extends Controller
         ]);
 
         $startTime = Carbon::createFromFormat('H:i:s', strlen($request->start_time) == 5 ? $request->start_time . ':00' : $request->start_time);
-        $endTime = (clone $startTime)->addMinutes($request->duration_minutes);
+        $endTime = (clone $startTime)->addMinutes((int) $request->duration_minutes);
 
         $class->update([
             'name' => $request->name,

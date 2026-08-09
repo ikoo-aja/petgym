@@ -5,13 +5,6 @@
 @section('page_subtitle', 'Setup kapasitas loker, pendaftaran loker baru, dan blokir loker rusak oleh Admin')
 
 @section('content')
-
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-  <strong>✅ Berhasil!</strong> {{ session('success') }}
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-</div>
-@endif
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
   <strong>❌ Gagal!</strong> {{ session('error') }}

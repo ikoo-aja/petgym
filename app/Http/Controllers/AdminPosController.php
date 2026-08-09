@@ -19,7 +19,7 @@ class AdminPosController extends Controller
         $user = Auth::user();
         $tenant = $user->tenant;
 
-        $members = Member::where('tenant_id', $tenant->id)->where('status', 'active')->orderBy('name')->get();
+        $members = Member::where('tenant_id', $tenant->id)->orderBy('name')->get();
         $products = Product::where('tenant_id', $tenant->id)->orderBy('name')->get();
         $recentTransactions = PosTransaction::where('tenant_id', $tenant->id)
             ->with(['member', 'user', 'items'])
@@ -108,9 +108,17 @@ class AdminPosController extends Controller
         if ($request->type === 'membership' && $request->member_id) {
             $member = Member::find($request->member_id);
             if ($member) {
-                $months = $request->duration_months ?? 1;
-                $currentExpiry = ($member->expired_at && $member->expired_at->isFuture()) ? $member->expired_at : Carbon::today();
-                $newExpiry = $currentExpiry->addMonths($months);
+                $months = (int) ($request->duration_months ?? 1);
+                $currentExpiry = ($member->expired_at && Carbon::parse($member->expired_at)->isFuture()) 
+                    ? Carbon::parse($member->expired_at) 
+                    : Carbon::today();
+
+                if ($months > 0) {
+                    $newExpiry = (clone $currentExpiry)->addMonths($months);
+                } else {
+                    // Pass Harian (1 Hari)
+                    $newExpiry = (clone $currentExpiry)->addDay();
+                }
 
                 $member->update([
                     'status' => 'active',

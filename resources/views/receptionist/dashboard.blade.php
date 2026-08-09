@@ -195,13 +195,16 @@
                   @endif
                 </td>
                 <td class="text-right">
+                  <button class="btn btn-xs btn-outline-info font-weight-bold mr-1"
+                    onclick="openInvoiceReceiptModal({{ $tx->id }})"
+                    style="border-radius: 6px;">Struk</button>
                   @if($tx->void_status === 'none')
                     <button class="btn btn-xs btn-outline-danger btn-void-req"
                       data-id="{{ $tx->id }}"
                       data-invoice="{{ $tx->invoice_number }}"
                       style="border-radius: 6px;">Void</button>
                   @else
-                    <span class="text-muted font-italic" style="font-size:12px;">No Action</span>
+                    <span class="text-muted font-italic" style="font-size:11px;">No Void</span>
                   @endif
                 </td>
               </tr>
@@ -243,6 +246,9 @@
     </form>
   </div>
 </div>
+
+<!-- Modal Printable Struk Invoice Thermal Printer -->
+@include('partials.receipt-modal')
 @endsection
 
 @section('scripts')
@@ -255,6 +261,10 @@
       $('#voidRequestForm').attr('action', '/admin/pos/void/' + id);
       $('#voidRequestModal').modal('show');
     });
+
+    @if(session('print_transaction_id'))
+      openInvoiceReceiptModal({{ session('print_transaction_id') }});
+    @endif
   });
 </script>
 @endsection

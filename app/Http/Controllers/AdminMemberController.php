@@ -55,6 +55,8 @@ class AdminMemberController extends Controller
             $accessCode = rand(100000, 999999);
         } while (Member::where('tenant_id', $tenant->id)->where('access_code', $accessCode)->exists());
 
+        $isExplicitExpired = $request->filled('expired_at');
+
         $member = Member::create([
             'tenant_id' => $tenant->id,
             'name' => $request->name,
@@ -63,8 +65,8 @@ class AdminMemberController extends Controller
             'gender' => $request->gender,
             'address' => $request->address,
             'access_code' => (string)$accessCode,
-            'status' => 'active',
-            'expired_at' => $request->expired_at ? Carbon::parse($request->expired_at) : Carbon::today()->addMonth(),
+            'status' => $isExplicitExpired ? 'active' : 'inactive',
+            'expired_at' => $isExplicitExpired ? Carbon::parse($request->expired_at) : null,
         ]);
 
         // Audit Trail Staff Log

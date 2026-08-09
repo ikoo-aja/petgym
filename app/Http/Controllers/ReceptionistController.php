@@ -208,8 +208,8 @@ class ReceptionistController extends Controller
             'phone' => $guest->phone,
             'gender' => 'Laki-laki',
             'access_code' => $accessCode,
-            'status' => 'active',
-            'expired_at' => Carbon::now()->addMonth(), // Default 1 bulan trial/aktif
+            'status' => 'inactive',
+            'expired_at' => null,
         ]);
 
         $guest->update(['converted_to_member_id' => $member->id]);

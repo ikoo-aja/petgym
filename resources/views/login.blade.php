@@ -55,7 +55,7 @@
             <form action="{{ route('login') }}" method="POST" class="bg-white p-5 shadow-sm rounded-lg border">
               @csrf
 
-              <!-- Alert Error Umum/Gagal Login -->
+              <!-- Alert Error Gagal Login -->
               @if($errors->has('email'))
                 <div class="alert alert-danger py-2 mb-4" role="alert">
                   <small class="font-weight-bold">⚠️ {{ $errors->first('email') }}</small>
@@ -69,7 +69,14 @@
 
               <div class="form-group mb-3">
                 <label for="password" class="text-dark font-weight-bold small">Password *</label>
-                <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Enter your password" required style="font-size: 15px;">
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Enter your password" required style="font-size: 15px;">
+                    <div class="input-group-append">
+                    <span class="input-group-text bg-white border-left-0" type="cursor: pointer;" id="togglePasswordBtn">
+                        <i class="icon-eye text-muted" id="toggleIcon"></i>
+                    </span>
+                    </div>
+                 </div>
               </div>
 
               <div class="form-group row align-items-center mb-4">
@@ -114,6 +121,21 @@
   </div>
   <!-- .site-wrap -->
 
+<script>
+  const togglePasswordBtn = document.querySelector('#togglePasswordBtn');
+  const passwordInput = document.querySelector('#password');
+  const toggleIcon = document.querySelector('#toggleIcon');
+
+  togglePasswordBtn.addEventListener('click', function () {
+    const isPassword = passwordInput.getAttribute('type') === 'password';
+    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    toggleIcon.classList.toggle('icon-eye');
+    toggleIcon.classList.toggle('icon-eye-slash'); 
+    toggleIcon.classList.toggle('text-primary');
+    toggleIcon.classList.toggle('text-muted');
+  });   
+</script>
   <script src="js/jquery-3.3.1.min.js"></script>
   <script src="js/jquery-migrate-3.0.1.min.js"></script>
   <script src="js/jquery-ui.js"></script>

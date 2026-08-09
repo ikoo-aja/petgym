@@ -206,7 +206,7 @@
       @if($userRole === 'admin')
       <li>
         <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir & Struk
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir 
         </a>
       </li>
       <li>
@@ -225,7 +225,7 @@
       </li>
       <li>
         <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir & Struk
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir 
         </a>
       </li>
       <li>

@@ -39,13 +39,13 @@
                 <small class="text-muted">Hemat Rp 150.000</small>
               </div>
             </div>
-            <div class="col-md-6 mb-3">
+            {{-- <div class="col-md-6 mb-3">
               <div class="card border p-3 text-center cursor-pointer item-card" onclick="addToCart('Paket Daily Pass (Harian)', 50000, null, 'membership', 0)" style="border-radius: 10px; cursor: pointer;">
                 <h6 class="font-weight-bold text-info">Pass Harian (Daily Pass)</h6>
                 <h4 class="font-weight-bold text-dark">Rp 50.000</h4>
                 <small class="text-muted">Akses 1 Hari Saja</small>
               </div>
-            </div>
+            </div> --}}
             <div class="col-md-6 mb-3">
               <div class="card border p-3 text-center cursor-pointer item-card" onclick="addToCart('Paket Membership 1 Tahun', 4500000, null, 'membership', 12)" style="border-radius: 10px; cursor: pointer;">
                 <h6 class="font-weight-bold text-warning">Paket Membership 1 Tahun</h6>
@@ -114,7 +114,11 @@
         <select name="member_id" class="form-control" style="border-radius: 8px;">
           <option value="">-- Non-Member / Pembeli Umum --</option>
           @foreach($members as $m)
-            <option value="{{ $m->id }}">{{ $m->name }} (PIN: {{ $m->access_code }})</option>
+            @php
+              $expiredAt = $m->expired_at ? \Carbon\Carbon::parse($m->expired_at) : null;
+              $memberStatus = !$expiredAt ? '🔴 Belum Aktif' : ($expiredAt->isPast() ? '⚠️ Expired' : '🟢 Aktif');
+            @endphp
+            <option value="{{ $m->id }}">{{ $m->name }} (PIN: {{ $m->access_code }}) — {{ $memberStatus }}</option>
           @endforeach
         </select>
       </div>
@@ -163,24 +167,8 @@
   </div>
 </div>
 
-<!-- Modal Printable Struk Invoice -->
-<div class="modal fade" id="invoicePrintModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content" style="border-radius: 12px;" id="printableInvoiceArea">
-      <div class="modal-header bg-dark text-white">
-        <h5 class="modal-title font-weight-bold">Struk Bukti Pembayaran</h5>
-        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body p-4" id="invoiceModalContent">
-        <!-- Filled dynamically -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-        <button type="button" class="btn btn-primary font-weight-bold" onclick="window.print()">Cetak Struk (Print)</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Modal Printable Struk Invoice Thermal Printer -->
+@include('partials.receipt-modal')
 @endsection
 
 @section('scripts')
@@ -258,40 +246,7 @@
 
   @if(session('print_transaction_id'))
     $(document).ready(function() {
-      var txId = {{ session('print_transaction_id') }};
-      $.get('/admin/pos/invoice/' + txId, function(data) {
-        var html = '<div class="text-center mb-3">';
-        html += '<h4 class="font-weight-bold mb-0">' + (data.tenant ? data.tenant.name : 'PETGYM') + '</h4>';
-        html += '<small class="text-muted">No. Invoice: ' + data.invoice_number + '</small><br>';
-        html += '<small class="text-muted">Tanggal: ' + new Date(data.created_at).toLocaleString('id-ID') + '</small>';
-        html += '</div><hr>';
-
-        html += '<div class="mb-2" style="font-size:13px;">';
-        html += '<strong>Kasir Staf:</strong> ' + (data.user ? data.user.name : 'System') + '<br>';
-        html += '<strong>Member:</strong> ' + (data.member ? data.member.name : 'Pelanggan Umum') + '<br>';
-        html += '<strong>Metode Bayar:</strong> ' + data.payment_method.toUpperCase() + '';
-        html += '</div>';
-
-        html += '<table class="table table-sm border-top border-bottom mb-3" style="font-size:12.5px;">';
-        html += '<thead><tr><th>Item</th><th class="text-center">Qty</th><th class="text-right">Total</th></tr></thead><tbody>';
-
-        $.each(data.items, function(i, item) {
-          html += '<tr><td>' + item.item_name + '</td><td class="text-center">' + item.qty + '</td><td class="text-right">Rp ' + parseInt(item.subtotal).toLocaleString('id-ID') + '</td></tr>';
-        });
-
-        html += '</tbody></table>';
-
-        html += '<div class="d-flex justify-content-between font-weight-bold" style="font-size:15px;">';
-        html += '<span>TOTAL:</span><span>Rp ' + parseInt(data.total_amount).toLocaleString('id-ID') + '</span>';
-        html += '</div>';
-
-        html += '<div class="text-center text-muted mt-4" style="font-size:11px;">';
-        html += 'Terima Kasih atas kunjungan Anda di ' + (data.tenant ? data.tenant.name : 'PetGym') + '!';
-        html += '</div>';
-
-        $('#invoiceModalContent').html(html);
-        $('#invoicePrintModal').modal('show');
-      });
+      openInvoiceReceiptModal({{ session('print_transaction_id') }});
     });
   @endif
 
