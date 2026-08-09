@@ -58,11 +58,11 @@
             $featuresList = is_array($tenant->features) ? $tenant->features : ($tenant['features'] ?? ['POS', 'Class']);
           @endphp
           <tr>
-            <td>
+            <td >
               <strong class="text-black">{{ $tenant->name ?? $tenant['name'] }}</strong><br>
               <small class="text-muted">{{ $tenant->subdomain ?? $tenant['subdomain'] }}</small>
             </td>
-            <td>
+            <td class="text-black">
               {{ $oName }}<br>
               <small class="text-muted">{{ $oEmail }}</small>
             </td>
@@ -74,7 +74,7 @@
               @else
                 <span class="badge badge-secondary">{{ $pName }}</span>
               @endif
-              
+
               <!-- Container for dynamic active feature tags -->
               <div class="tenant-features-list mt-1 d-flex flex-wrap">
                 @foreach($featuresList as $feat)
@@ -226,35 +226,35 @@
             Mengonfigurasi modul fitur aktif untuk: <strong class="text-black" id="featuresTenantName">Gym Name</strong>
           </div>
           <hr class="my-3">
-          
+
           <div class="form-group">
             <label class="text-black font-weight-bold d-block mb-3">Fitur Terintegrasi</label>
-            
+
             <!-- Feature Toggles -->
             <div class="custom-control custom-switch mb-3">
               <input type="checkbox" class="custom-control-input feat-sw" id="featPOS" data-slug="POS">
               <label class="custom-control-label font-weight-bold text-black" for="featPOS" style="cursor: pointer;">Akses POS / Kasir</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Mengaktifkan modul transaksi kasir dan invoice harian.</small>
             </div>
-            
+
             <div class="custom-control custom-switch mb-3">
               <input type="checkbox" class="custom-control-input feat-sw" id="featClass" data-slug="Class">
               <label class="custom-control-label font-weight-bold text-black" for="featClass" style="cursor: pointer;">Manajemen Kelas & Sesi</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Membuat jadwal kelas, booking member, dan absensi trainer.</small>
             </div>
-            
+
             <div class="custom-control custom-switch mb-3">
               <input type="checkbox" class="custom-control-input feat-sw" id="featTrainer" data-slug="Trainer">
               <label class="custom-control-label font-weight-bold text-black" for="featTrainer" style="cursor: pointer;">Manajemen Trainer</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Penjadwalan personal trainer (PT) dan perhitungan komisi.</small>
             </div>
-            
+
             <div class="custom-control custom-switch mb-3">
               <input type="checkbox" class="custom-control-input feat-sw" id="featInventory" data-slug="Inventory">
               <label class="custom-control-label font-weight-bold text-black" for="featInventory" style="cursor: pointer;">Manajemen Inventaris</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Melacak stok suplemen, merchandise, handuk, dan logistik gym.</small>
             </div>
-            
+
             <div class="custom-control custom-switch mb-3">
               <input type="checkbox" class="custom-control-input feat-sw" id="featMobile" data-slug="Mobile">
               <label class="custom-control-label font-weight-bold text-black" for="featMobile" style="cursor: pointer;">Akses Mobile App Member</label>
@@ -294,7 +294,7 @@
       const plan = $('select[name="plan"] option:selected').text();
       const planVal = $('#addTenantPlan').val();
       const joinedDate = 'Hari Ini';
-      
+
       // Tentukan badge fitur default berdasarkan pilihan paket
       let featBadges = '';
       if (planVal === 'enterprise') {
@@ -361,11 +361,11 @@
           </td>
         </tr>
       `;
-      
+
       $('table tbody').prepend(newRow);
       $('#addTenantModal').modal('hide');
       $('#addTenantForm')[0].reset();
-      
+
       showToast('Penyewa Ditambahkan', `Gym "${name}" berhasil didaftarkan pada subdomain ${subdomain}`, 'success');
 
       setTimeout(function() {
@@ -377,10 +377,10 @@
     $(document).on('click', '.btn-login-tenant', function(e) {
       e.preventDefault();
       const tenantName = $(this).data('name');
-      
+
       $('#overlay-text').text(`Menghubungkan ke dashboard ${tenantName}...`);
       $('#impersonation-overlay').css('display', 'flex').hide().fadeIn(300);
-      
+
       setTimeout(function() {
         localStorage.setItem('impersonating_tenant', tenantName);
         window.location.reload();
@@ -394,10 +394,10 @@
       const statusBadge = row.find('.badge-status-active, .badge-status-suspended');
       const expireCell = row.find('td:nth-child(5)');
       const tenantName = row.find('strong').first().text();
-      
+
       statusBadge.removeClass('badge-status-active').addClass('badge-status-suspended').text('Suspended');
       expireCell.html('<span class="text-danger" style="font-weight: 700;">N/A (Suspended)</span>');
-      
+
       $(this).removeClass('text-warning btn-suspend-tenant').addClass('text-success btn-activate-tenant').html('<span class="icon-play_arrow mr-2"></span> Aktifkan');
       showToast('Akses Ditangguhkan', `Akses untuk "${tenantName}" dinonaktifkan sementara.`, 'warning');
     });
@@ -409,10 +409,10 @@
       const statusBadge = row.find('.badge-status-active, .badge-status-suspended');
       const expireCell = row.find('td:nth-child(5)');
       const tenantName = row.find('strong').first().text();
-      
+
       statusBadge.removeClass('badge-status-suspended').addClass('badge-status-active').text('Aktif');
       expireCell.html('<span class="text-success font-weight-bold" style="font-weight: 700;">30 Hari</span>');
-      
+
       $(this).removeClass('text-success btn-activate-tenant').addClass('text-warning btn-suspend-tenant').html('<span class="icon-pause mr-2"></span> Suspend');
       showToast('Akses Dipulihkan', `Akses tenant "${tenantName}" telah aktif kembali.`, 'success');
     });
@@ -422,7 +422,7 @@
       e.preventDefault();
       const row = $(this).closest('tr');
       const tenantName = row.find('strong').first().text();
-      
+
       row.css('background-color', '#fff3f3');
       setTimeout(function() {
         row.fadeOut(400, function() {

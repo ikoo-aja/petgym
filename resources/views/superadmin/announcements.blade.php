@@ -65,7 +65,7 @@
             <tr>
               <td style="white-space: nowrap;"><small class="text-muted">{{ $createdAtStr }}</small></td>
               <td class="font-weight-bold text-black">{{ $annTitle }}</td>
-              <td style="max-width: 350px;">{!! \Illuminate\Support\Str::limit(strip_tags($annMsg), 90) !!}</td>
+              <td style="max-width: 350px;" class="text-black">{!! \Illuminate\Support\Str::limit(strip_tags($annMsg), 90) !!}</td>
               <td>
                 @if($annStatus == 'Active')
                   <span class="badge badge-success px-2 py-1 text-white">Aktif</span>
@@ -127,7 +127,7 @@
       e.preventDefault();
       const title = $('input[name="title"]').val();
       const editorHtml = quill.root.innerHTML;
-      
+
       if (quill.getText().trim().length === 0) {
         showToast('Validasi Gagal', 'Isi pesan broadcast tidak boleh kosong!', 'error');
         return false;
@@ -160,11 +160,11 @@
       `;
 
       $('table tbody').prepend(newRow);
-      
+
       // Reset form
       $('input[name="title"]').val('');
       quill.root.innerHTML = '';
-      
+
       showToast('Pengumuman Disiarkan', `Pengumuman "${title}" berhasil disiarkan ke seluruh dashboard tenant!`, 'success');
 
       setTimeout(function() {
@@ -178,10 +178,10 @@
       const row = $(this).closest('tr');
       const statusBadge = row.find('.badge-success, .badge-secondary');
       const title = row.find('td:nth-child(2)').text();
-      
+
       statusBadge.removeClass('badge-success').addClass('badge-secondary').text('Ditarik (Recalled)');
       $(this).removeClass('btn-outline-warning btn-recall-announcement').addClass('btn-outline-success btn-activate-announcement').html('<span class="icon-play_arrow"></span> Aktifkan').attr('title', 'Aktifkan Kembali');
-      
+
       showToast('Pengumuman Ditarik', `Pengumuman "${title}" berhasil dinonaktifkan dari dashboard tenant.`, 'warning');
     });
 
@@ -191,10 +191,10 @@
       const row = $(this).closest('tr');
       const statusBadge = row.find('.badge-success, .badge-secondary');
       const title = row.find('td:nth-child(2)').text();
-      
+
       statusBadge.removeClass('badge-secondary').addClass('badge-success').text('Aktif');
       $(this).removeClass('btn-outline-success btn-activate-announcement').addClass('btn-outline-warning btn-recall-announcement').html('<span class="icon-pause"></span> Tarik').attr('title', 'Tarik Kembali');
-      
+
       showToast('Pengumuman Aktif', `Pengumuman "${title}" disiarkan kembali ke dashboard tenant.`, 'success');
     });
 
@@ -203,7 +203,7 @@
       e.preventDefault();
       const row = $(this).closest('tr');
       const title = row.find('td:nth-child(2)').text();
-      
+
       row.css('background-color', '#fff3f3');
       setTimeout(function() {
         row.fadeOut(400, function() {
@@ -217,14 +217,14 @@
     $(document).on('click', '.btn-edit-announcement', function() {
       const title = $(this).data('title');
       const message = $(this).data('message');
-      
+
       $('input[name="title"]').val(title);
       quill.root.innerHTML = message;
-      
+
       $('html, body').animate({
         scrollTop: $("#broadcastForm").offset().top - 100
       }, 500);
-      
+
       showToast('Memuat Pengumuman', 'Konten pengumuman dimuat ke editor untuk diedit.', 'info');
     });
   });
