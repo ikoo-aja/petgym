@@ -26,7 +26,7 @@
           <li>✓ Maksimal 150 Member</li>
           <li>✓ Akses Manajemen Kelas</li>
           <li>✓ Kasir / POS Sederhana</li>
-          <li>✗ Analytics Lanjutan</li>
+          <li class="text-muted" style="opacity: 0.6;">✗ Analytics Lanjutan</li>
         </ul>
         <hr>
         <div class="custom-control custom-switch mb-3">
@@ -137,11 +137,90 @@
     </div>
   </div>
 </div>
+
+<!-- MODAL: EDIT BATASAN & FITUR PAKET -->
+<div class="modal fade" id="editPlanModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-header-title font-weight-bold text-black">Edit Batasan & Fitur: <span id="editModalPlanTitle" class="text-primary"></span></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="#" method="POST" id="editPlanForm">
+        @csrf
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="text-black font-weight-bold">Nama Paket</label>
+            <input type="text" name="edit_name" id="edit_name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="text-black font-weight-bold">Harga Bulanan (Rp)</label>
+            <input type="number" name="edit_price" id="edit_price" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="text-black font-weight-bold">Maksimal Member</label>
+            <input type="number" name="edit_max_members" id="edit_max_members" class="form-control" placeholder="Kosongkan jika unlimited">
+            <small class="text-muted">Isi angka (misal 150, 500) atau kosongkan untuk Unlimited.</small>
+          </div>
+          
+          <div class="form-group mb-0">
+            <label class="text-black font-weight-bold mb-2">Fitur & Modul Paket</label>
+            
+            <div class="custom-control custom-checkbox mb-2">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatClass" data-label="Akses Manajemen Kelas">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatClass">Akses Manajemen Kelas</label>
+            </div>
+            <div class="custom-control custom-checkbox mb-2">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatPOS" data-label="Kasir / POS Sederhana">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatPOS">Kasir / POS Sederhana</label>
+            </div>
+            <div class="custom-control custom-checkbox mb-2">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatTrainer" data-label="Akses Manajemen Trainer">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatTrainer">Akses Manajemen Trainer</label>
+            </div>
+            <div class="custom-control custom-checkbox mb-2">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatInventory" data-label="Manajemen Inventaris">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatInventory">Manajemen Inventaris</label>
+            </div>
+            <div class="custom-control custom-checkbox mb-2">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatMobile" data-label="Mobile App Member Access">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatMobile">Mobile App Member Access</label>
+            </div>
+            <div class="custom-control custom-checkbox mb-2">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatAnalytics" data-label="Analytics Lanjutan">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatAnalytics">Analytics Lanjutan</label>
+            </div>
+            <div class="custom-control custom-checkbox mb-2">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatDomain" data-label="Kustom Domain Sendiri">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatDomain">Kustom Domain Sendiri</label>
+            </div>
+            <div class="custom-control custom-checkbox mb-2">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatDatabase" data-label="Dedicated Database">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatDatabase">Dedicated Database</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatSupport" data-label="Support Prioritas 24/7">
+              <label class="custom-control-label font-weight-bold text-dark" for="editFeatSupport">Support Prioritas 24/7</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary btn-sm">Simpan Perubahan Paket</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('scripts')
 <script>
   $(document).ready(function() {
+    let currentEditingCard = null;
+
     // 1. Submit form tambah paket secara dinamis
     $('#createPlanForm').on('submit', function(e) {
       e.preventDefault();
@@ -164,8 +243,8 @@
             <h3 class="text-info font-weight-bold">Rp ${price} <small style="font-size: 14px;" class="text-muted">/ bulan</small></h3>
             <ul class="list-unstyled my-3 text-muted" style="line-height: 2; font-size: 14px;">
               <li>✓ Maksimal ${maxMembers}</li>
-              <li>✓ Akses Kelas Tambahan</li>
-              <li>✓ POS / Billing Standard</li>
+              <li>✓ Akses Manajemen Kelas</li>
+              <li>✓ Kasir / POS Sederhana</li>
             </ul>
             <hr>
             <div class="custom-control custom-switch mb-3">
@@ -200,11 +279,82 @@
       }
     });
 
-    // 3. Edit Batasan Paket
+    // 3. Membuka Modal Edit Batasan Paket
     $(document).on('click', '.btn-edit-plan', function(e) {
       e.preventDefault();
-      const planName = $(this).closest('.bg-white').find('h5').first().text();
-      showToast('Edit Batasan Paket', `Modul limitasi dan fitur untuk "${planName}" berhasil dimuat.`, 'info');
+      currentEditingCard = $(this).closest('.col-md-4');
+      
+      const planName = currentEditingCard.find('h5').first().text().trim();
+      const rawPriceText = currentEditingCard.find('h3').first().text().replace(/[^\d]/g, '');
+      const priceVal = parseInt(rawPriceText) || 0;
+
+      // Cari nilai maksimal member dari list
+      let maxMembersVal = '';
+      currentEditingCard.find('ul li').each(function() {
+        const text = $(this).text();
+        if (text.includes('Maksimal') || text.includes('Member')) {
+          const match = text.match(/\d+/);
+          if (match) {
+            maxMembersVal = match[0];
+          }
+        }
+      });
+
+      // Isi input modal dengan data kartu terkini
+      $('#editModalPlanTitle').text(planName);
+      $('#edit_name').val(planName);
+      $('#edit_price').val(priceVal);
+      $('#edit_max_members').val(maxMembersVal);
+
+      // Centang ulang checkbox fitur berdasarkan list di kartu
+      $('.edit-feat-cb').prop('checked', false);
+      currentEditingCard.find('ul li').each(function() {
+        const liText = $(this).text().trim();
+        if (liText.startsWith('✓')) {
+          const featureCleanText = liText.replace('✓', '').trim();
+          $('.edit-feat-cb').each(function() {
+            const labelText = $(this).data('label');
+            if (featureCleanText.toLowerCase().includes(labelText.toLowerCase()) || labelText.toLowerCase().includes(featureCleanText.toLowerCase())) {
+              $(this).prop('checked', true);
+            }
+          });
+        }
+      });
+
+      $('#editPlanModal').modal('show');
+    });
+
+    // 4. Submit Form Edit Batasan Paket
+    $('#editPlanForm').on('submit', function(e) {
+      e.preventDefault();
+      if (!currentEditingCard) return;
+
+      const newName = $('#edit_name').val().trim();
+      const rawPrice = $('#edit_price').val();
+      const newPriceFormatted = parseInt(rawPrice).toLocaleString('id-ID');
+      const maxMemVal = $('#edit_max_members').val().trim();
+      const newMaxMemText = maxMemVal ? `Maksimal ${maxMemVal} Member` : 'Unlimited Member';
+
+      // Update judul & harga kartu
+      currentEditingCard.find('h5').first().text(newName);
+      currentEditingCard.find('h3').first().html(`Rp ${newPriceFormatted} <small style="font-size: 14px;" class="text-muted">/ bulan</small>`);
+
+      // Rebuild daftar fitur
+      const ul = currentEditingCard.find('ul').first();
+      ul.empty();
+      ul.append(`<li>✓ ${newMaxMemText}</li>`);
+
+      $('.edit-feat-cb').each(function() {
+        const labelText = $(this).data('label');
+        if ($(this).is(':checked')) {
+          ul.append(`<li>✓ ${labelText}</li>`);
+        } else {
+          ul.append(`<li class="text-muted" style="opacity: 0.6;">✗ ${labelText}</li>`);
+        }
+      });
+
+      $('#editPlanModal').modal('hide');
+      showToast('Paket Diperbarui', `Batasan & fitur untuk "${newName}" berhasil disimpan!`, 'success');
     });
   });
 </script>
