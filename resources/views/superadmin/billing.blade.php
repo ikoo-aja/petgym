@@ -50,9 +50,9 @@
           @endphp
           <tr>
             <td class="font-weight-bold text-black">{{ $invNo }}</td>
-            <td>{{ $tenantName }}</td>
-            <td class="font-weight-bold">{{ $amountFormatted }}</td>
-            <td>{{ $dueDateFormatted }}</td>
+            <td class="text-black">{{ $tenantName }}</td>
+            <td class="font-weight-bold text-black">{{ $amountFormatted }}</td>
+            <td class="text-black">{{ $dueDateFormatted }}</td>
             <td>
               @if($statusVal == 'pending')
                 <span class="badge badge-status-pending px-2 py-1 rounded">Menunggu Verifikasi</span>
@@ -63,19 +63,19 @@
             <td>
               <div class="d-flex align-items-center">
                 <!-- Button View Proof -->
-                <button class="btn btn-sm btn-outline-info py-1 px-2 mr-2 btn-view-proof" 
-                        data-toggle="modal" 
-                        data-target="#viewProofModal" 
-                        data-invoice="{{ $invNo }}" 
-                        data-tenant="{{ $tenantName }}" 
-                        data-proof="{{ $proofVal }}" 
+                <button class="btn btn-sm btn-outline-info py-1 px-2 mr-2 btn-view-proof"
+                        data-toggle="modal"
+                        data-target="#viewProofModal"
+                        data-invoice="{{ $invNo }}"
+                        data-tenant="{{ $tenantName }}"
+                        data-proof="{{ $proofVal }}"
                         title="Lihat Bukti Transfer"
                         style="font-size: 12px; font-weight: bold;">
                   <span class="icon-search"></span> Lihat Bukti
                 </button>
 
                 @if($statusVal == 'pending')
-                  <button class="btn btn-sm btn-success py-1 px-2 btn-verify-direct" 
+                  <button class="btn btn-sm btn-success py-1 px-2 btn-verify-direct"
                           data-invoice="{{ $invNo }}"
                           style="font-size: 12px; font-weight: bold;">
                     Verifikasi Lunas
@@ -170,10 +170,10 @@
       const row = button.closest('tr');
       const statusBadge = row.find('.badge-status-pending, .badge-status-active');
       const invoiceNo = row.find('td').first().text();
-      
+
       statusBadge.removeClass('badge-status-pending').addClass('badge-status-active').text('Lunas');
       button.removeClass('btn-success btn-verify-direct').addClass('btn-light').prop('disabled', true).text('Verified');
-      
+
       showToast('Verifikasi Berhasil', `Pembayaran untuk invoice ${invoiceNo} berhasil diverifikasi Lunas.`, 'success');
     }
   });
