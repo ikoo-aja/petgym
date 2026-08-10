@@ -58,11 +58,27 @@
           </tr>
         </thead>
         <tbody>
+          @php
+            if (!function_exists('maskEmail')) {
+                function maskEmail($email) {
+                    if (!$email || !str_contains($email, '@')) return $email;
+                    [$name, $domain] = explode('@', $email, 2);
+                    $length = strlen($name);
+                    if ($length <= 2) {
+                        $maskedName = substr($name, 0, 1) . '*';
+                    } else {
+                        $maskedName = substr($name, 0, 1) . str_repeat('*', max(3, $length - 2)) . substr($name, -1);
+                    }
+                    return $maskedName . '@' . $domain;
+                }
+            }
+          @endphp
           @forelse($tenants as $tenant)
           @php
             $pName = $tenant->plan_name ?? 'Basic';
             $oName = $tenant->owner_name ?? 'Owner';
             $oEmail = $tenant->owner_email ?? 'owner@gym.com';
+            $maskedEmail = maskEmail($oEmail);
             $expDays = $tenant->expires_in_days ?? 30;
             $featuresList = is_array($tenant->features) ? $tenant->features : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'];
           @endphp
@@ -72,8 +88,19 @@
               <small class="text-muted">{{ $tenant->subdomain }}</small>
             </td>
             <td>
-              {{ $oName }}<br>
-              <small class="text-muted">{{ $oEmail }}</small>
+              <div class="font-weight-bold text-black">{{ $oName }}</div>
+              <div class="d-inline-flex align-items-center" style="gap: 5px;">
+                <small class="text-muted email-text" style="font-family: monospace; font-size: 12px;">{{ $maskedEmail }}</small>
+                <button type="button" 
+                        class="btn btn-link p-0 text-secondary btn-toggle-email" 
+                        data-full="{{ $oEmail }}" 
+                        data-masked="{{ $maskedEmail }}" 
+                        data-shown="false"
+                        title="Tampilkan Email Pemilik"
+                        style="font-size: 12px; text-decoration: none; outline: none; box-shadow: none; line-height: 1;">
+                  <span class="icon-eye"></span>
+                </button>
+              </div>
             </td>
             <td>
               @if(strpos($pName, 'Enterprise') !== false)
@@ -304,6 +331,25 @@
 @section('scripts')
 <script>
   $(document).ready(function() {
+    // 0. Toggle Masking / Sensor Email Pemilik
+    $(document).on('click', '.btn-toggle-email', function(e) {
+      e.preventDefault();
+      const btn = $(this);
+      const emailText = btn.siblings('.email-text');
+      const isShown = btn.attr('data-shown') === 'true';
+
+      if (isShown) {
+        emailText.text(btn.data('masked'));
+        btn.attr('data-shown', 'false');
+        btn.find('span').removeClass('icon-eye-slash').addClass('icon-eye');
+        btn.attr('title', 'Tampilkan Email Pemilik');
+      } else {
+        emailText.text(btn.data('full'));
+        btn.attr('data-shown', 'true');
+        btn.find('span').removeClass('icon-eye').addClass('icon-eye-slash');
+        btn.attr('title', 'Sembunyikan Email Pemilik');
+      }
+    });
     // 1. Membuka Modal Atur Fitur & Populasikan Data DB
     $(document).on('click', '.btn-features-tenant', function(e) {
       e.preventDefault();
