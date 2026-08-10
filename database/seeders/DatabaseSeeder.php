@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder
             [
                 'price' => 500000,
                 'max_members' => 150,
-                'features' => ['POS', 'Class'],
+                'features' => ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'],
                 'status' => 'active',
             ]
         );
@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
             [
                 'price' => 1200000,
                 'max_members' => 500,
-                'features' => ['POS', 'Class', 'Trainer', 'Inventory'],
+                'features' => ['Akses Manajemen Kelas', 'Kasir / POS Sederhana', 'Akses Manajemen Trainer', 'Manajemen Inventaris', 'Mobile App Member Access'],
                 'status' => 'active',
             ]
         );
@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
             [
                 'price' => 2500000,
                 'max_members' => null,
-                'features' => ['POS', 'Class', 'Trainer', 'Inventory', 'Mobile', 'Analytics'],
+                'features' => ['Akses Manajemen Kelas', 'Kasir / POS Sederhana', 'Akses Manajemen Trainer', 'Manajemen Inventaris', 'Mobile App Member Access', 'Analytics Lanjutan', 'Kustom Domain Sendiri', 'Dedicated Database', 'Support Prioritas 24/7'],
                 'status' => 'active',
             ]
         );

@@ -77,6 +77,85 @@ class SuperadminController extends Controller
     }
 
     /**
+     * Simpan Paket Sewa Baru ke Database.
+     */
+    public function storePlan(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'max_members' => 'nullable|integer|min:1',
+            'features' => 'nullable|array',
+        ]);
+
+        $features = $request->input('features', []);
+
+        Plan::create([
+            'name' => $request->name,
+            'price' => $request->price,
+            'max_members' => $request->max_members ?: null,
+            'features' => $features,
+            'status' => 'active',
+        ]);
+
+        return redirect()->route('superadmin.plans')->with('success', "Paket '{$request->name}' berhasil ditambahkan ke database!");
+    }
+
+    /**
+     * Update Batasan & Fitur Paket Sewa di Database.
+     */
+    public function updatePlan(Request $request, $id)
+    {
+        $plan = Plan::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'max_members' => 'nullable|integer|min:1',
+            'features' => 'nullable|array',
+        ]);
+
+        $features = $request->input('features', []);
+
+        $plan->update([
+            'name' => $request->name,
+            'price' => $request->price,
+            'max_members' => $request->max_members ?: null,
+            'features' => $features,
+        ]);
+
+        return redirect()->route('superadmin.plans')->with('success', "Batasan & fitur paket '{$plan->name}' berhasil diperbarui di database!");
+    }
+
+    /**
+     * Toggle Status Paket (Active / Archived).
+     */
+    public function togglePlanStatus(Request $request, $id)
+    {
+        $plan = Plan::findOrFail($id);
+        $newStatus = $plan->status === 'active' ? 'archived' : 'active';
+        $plan->update(['status' => $newStatus]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['status' => 'success', 'new_status' => $newStatus]);
+        }
+
+        return redirect()->route('superadmin.plans')->with('success', "Status paket '{$plan->name}' berhasil diubah menjadi {$newStatus}!");
+    }
+
+    /**
+     * Hapus Paket Sewa dari Database.
+     */
+    public function destroyPlan($id)
+    {
+        $plan = Plan::findOrFail($id);
+        $planName = $plan->name;
+        $plan->delete();
+
+        return redirect()->route('superadmin.plans')->with('success', "Paket '{$planName}' telah dihapus dari database!");
+    }
+
+    /**
      * Tampilkan Halaman Keuangan & Tagihan.
      */
     public function billing(Request $request)

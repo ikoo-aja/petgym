@@ -13,75 +13,103 @@
     <button class="btn btn-primary btn-sm px-3" data-toggle="modal" data-target="#createPlanModal">+ Buat Paket Baru</button>
   </div>
 
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+      <strong>Sukses!</strong> {{ session('success') }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  @endif
+
   <div class="row">
-    <!-- Paket Basic -->
-    <div class="col-md-4 mb-4">
-      <div class="bg-white p-4 rounded shadow-sm border-top border-primary" style="border-top-width: 4px !important; position: relative;">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <h5 class="font-weight-bold text-black mb-0">Paket Basic</h5>
-          <span class="badge badge-success" id="badgeBasic">Active</span>
-        </div>
-        <h3 class="text-primary font-weight-bold">Rp 500.000 <small style="font-size: 14px;" class="text-muted">/ bulan</small></h3>
-        <ul class="list-unstyled my-3 text-muted" style="line-height: 2; font-size: 14px;">
-          <li>✓ Maksimal 150 Member</li>
-          <li>✓ Akses Manajemen Kelas</li>
-          <li>✓ Kasir / POS Sederhana</li>
-          <li class="text-muted" style="opacity: 0.6;">✗ Analytics Lanjutan</li>
-        </ul>
-        <hr>
-        <div class="custom-control custom-switch mb-3">
-          <input type="checkbox" class="custom-control-input plan-toggle" id="toggleBasic" data-badge="badgeBasic" checked>
-          <label class="custom-control-label text-muted" for="toggleBasic" style="font-size: 13px; cursor: pointer;">Status Paket</label>
-        </div>
-        <button class="btn btn-outline-primary btn-block btn-sm btn-edit-plan">Edit Batasan Paket</button>
-      </div>
-    </div>
+    @php
+      $masterFeatures = [
+        'Akses Manajemen Kelas',
+        'Kasir / POS Sederhana',
+        'Akses Manajemen Trainer',
+        'Manajemen Inventaris',
+        'Mobile App Member Access',
+        'Analytics Lanjutan',
+        'Kustom Domain Sendiri',
+        'Dedicated Database',
+        'Support Prioritas 24/7'
+      ];
+    @endphp
 
-    <!-- Paket Pro -->
-    <div class="col-md-4 mb-4">
-      <div class="bg-white p-4 rounded shadow-sm border-top border-success" style="border-top-width: 4px !important;">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <h5 class="font-weight-bold text-black mb-0">Paket Pro</h5>
-          <span class="badge badge-success" id="badgePro">Active</span>
-        </div>
-        <h3 class="text-success font-weight-bold">Rp 1.200.000 <small style="font-size: 14px;" class="text-muted">/ bulan</small></h3>
-        <ul class="list-unstyled my-3 text-muted" style="line-height: 2; font-size: 14px;">
-          <li>✓ Maksimal 500 Member</li>
-          <li>✓ Akses Manajemen Trainer</li>
-          <li>✓ Manajemen Inventaris</li>
-          <li>✓ Mobile App Member Access</li>
-        </ul>
-        <hr>
-        <div class="custom-control custom-switch mb-3">
-          <input type="checkbox" class="custom-control-input plan-toggle" id="togglePro" data-badge="badgePro" checked>
-          <label class="custom-control-label text-muted" for="togglePro" style="font-size: 13px; cursor: pointer;">Status Paket</label>
-        </div>
-        <button class="btn btn-outline-success btn-block btn-sm btn-edit-plan">Edit Batasan Paket</button>
-      </div>
-    </div>
+    @forelse($plans as $plan)
+      @php
+        $planFeatures = is_array($plan->features) ? $plan->features : [];
+        $borderClass = 'border-primary';
+        $btnClass = 'btn-outline-primary';
+        $textClass = 'text-primary';
+        if (strpos(strtolower($plan->name), 'pro') !== false) {
+            $borderClass = 'border-success';
+            $btnClass = 'btn-outline-success';
+            $textClass = 'text-success';
+        } elseif (strpos(strtolower($plan->name), 'enterprise') !== false || strpos(strtolower($plan->name), 'ultimate') !== false) {
+            $borderClass = 'border-warning';
+            $btnClass = 'btn-outline-warning text-warning';
+            $textClass = 'text-warning';
+        }
+      @endphp
+      <div class="col-md-4 mb-4">
+        <div class="bg-white p-4 rounded shadow-sm border-top {{ $borderClass }}" style="border-top-width: 4px !important; position: relative; min-height: 100%; display: flex; flex-direction: column;">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="font-weight-bold text-black mb-0">{{ $plan->name }}</h5>
+            <span class="badge {{ $plan->status == 'active' ? 'badge-success' : 'badge-secondary' }}" id="badge-{{ $plan->id }}">
+              {{ ucfirst($plan->status) }}
+            </span>
+          </div>
+          <h3 class="{{ $textClass }} font-weight-bold">
+            Rp {{ number_format($plan->price, 0, ',', '.') }} 
+            <small style="font-size: 14px;" class="text-muted">/ bulan</small>
+          </h3>
 
-    <!-- Paket Enterprise -->
-    <div class="col-md-4 mb-4">
-      <div class="bg-white p-4 rounded shadow-sm border-top border-warning" style="border-top-width: 4px !important;">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <h5 class="font-weight-bold text-black mb-0">Paket Enterprise</h5>
-          <span class="badge badge-success" id="badgeEnterprise">Active</span>
+          <ul class="list-unstyled my-3 text-muted" style="line-height: 2; font-size: 14px;">
+            <li>✓ {{ $plan->max_members ? 'Maksimal ' . $plan->max_members . ' Member' : 'Unlimited Member' }}</li>
+            @foreach($masterFeatures as $fItem)
+              @if(in_array($fItem, $planFeatures))
+                <li>✓ {{ $fItem }}</li>
+              @else
+                <li class="text-muted" style="opacity: 0.5;">✗ {{ $fItem }}</li>
+              @endif
+            @endforeach
+          </ul>
+
+          <hr class="mt-auto mb-3">
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input plan-toggle" id="toggle-{{ $plan->id }}" data-id="{{ $plan->id }}" data-name="{{ $plan->name }}" {{ $plan->status == 'active' ? 'checked' : '' }}>
+              <label class="custom-control-label text-muted" for="toggle-{{ $plan->id }}" style="font-size: 13px; cursor: pointer;">Status Paket</label>
+            </div>
+
+            <!-- Delete Form -->
+            <form action="{{ route('superadmin.plans.destroy', $plan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus paket ini dari database?');">
+              @csrf
+              @method('DELETE')
+              <button type="submit" class="btn btn-link text-danger p-0" style="font-size: 12px; font-weight: bold; text-decoration: none;">
+                Hapus Paket
+              </button>
+            </form>
+          </div>
+
+          <button class="btn {{ $btnClass }} btn-block btn-sm btn-edit-plan"
+                  data-id="{{ $plan->id }}"
+                  data-name="{{ $plan->name }}"
+                  data-price="{{ (int)$plan->price }}"
+                  data-max-members="{{ $plan->max_members }}"
+                  data-features='@json($planFeatures)'>
+            Edit Batasan Paket
+          </button>
         </div>
-        <h3 class="text-warning font-weight-bold">Rp 2.500.000 <small style="font-size: 14px;" class="text-muted">/ bulan</small></h3>
-        <ul class="list-unstyled my-3 text-muted" style="line-height: 2; font-size: 14px;">
-          <li>✓ Unlimited Member</li>
-          <li>✓ Kustom Domain Sendiri</li>
-          <li>✓ Dedicated Database</li>
-          <li>✓ Support Prioritas 24/7</li>
-        </ul>
-        <hr>
-        <div class="custom-control custom-switch mb-3">
-          <input type="checkbox" class="custom-control-input plan-toggle" id="toggleEnterprise" data-badge="badgeEnterprise" checked>
-          <label class="custom-control-label text-muted" for="toggleEnterprise" style="font-size: 13px; cursor: pointer;">Status Paket</label>
-        </div>
-        <button class="btn btn-outline-warning btn-block btn-sm text-warning btn-edit-plan">Edit Batasan Paket</button>
       </div>
-    </div>
+    @empty
+      <div class="col-12 py-5 text-center bg-white rounded shadow-sm">
+        <p class="text-muted mb-0">Belum ada paket sewa terdaftar di database.</p>
+      </div>
+    @endforelse
   </div>
 </section>
 @endsection
@@ -92,12 +120,12 @@
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-header-title font-weight-bold text-black" id="exampleModalLabel">Buat Paket Sewa Baru</h5>
+        <h5 class="modal-header-title font-weight-bold text-black">Buat Paket Sewa Baru</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="#" method="POST" id="createPlanForm">
+      <form action="{{ route('superadmin.plans.store') }}" method="POST" id="createPlanForm">
         @csrf
         <div class="modal-body">
           <div class="form-group">
@@ -113,25 +141,20 @@
             <input type="number" name="max_members" class="form-control" placeholder="1000">
             <small class="text-muted">Kosongkan jika unlimited</small>
           </div>
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Fitur Tambahan</label>
-            <div class="custom-control custom-checkbox mb-1">
-              <input type="checkbox" class="custom-control-input" id="featTrainer">
-              <label class="custom-control-label" for="featTrainer">Akses Manajemen Trainer</label>
-            </div>
-            <div class="custom-control custom-checkbox mb-1">
-              <input type="checkbox" class="custom-control-input" id="featInventory">
-              <label class="custom-control-label" for="featInventory">Manajemen Inventaris</label>
-            </div>
-            <div class="custom-control custom-checkbox">
-              <input type="checkbox" class="custom-control-input" id="featDomain">
-              <label class="custom-control-label" for="featDomain">Kustom Subdomain/Domain</label>
-            </div>
+          
+          <div class="form-group mb-0">
+            <label class="text-black font-weight-bold mb-2">Fitur & Modul Paket</label>
+            @foreach($masterFeatures as $idx => $fName)
+              <div class="custom-control custom-checkbox mb-2">
+                <input type="checkbox" name="features[]" value="{{ $fName }}" class="custom-control-input" id="createFeat{{ $idx }}">
+                <label class="custom-control-label font-weight-bold text-dark" for="createFeat{{ $idx }}">{{ $fName }}</label>
+              </div>
+            @endforeach
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm">Buat Paket</button>
+          <button type="submit" class="btn btn-primary btn-sm">Buat & Simpan Paket</button>
         </div>
       </form>
     </div>
@@ -148,67 +171,37 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="#" method="POST" id="editPlanForm">
+      <form action="" method="POST" id="editPlanForm">
         @csrf
+        @method('PUT')
         <div class="modal-body">
           <div class="form-group">
             <label class="text-black font-weight-bold">Nama Paket</label>
-            <input type="text" name="edit_name" id="edit_name" class="form-control" required>
+            <input type="text" name="name" id="edit_name" class="form-control" required>
           </div>
           <div class="form-group">
             <label class="text-black font-weight-bold">Harga Bulanan (Rp)</label>
-            <input type="number" name="edit_price" id="edit_price" class="form-control" required>
+            <input type="number" name="price" id="edit_price" class="form-control" required>
           </div>
           <div class="form-group">
             <label class="text-black font-weight-bold">Maksimal Member</label>
-            <input type="number" name="edit_max_members" id="edit_max_members" class="form-control" placeholder="Kosongkan jika unlimited">
+            <input type="number" name="max_members" id="edit_max_members" class="form-control" placeholder="Kosongkan jika unlimited">
             <small class="text-muted">Isi angka (misal 150, 500) atau kosongkan untuk Unlimited.</small>
           </div>
           
           <div class="form-group mb-0">
             <label class="text-black font-weight-bold mb-2">Fitur & Modul Paket</label>
-            
-            <div class="custom-control custom-checkbox mb-2">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatClass" data-label="Akses Manajemen Kelas">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatClass">Akses Manajemen Kelas</label>
-            </div>
-            <div class="custom-control custom-checkbox mb-2">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatPOS" data-label="Kasir / POS Sederhana">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatPOS">Kasir / POS Sederhana</label>
-            </div>
-            <div class="custom-control custom-checkbox mb-2">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatTrainer" data-label="Akses Manajemen Trainer">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatTrainer">Akses Manajemen Trainer</label>
-            </div>
-            <div class="custom-control custom-checkbox mb-2">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatInventory" data-label="Manajemen Inventaris">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatInventory">Manajemen Inventaris</label>
-            </div>
-            <div class="custom-control custom-checkbox mb-2">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatMobile" data-label="Mobile App Member Access">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatMobile">Mobile App Member Access</label>
-            </div>
-            <div class="custom-control custom-checkbox mb-2">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatAnalytics" data-label="Analytics Lanjutan">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatAnalytics">Analytics Lanjutan</label>
-            </div>
-            <div class="custom-control custom-checkbox mb-2">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatDomain" data-label="Kustom Domain Sendiri">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatDomain">Kustom Domain Sendiri</label>
-            </div>
-            <div class="custom-control custom-checkbox mb-2">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatDatabase" data-label="Dedicated Database">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatDatabase">Dedicated Database</label>
-            </div>
-            <div class="custom-control custom-checkbox">
-              <input type="checkbox" class="custom-control-input edit-feat-cb" id="editFeatSupport" data-label="Support Prioritas 24/7">
-              <label class="custom-control-label font-weight-bold text-dark" for="editFeatSupport">Support Prioritas 24/7</label>
-            </div>
+            @foreach($masterFeatures as $idx => $fName)
+              <div class="custom-control custom-checkbox mb-2">
+                <input type="checkbox" name="features[]" value="{{ $fName }}" class="custom-control-input edit-feat-checkbox" id="editFeat{{ $idx }}">
+                <label class="custom-control-label font-weight-bold text-dark" for="editFeat{{ $idx }}">{{ $fName }}</label>
+              </div>
+            @endforeach
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm">Simpan Perubahan Paket</button>
+          <button type="submit" class="btn btn-primary btn-sm">Simpan Perubahan ke Database</button>
         </div>
       </form>
     </div>
@@ -219,142 +212,67 @@
 @section('scripts')
 <script>
   $(document).ready(function() {
-    let currentEditingCard = null;
-
-    // 1. Submit form tambah paket secara dinamis
-    $('#createPlanForm').on('submit', function(e) {
+    // 1. Membuka Modal Edit & Populasi Form
+    $('.btn-edit-plan').on('click', function(e) {
       e.preventDefault();
-      const name = $('input[name="name"]').val();
-      const rawPrice = $('input[name="price"]').val();
-      const price = parseInt(rawPrice).toLocaleString('id-ID');
-      const maxMem = $('input[name="max_members"]').val();
-      const maxMembers = maxMem ? maxMem + ' Member' : 'Unlimited Member';
-      
-      const idName = 'toggle' + name.replace(/\s+/g, '');
-      const badgeId = 'badge' + name.replace(/\s+/g, '');
+      const planId = $(this).data('id');
+      const planName = $(this).data('name');
+      const planPrice = $(this).data('price');
+      const maxMembers = $(this).data('max-members');
+      const features = $(this).data('features') || [];
 
-      const newCard = `
-        <div class="col-md-4 mb-4 new-plan-card" style="display:none;">
-          <div class="bg-white p-4 rounded shadow-sm border-top border-info" style="border-top-width: 4px !important; position: relative;">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <h5 class="font-weight-bold text-black mb-0">${name}</h5>
-              <span class="badge badge-success" id="${badgeId}">Active</span>
-            </div>
-            <h3 class="text-info font-weight-bold">Rp ${price} <small style="font-size: 14px;" class="text-muted">/ bulan</small></h3>
-            <ul class="list-unstyled my-3 text-muted" style="line-height: 2; font-size: 14px;">
-              <li>✓ Maksimal ${maxMembers}</li>
-              <li>✓ Akses Manajemen Kelas</li>
-              <li>✓ Kasir / POS Sederhana</li>
-            </ul>
-            <hr>
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" class="custom-control-input plan-toggle" id="${idName}" data-badge="${badgeId}" checked>
-              <label class="custom-control-label text-muted" for="${idName}" style="font-size: 13px; cursor: pointer;">Status Paket</label>
-            </div>
-            <button class="btn btn-outline-info btn-block btn-sm btn-edit-plan">Edit Batasan Paket</button>
-          </div>
-        </div>
-      `;
-      
-      $('.row').first().append(newCard);
-      $('.new-plan-card').first().fadeIn(600);
-      $('#createPlanModal').modal('hide');
-      $('#createPlanForm')[0].reset();
-      
-      showToast('Paket Baru Dibuat', `Paket "${name}" berhasil ditambahkan ke daftar tier harga.`, 'success');
-    });
+      // Update Form Action URL
+      const updateUrl = "{{ url('/superadmin/plans') }}/" + planId;
+      $('#editPlanForm').attr('action', updateUrl);
 
-    // 2. Toggle Switch Status Paket
-    $(document).on('change', '.plan-toggle', function() {
-      const badgeId = $(this).data('badge');
-      const badge = $('#' + badgeId);
-      const planName = $(this).closest('.bg-white').find('h5').text();
-      
-      if ($(this).is(':checked')) {
-        badge.removeClass('badge-secondary').addClass('badge-success').text('Active');
-        showToast('Paket Diaktifkan', `Paket "${planName}" kini tersedia untuk pendaftar baru.`, 'success');
-      } else {
-        badge.removeClass('badge-success').addClass('badge-secondary').text('Archived');
-        showToast('Paket Diarsipkan', `Paket "${planName}" diarsipkan. Pendaftar baru tidak dapat memilih paket ini.`, 'warning');
-      }
-    });
-
-    // 3. Membuka Modal Edit Batasan Paket
-    $(document).on('click', '.btn-edit-plan', function(e) {
-      e.preventDefault();
-      currentEditingCard = $(this).closest('.col-md-4');
-      
-      const planName = currentEditingCard.find('h5').first().text().trim();
-      const rawPriceText = currentEditingCard.find('h3').first().text().replace(/[^\d]/g, '');
-      const priceVal = parseInt(rawPriceText) || 0;
-
-      // Cari nilai maksimal member dari list
-      let maxMembersVal = '';
-      currentEditingCard.find('ul li').each(function() {
-        const text = $(this).text();
-        if (text.includes('Maksimal') || text.includes('Member')) {
-          const match = text.match(/\d+/);
-          if (match) {
-            maxMembersVal = match[0];
-          }
-        }
-      });
-
-      // Isi input modal dengan data kartu terkini
+      // Set Input Values
       $('#editModalPlanTitle').text(planName);
       $('#edit_name').val(planName);
-      $('#edit_price').val(priceVal);
-      $('#edit_max_members').val(maxMembersVal);
+      $('#edit_price').val(planPrice);
+      $('#edit_max_members').val(maxMembers !== null ? maxMembers : '');
 
-      // Centang ulang checkbox fitur berdasarkan list di kartu
-      $('.edit-feat-cb').prop('checked', false);
-      currentEditingCard.find('ul li').each(function() {
-        const liText = $(this).text().trim();
-        if (liText.startsWith('✓')) {
-          const featureCleanText = liText.replace('✓', '').trim();
-          $('.edit-feat-cb').each(function() {
-            const labelText = $(this).data('label');
-            if (featureCleanText.toLowerCase().includes(labelText.toLowerCase()) || labelText.toLowerCase().includes(featureCleanText.toLowerCase())) {
-              $(this).prop('checked', true);
-            }
-          });
+      // Check Feature Checkboxes
+      $('.edit-feat-checkbox').prop('checked', false);
+      $('.edit-feat-checkbox').each(function() {
+        const featureValue = $(this).val();
+        if (features.includes(featureValue)) {
+          $(this).prop('checked', true);
         }
       });
 
       $('#editPlanModal').modal('show');
     });
 
-    // 4. Submit Form Edit Batasan Paket
-    $('#editPlanForm').on('submit', function(e) {
-      e.preventDefault();
-      if (!currentEditingCard) return;
+    // 2. Toggle Status Switch Via AJAX
+    $('.plan-toggle').on('change', function() {
+      const planId = $(this).data('id');
+      const planName = $(this).data('name');
+      const isChecked = $(this).is(':checked');
+      const badge = $('#badge-' + planId);
 
-      const newName = $('#edit_name').val().trim();
-      const rawPrice = $('#edit_price').val();
-      const newPriceFormatted = parseInt(rawPrice).toLocaleString('id-ID');
-      const maxMemVal = $('#edit_max_members').val().trim();
-      const newMaxMemText = maxMemVal ? `Maksimal ${maxMemVal} Member` : 'Unlimited Member';
-
-      // Update judul & harga kartu
-      currentEditingCard.find('h5').first().text(newName);
-      currentEditingCard.find('h3').first().html(`Rp ${newPriceFormatted} <small style="font-size: 14px;" class="text-muted">/ bulan</small>`);
-
-      // Rebuild daftar fitur
-      const ul = currentEditingCard.find('ul').first();
-      ul.empty();
-      ul.append(`<li>✓ ${newMaxMemText}</li>`);
-
-      $('.edit-feat-cb').each(function() {
-        const labelText = $(this).data('label');
-        if ($(this).is(':checked')) {
-          ul.append(`<li>✓ ${labelText}</li>`);
-        } else {
-          ul.append(`<li class="text-muted" style="opacity: 0.6;">✗ ${labelText}</li>`);
+      fetch("{{ url('/superadmin/plans') }}/" + planId + "/toggle-status", {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          if (data.new_status === 'active') {
+            badge.removeClass('badge-secondary').addClass('badge-success').text('Active');
+            showToast('Paket Diaktifkan', `Status paket "${planName}" berhasil diaktifkan di database.`, 'success');
+          } else {
+            badge.removeClass('badge-success').addClass('badge-secondary').text('Archived');
+            showToast('Paket Diarsipkan', `Status paket "${planName}" diarsipkan di database.`, 'warning');
+          }
+        }
+      })
+      .catch(error => {
+        showToast('Error', 'Gagal memperbarui status paket di database.', 'error');
       });
-
-      $('#editPlanModal').modal('hide');
-      showToast('Paket Diperbarui', `Batasan & fitur untuk "${newName}" berhasil disimpan!`, 'success');
     });
   });
 </script>

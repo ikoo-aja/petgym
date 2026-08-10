@@ -39,6 +39,10 @@ Route::middleware('auth')->prefix('superadmin')->group(function () {
     Route::get('/dashboard', [SuperadminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::get('/tenants', [SuperadminController::class, 'tenants'])->name('superadmin.tenants');
     Route::get('/plans', [SuperadminController::class, 'plans'])->name('superadmin.plans');
+    Route::post('/plans', [SuperadminController::class, 'storePlan'])->name('superadmin.plans.store');
+    Route::put('/plans/{id}', [SuperadminController::class, 'updatePlan'])->name('superadmin.plans.update');
+    Route::post('/plans/{id}/toggle-status', [SuperadminController::class, 'togglePlanStatus'])->name('superadmin.plans.toggle-status');
+    Route::delete('/plans/{id}', [SuperadminController::class, 'destroyPlan'])->name('superadmin.plans.destroy');
     Route::get('/billing', [SuperadminController::class, 'billing'])->name('superadmin.billing');
     Route::get('/announcements', [SuperadminController::class, 'announcements'])->name('superadmin.announcements');
     Route::get('/logs', [SuperadminController::class, 'logs'])->name('superadmin.logs');
