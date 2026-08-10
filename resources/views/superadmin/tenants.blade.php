@@ -13,6 +13,15 @@
     <button class="btn btn-primary btn-sm px-3" data-toggle="modal" data-target="#addTenantModal">+ Tambah Gym Baru</button>
   </div>
 
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+      <strong>Sukses!</strong> {{ session('success') }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  @endif
+
   <div class="table-custom p-4">
     <!-- Filter & Search Bar -->
     <form action="{{ route('superadmin.tenants') }}" method="GET" class="row mb-3">
@@ -51,18 +60,18 @@
         <tbody>
           @forelse($tenants as $tenant)
           @php
-            $pName = $tenant->plan_name ?? $tenant['plan_name'] ?? $tenant['plan'] ?? 'Basic';
-            $oName = $tenant->owner_name ?? $tenant['owner_name'] ?? $tenant['owner'] ?? 'Owner';
-            $oEmail = $tenant->owner_email ?? $tenant['owner_email'] ?? $tenant['email'] ?? 'owner@gym.com';
-            $expDays = isset($tenant->expires_in_days) ? $tenant->expires_in_days : ($tenant['expires_in'] ?? 30);
-            $featuresList = is_array($tenant->features) ? $tenant->features : ($tenant['features'] ?? ['POS', 'Class']);
+            $pName = $tenant->plan_name ?? 'Basic';
+            $oName = $tenant->owner_name ?? 'Owner';
+            $oEmail = $tenant->owner_email ?? 'owner@gym.com';
+            $expDays = $tenant->expires_in_days ?? 30;
+            $featuresList = is_array($tenant->features) ? $tenant->features : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'];
           @endphp
           <tr>
-            <td >
-              <strong class="text-black">{{ $tenant->name ?? $tenant['name'] }}</strong><br>
-              <small class="text-muted">{{ $tenant->subdomain ?? $tenant['subdomain'] }}</small>
+            <td>
+              <strong class="text-black">{{ $tenant->name }}</strong><br>
+              <small class="text-muted">{{ $tenant->subdomain }}</small>
             </td>
-            <td class="text-black">
+            <td>
               {{ $oName }}<br>
               <small class="text-muted">{{ $oEmail }}</small>
             </td>
@@ -74,7 +83,7 @@
               @else
                 <span class="badge badge-secondary">{{ $pName }}</span>
               @endif
-
+              
               <!-- Container for dynamic active feature tags -->
               <div class="tenant-features-list mt-1 d-flex flex-wrap">
                 @foreach($featuresList as $feat)
@@ -82,7 +91,7 @@
                 @endforeach
               </div>
             </td>
-            <td>{{ is_object($tenant->joined_at) ? $tenant->joined_at->format('d M Y') : ($tenant['joined_at'] ?? 'Hari Ini') }}</td>
+            <td>{{ is_object($tenant->joined_at) ? $tenant->joined_at->format('d M Y') : ($tenant->joined_at ?? 'Hari Ini') }}</td>
             <td>
               @if($tenant->status == 'suspended')
                 <span class="text-danger" style="font-weight: 700;">N/A (Suspended)</span>
@@ -113,24 +122,20 @@
                   Pilihan
                 </button>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ $loop->index }}">
-                  <!-- Impersonation Action -->
-                  <a class="dropdown-item btn-login-tenant" href="#" data-name="{{ $tenant->name ?? $tenant['name'] }}">
-                    <span class="icon-forward text-primary mr-2"></span> Login as Tenant
-                  </a>
-                  <a class="dropdown-item btn-features-tenant" href="#">
+                  <a class="dropdown-item btn-features-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}" data-features='@json($featuresList)'>
                     <span class="icon-settings text-secondary mr-2"></span> Atur Fitur
                   </a>
                   @if($tenant->status == 'active')
-                    <a class="dropdown-item text-warning btn-suspend-tenant" href="#">
+                    <a class="dropdown-item text-warning btn-suspend-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
                       <span class="icon-pause mr-2"></span> Suspend
                     </a>
                   @else
-                    <a class="dropdown-item text-success btn-activate-tenant" href="#">
+                    <a class="dropdown-item text-success btn-activate-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
                       <span class="icon-play_arrow mr-2"></span> Aktifkan
                     </a>
                   @endif
                   <div class="dropdown-divider"></div>
-                  <a class="dropdown-item text-danger btn-delete-tenant" href="#">
+                  <a class="dropdown-item text-danger btn-delete-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
                     <span class="icon-close mr-2"></span> Hapus
                   </a>
                 </div>
@@ -166,12 +171,12 @@
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-header-title font-weight-bold text-black" id="exampleModalLabel">Manual Onboarding Gym Baru</h5>
+        <h5 class="modal-header-title font-weight-bold text-black">Manual Onboarding Gym Baru</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="#" method="POST" id="addTenantForm">
+      <form action="{{ route('superadmin.tenants.store') }}" method="POST" id="addTenantForm">
         @csrf
         <div class="modal-body">
           <div class="form-group">
@@ -193,16 +198,16 @@
           </div>
           <div class="form-group">
             <label class="text-black font-weight-bold">Pilih Paket Sewa</label>
-            <select name="plan" class="form-control" id="addTenantPlan">
-              <option value="basic">Basic Plan</option>
-              <option value="pro">Pro Plan</option>
-              <option value="enterprise">Enterprise Plan</option>
+            <select name="plan_id" class="form-control" id="addTenantPlan">
+              @foreach($plans as $p)
+                <option value="{{ $p->id }}">{{ $p->name }} (Rp {{ number_format($p->price, 0, ',', '.') }})</option>
+              @endforeach
             </select>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm">Buat Akun Tenant</button>
+          <button type="submit" class="btn btn-primary btn-sm">Buat Akun Tenant ke Database</button>
         </div>
       </form>
     </div>
@@ -219,7 +224,7 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="#" method="POST" id="configureFeaturesForm">
+      <form action="" method="POST" id="configureFeaturesForm">
         @csrf
         <div class="modal-body">
           <div class="mb-3 bg-light p-3 rounded" style="font-size: 14px;">
@@ -232,45 +237,63 @@
 
             <!-- Feature Toggles -->
             <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" class="custom-control-input feat-sw" id="featPOS" data-slug="POS">
-              <label class="custom-control-label font-weight-bold text-black" for="featPOS" style="cursor: pointer;">Akses POS / Kasir</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Mengaktifkan modul transaksi kasir dan invoice harian.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" class="custom-control-input feat-sw" id="featClass" data-slug="Class">
-              <label class="custom-control-label font-weight-bold text-black" for="featClass" style="cursor: pointer;">Manajemen Kelas & Sesi</label>
+              <input type="checkbox" name="features[]" value="Akses Manajemen Kelas" class="custom-control-input feat-sw" id="featClass" data-slug="Class">
+              <label class="custom-control-label font-weight-bold text-black" for="featClass" style="cursor: pointer;">Akses Manajemen Kelas</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Membuat jadwal kelas, booking member, dan absensi trainer.</small>
             </div>
 
             <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" class="custom-control-input feat-sw" id="featTrainer" data-slug="Trainer">
-              <label class="custom-control-label font-weight-bold text-black" for="featTrainer" style="cursor: pointer;">Manajemen Trainer</label>
+              <input type="checkbox" name="features[]" value="Kasir / POS Sederhana" class="custom-control-input feat-sw" id="featPOS" data-slug="POS">
+              <label class="custom-control-label font-weight-bold text-black" for="featPOS" style="cursor: pointer;">Kasir / POS Sederhana</label>
+              <small class="form-text text-muted" style="margin-left: 28px;">Mengaktifkan modul transaksi kasir dan invoice harian.</small>
+            </div>
+
+            <div class="custom-control custom-switch mb-3">
+              <input type="checkbox" name="features[]" value="Akses Manajemen Trainer" class="custom-control-input feat-sw" id="featTrainer" data-slug="Trainer">
+              <label class="custom-control-label font-weight-bold text-black" for="featTrainer" style="cursor: pointer;">Akses Manajemen Trainer</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Penjadwalan personal trainer (PT) dan perhitungan komisi.</small>
             </div>
 
             <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" class="custom-control-input feat-sw" id="featInventory" data-slug="Inventory">
+              <input type="checkbox" name="features[]" value="Manajemen Inventaris" class="custom-control-input feat-sw" id="featInventory" data-slug="Inventory">
               <label class="custom-control-label font-weight-bold text-black" for="featInventory" style="cursor: pointer;">Manajemen Inventaris</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Melacak stok suplemen, merchandise, handuk, dan logistik gym.</small>
             </div>
 
             <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" class="custom-control-input feat-sw" id="featMobile" data-slug="Mobile">
-              <label class="custom-control-label font-weight-bold text-black" for="featMobile" style="cursor: pointer;">Akses Mobile App Member</label>
+              <input type="checkbox" name="features[]" value="Mobile App Member Access" class="custom-control-input feat-sw" id="featMobile" data-slug="Mobile">
+              <label class="custom-control-label font-weight-bold text-black" for="featMobile" style="cursor: pointer;">Mobile App Member Access</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Memberikan hak login ke aplikasi iOS/Android untuk check-in QR Code.</small>
             </div>
 
             <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" class="custom-control-input feat-sw" id="featAnalytics" data-slug="Analytics">
-              <label class="custom-control-label font-weight-bold text-black" for="featAnalytics" style="cursor: pointer;">Advanced Analytics & Laporan</label>
+              <input type="checkbox" name="features[]" value="Analytics Lanjutan" class="custom-control-input feat-sw" id="featAnalytics" data-slug="Analytics">
+              <label class="custom-control-label font-weight-bold text-black" for="featAnalytics" style="cursor: pointer;">Analytics Lanjutan</label>
               <small class="form-text text-muted" style="margin-left: 28px;">Laporan perkiraan churn rate member dan analisis finansial mendalam.</small>
+            </div>
+
+            <div class="custom-control custom-switch mb-3">
+              <input type="checkbox" name="features[]" value="Kustom Domain Sendiri" class="custom-control-input feat-sw" id="featDomain" data-slug="Domain">
+              <label class="custom-control-label font-weight-bold text-black" for="featDomain" style="cursor: pointer;">Kustom Domain Sendiri</label>
+              <small class="form-text text-muted" style="margin-left: 28px;">Menggunakan nama domain sendiri untuk branding gym.</small>
+            </div>
+
+            <div class="custom-control custom-switch mb-3">
+              <input type="checkbox" name="features[]" value="Dedicated Database" class="custom-control-input feat-sw" id="featDatabase" data-slug="Database">
+              <label class="custom-control-label font-weight-bold text-black" for="featDatabase" style="cursor: pointer;">Dedicated Database</label>
+              <small class="form-text text-muted" style="margin-left: 28px;">Basis data terisolasi khusus untuk performa & keamanan tinggi.</small>
+            </div>
+
+            <div class="custom-control custom-switch mb-3">
+              <input type="checkbox" name="features[]" value="Support Prioritas 24/7" class="custom-control-input feat-sw" id="featSupport" data-slug="Support">
+              <label class="custom-control-label font-weight-bold text-black" for="featSupport" style="cursor: pointer;">Support Prioritas 24/7</label>
+              <small class="form-text text-muted" style="margin-left: 28px;">Layanan bantuan teknis dan customer service prioritas 24 jam.</small>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm">Simpan Fitur Aktif</button>
+          <button type="submit" class="btn btn-primary btn-sm">Simpan Fitur Aktif ke Database</button>
         </div>
       </form>
     </div>
@@ -281,195 +304,83 @@
 @section('scripts')
 <script>
   $(document).ready(function() {
-    let currentFeaturesRow = null;
-
-    // 1. Submit form tambah tenant secara dinamis
-    $('#addTenantForm').on('submit', function(e) {
-      e.preventDefault();
-      const name = $('input[name="name"]').val();
-      const sub = $('input[name="subdomain"]').val();
-      const subdomain = sub + '.workout.id';
-      const email = $('input[name="owner_email"]').val();
-      const owner = email.split('@')[0];
-      const plan = $('select[name="plan"] option:selected').text();
-      const planVal = $('#addTenantPlan').val();
-      const joinedDate = 'Hari Ini';
-
-      // Tentukan badge fitur default berdasarkan pilihan paket
-      let featBadges = '';
-      if (planVal === 'enterprise') {
-        featBadges = `
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">POS</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Class</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Trainer</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Inventory</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Mobile</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Analytics</span>
-        `;
-      } else if (planVal === 'pro') {
-        featBadges = `
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">POS</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Class</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Trainer</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Inventory</span>
-        `;
-      } else {
-        featBadges = `
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">POS</span>
-          <span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">Class</span>
-        `;
-      }
-
-      const newRow = `
-        <tr class="new-tenant-row" style="background-color: #fff9f9;">
-          <td>
-            <strong class="text-black">${name}</strong><br>
-            <small class="text-muted">${subdomain}</small>
-          </td>
-          <td>
-            ${owner}<br>
-            <small class="text-muted">${email}</small>
-          </td>
-          <td>
-            <span class="badge badge-info">${plan}</span>
-            <div class="tenant-features-list mt-1 d-flex flex-wrap">${featBadges}</div>
-          </td>
-          <td>${joinedDate}</td>
-          <td><span class="text-success font-weight-bold" style="font-weight: 700;">14 Hari (Trial)</span></td>
-          <td><span class="badge badge-status-active px-2 py-1 rounded">Aktif</span></td>
-          <td>
-            <div class="dropdown">
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-1" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 12px; font-weight: 700;">
-                Pilihan
-              </button>
-              <div class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item btn-login-tenant" href="#" data-name="${name}">
-                  <span class="icon-forward text-primary mr-2"></span> Login as Tenant
-                </a>
-                <a class="dropdown-item btn-features-tenant" href="#">
-                  <span class="icon-settings text-secondary mr-2"></span> Atur Fitur
-                </a>
-                <a class="dropdown-item text-warning btn-suspend-tenant" href="#">
-                  <span class="icon-pause mr-2"></span> Suspend
-                </a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item text-danger btn-delete-tenant" href="#">
-                  <span class="icon-close mr-2"></span> Hapus
-                </a>
-              </div>
-            </div>
-          </td>
-        </tr>
-      `;
-
-      $('table tbody').prepend(newRow);
-      $('#addTenantModal').modal('hide');
-      $('#addTenantForm')[0].reset();
-
-      showToast('Penyewa Ditambahkan', `Gym "${name}" berhasil didaftarkan pada subdomain ${subdomain}`, 'success');
-
-      setTimeout(function() {
-        $('.new-tenant-row').first().css('background-color', '');
-      }, 2000);
-    });
-
-    // 2. Aksi Login as Tenant (Impersonasi)
-    $(document).on('click', '.btn-login-tenant', function(e) {
-      e.preventDefault();
-      const tenantName = $(this).data('name');
-
-      $('#overlay-text').text(`Menghubungkan ke dashboard ${tenantName}...`);
-      $('#impersonation-overlay').css('display', 'flex').hide().fadeIn(300);
-
-      setTimeout(function() {
-        localStorage.setItem('impersonating_tenant', tenantName);
-        window.location.reload();
-      }, 1500);
-    });
-
-    // 3. Aksi Suspend Tenant
-    $(document).on('click', '.btn-suspend-tenant', function(e) {
-      e.preventDefault();
-      const row = $(this).closest('tr');
-      const statusBadge = row.find('.badge-status-active, .badge-status-suspended');
-      const expireCell = row.find('td:nth-child(5)');
-      const tenantName = row.find('strong').first().text();
-
-      statusBadge.removeClass('badge-status-active').addClass('badge-status-suspended').text('Suspended');
-      expireCell.html('<span class="text-danger" style="font-weight: 700;">N/A (Suspended)</span>');
-
-      $(this).removeClass('text-warning btn-suspend-tenant').addClass('text-success btn-activate-tenant').html('<span class="icon-play_arrow mr-2"></span> Aktifkan');
-      showToast('Akses Ditangguhkan', `Akses untuk "${tenantName}" dinonaktifkan sementara.`, 'warning');
-    });
-
-    // 4. Aksi Aktifkan Tenant
-    $(document).on('click', '.btn-activate-tenant', function(e) {
-      e.preventDefault();
-      const row = $(this).closest('tr');
-      const statusBadge = row.find('.badge-status-active, .badge-status-suspended');
-      const expireCell = row.find('td:nth-child(5)');
-      const tenantName = row.find('strong').first().text();
-
-      statusBadge.removeClass('badge-status-suspended').addClass('badge-status-active').text('Aktif');
-      expireCell.html('<span class="text-success font-weight-bold" style="font-weight: 700;">30 Hari</span>');
-
-      $(this).removeClass('text-success btn-activate-tenant').addClass('text-warning btn-suspend-tenant').html('<span class="icon-pause mr-2"></span> Suspend');
-      showToast('Akses Dipulihkan', `Akses tenant "${tenantName}" telah aktif kembali.`, 'success');
-    });
-
-    // 5. Aksi Hapus Tenant
-    $(document).on('click', '.btn-delete-tenant', function(e) {
-      e.preventDefault();
-      const row = $(this).closest('tr');
-      const tenantName = row.find('strong').first().text();
-
-      row.css('background-color', '#fff3f3');
-      setTimeout(function() {
-        row.fadeOut(400, function() {
-          row.remove();
-          showToast('Tenant Dihapus', `Data tenant "${tenantName}" berhasil dibersihkan dari sistem.`, 'error');
-        });
-      }, 100);
-    });
-
-    // 6. Aksi Atur Fitur Tenant (Membuka Modal dan Memetakan Centang)
+    // 1. Membuka Modal Atur Fitur & Populasikan Data DB
     $(document).on('click', '.btn-features-tenant', function(e) {
       e.preventDefault();
-      const row = $(this).closest('tr');
-      currentFeaturesRow = row;
-      const tenantName = row.find('strong').first().text();
+      const tenantId = $(this).data('id');
+      const tenantName = $(this).data('name');
+      const features = $(this).data('features') || [];
 
       $('#featuresTenantName').text(tenantName);
+      $('#configureFeaturesForm').attr('action', "{{ url('/superadmin/tenants') }}/" + tenantId + "/features");
 
-      // Reset semua centang
+      // Reset centang
       $('.feat-sw').prop('checked', false);
 
-      // Cari badge yang aktif di baris ini
-      row.find('.tenant-features-list span').each(function() {
-        const slug = $(this).text().trim();
-        $(`.feat-sw[data-slug="${slug}"]`).prop('checked', true);
+      // Centang fitur aktif dari DB
+      $('.feat-sw').each(function() {
+        const val = $(this).val();
+        const slug = $(this).data('slug');
+        if (features.includes(val) || features.includes(slug)) {
+          $(this).prop('checked', true);
+        }
       });
 
       $('#configureFeaturesModal').modal('show');
     });
 
-    // 7. Simpan Fitur Aktif secara dinamis
-    $('#configureFeaturesForm').on('submit', function(e) {
+    // 2. Toggle Suspend / Aktifkan Tenant via Database
+    $(document).on('click', '.btn-suspend-tenant, .btn-activate-tenant', function(e) {
       e.preventDefault();
-      if (!currentFeaturesRow) return;
+      const tenantId = $(this).data('id');
+      const tenantName = $(this).data('name');
 
-      const listContainer = currentFeaturesRow.find('.tenant-features-list');
-      listContainer.empty();
-
-      // Regenerasi badge di baris tabel sesuai centang
-      $('.feat-sw:checked').each(function() {
-        const slug = $(this).data('slug');
-        listContainer.append(`<span class="badge badge-light border text-muted px-1" style="font-size: 10px; margin-right: 3px; margin-bottom: 2px;">${slug}</span>`);
+      fetch("{{ url('/superadmin/tenants') }}/" + tenantId + "/toggle-status", {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          window.location.reload();
+        }
+      })
+      .catch(err => {
+        showToast('Error', 'Gagal memperbarui status tenant di database.', 'error');
       });
+    });
 
-      const tenantName = $('#featuresTenantName').text();
-      $('#configureFeaturesModal').modal('hide');
-      showToast('Fitur Diperbarui', `Modul fitur aktif untuk "${tenantName}" berhasil disimpan & disinkronkan.`, 'success');
+    // 3. Hapus Tenant dari Database
+    $(document).on('click', '.btn-delete-tenant', function(e) {
+      e.preventDefault();
+      const tenantId = $(this).data('id');
+      const tenantName = $(this).data('name');
+
+      if (!confirm(`Apakah Anda yakin ingin menghapus tenant "${tenantName}" dari database?`)) {
+        return;
+      }
+
+      fetch("{{ url('/superadmin/tenants') }}/" + tenantId, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          window.location.reload();
+        }
+      })
+      .catch(err => {
+        showToast('Error', 'Gagal menghapus tenant dari database.', 'error');
+      });
     });
   });
 </script>

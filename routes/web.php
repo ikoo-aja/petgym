@@ -38,6 +38,10 @@ use App\Http\Controllers\AdminReportController;
 Route::middleware('auth')->prefix('superadmin')->group(function () {
     Route::get('/dashboard', [SuperadminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::get('/tenants', [SuperadminController::class, 'tenants'])->name('superadmin.tenants');
+    Route::post('/tenants', [SuperadminController::class, 'storeTenant'])->name('superadmin.tenants.store');
+    Route::post('/tenants/{id}/features', [SuperadminController::class, 'updateTenantFeatures'])->name('superadmin.tenants.features');
+    Route::post('/tenants/{id}/toggle-status', [SuperadminController::class, 'toggleTenantStatus'])->name('superadmin.tenants.toggle-status');
+    Route::delete('/tenants/{id}', [SuperadminController::class, 'destroyTenant'])->name('superadmin.tenants.destroy');
     Route::get('/plans', [SuperadminController::class, 'plans'])->name('superadmin.plans');
     Route::post('/plans', [SuperadminController::class, 'storePlan'])->name('superadmin.plans.store');
     Route::put('/plans/{id}', [SuperadminController::class, 'updatePlan'])->name('superadmin.plans.update');

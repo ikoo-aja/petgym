@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\Announcement;
 use App\Models\SystemLog;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 
 class SuperadminController extends Controller
 {
@@ -63,8 +64,131 @@ class SuperadminController extends Controller
         }
 
         $tenants = $query->latest('id')->paginate(4)->withQueryString();
+        $plans = Plan::where('status', 'active')->get();
 
-        return view('superadmin.tenants', compact('tenants'));
+        return view('superadmin.tenants', compact('tenants', 'plans'));
+    }
+
+    /**
+     * Simpan Tenant / Gym Baru ke Database.
+     */
+    public function storeTenant(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'subdomain' => 'required|string|max:255|unique:tenants,subdomain',
+            'owner_email' => 'required|email|max:255',
+            'plan_id' => 'nullable|exists:plans,id',
+        ]);
+
+        $ownerName = explode('@', $request->owner_email)[0];
+        $ownerName = ucwords(str_replace(['.', '_', '-'], ' ', $ownerName));
+
+        $plan = Plan::find($request->plan_id);
+        $planName = $plan ? $plan->name : 'Paket Basic';
+        $features = $plan ? ($plan->features ?? []) : ['Class', 'POS'];
+
+        $rawSub = strtolower(trim($request->subdomain));
+        if (strpos($rawSub, '.workout.id') === false) {
+            $subdomainFormatted = $rawSub . '.workout.id';
+        } else {
+            $subdomainFormatted = $rawSub;
+        }
+
+        $tenant = Tenant::create([
+            'name' => $request->name,
+            'subdomain' => $subdomainFormatted,
+            'owner_name' => $ownerName,
+            'owner_email' => $request->owner_email,
+            'plan_id' => $plan ? $plan->id : null,
+            'plan_name' => $planName,
+            'status' => 'active',
+            'joined_at' => now(),
+            'expires_at' => now()->addDays(14),
+            'features' => $features,
+        ]);
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Tenant Registration',
+            'description' => "Superadmin mendaftarkan tenant baru: {$tenant->name} ({$tenant->subdomain}).",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar di database!");
+    }
+
+    /**
+     * Update Fitur & Add-on Tenant di Database.
+     */
+    public function updateTenantFeatures(Request $request, $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        $features = $request->input('features', []);
+
+        $tenant->update([
+            'features' => $features,
+        ]);
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Update Fitur Tenant',
+            'description' => "Superadmin memperbarui modul fitur aktif untuk tenant {$tenant->name}.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['status' => 'success', 'features' => $features]);
+        }
+
+        return redirect()->route('superadmin.tenants')->with('success', "Modul fitur untuk tenant '{$tenant->name}' berhasil diperbarui di database!");
+    }
+
+    /**
+     * Toggle Status Tenant (Active / Suspended) di Database.
+     */
+    public function toggleTenantStatus(Request $request, $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        $newStatus = $tenant->status === 'active' ? 'suspended' : 'active';
+
+        $tenant->update(['status' => $newStatus]);
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => $newStatus === 'suspended' ? 'Suspend Account' : 'Activate Account',
+            'description' => "Superadmin meng-{$newStatus} akun tenant {$tenant->name}.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['status' => 'success', 'new_status' => $newStatus]);
+        }
+
+        return redirect()->route('superadmin.tenants')->with('success', "Status tenant '{$tenant->name}' berhasil diubah menjadi {$newStatus}!");
+    }
+
+    /**
+     * Hapus Tenant dari Database.
+     */
+    public function destroyTenant($id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        $tenantName = $tenant->name;
+        $tenant->delete();
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Hapus Tenant',
+            'description' => "Superadmin menghapus tenant {$tenantName} dari database.",
+            'ip_address' => request()->ip(),
+        ]);
+
+        if (request()->wantsJson()) {
+            return response()->json(['status' => 'success']);
+        }
+
+        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenantName}' berhasil dihapus dari database!");
     }
 
     /**

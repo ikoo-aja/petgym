@@ -44,14 +44,6 @@
       color: #0f172a !important;
     }
 
-    /* Impersonation state adjustments */
-    body.impersonating {
-      padding-top: 44px;
-    }
-    body.impersonating .admin-sidebar {
-      top: 44px;
-    }
-
     /* Custom Admin Sidebar & Content Layout Override */
     .admin-wrapper {
       display: flex;
@@ -201,24 +193,6 @@
 
 <body>
 
-  <!-- Impersonation Floating Bar -->
-  <div id="impersonation-bar" style="display: none; background: #ff8c00; color: #fff; text-align: center; padding: 10px; font-weight: bold; position: fixed; top: 0; left: 0; right: 0; z-index: 99999; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size: 14px;">
-    <span class="icon-warning mr-2"></span> Anda sedang menyamar (impersonate) sebagai Tenant: <span id="impersonation-tenant-name" class="text-black" style="font-weight: 900; text-decoration: underline;">Gym Name</span>
-    <button class="btn btn-dark btn-sm ml-3 py-0 px-3 btn-exit-impersonation" style="font-size: 12px; font-weight: bold; border-radius: 4px; vertical-align: middle;">Kembali ke Superadmin</button>
-  </div>
-
-  <!-- Impersonation Spinner Overlay -->
-  <div id="impersonation-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 100000; align-items: center; justify-content: center; flex-direction: column; color: #fff; font-family: 'Muli', sans-serif;">
-    <div class="spinner-border text-warning mb-3" role="status" style="width: 3rem; height: 3rem; border: .25em solid currentColor; border-right-color: transparent; border-radius: 50%; display: inline-block; animation: spinner-border .75s linear infinite;"></div>
-    <h5 class="font-weight-bold" id="overlay-text">Menghubungkan ke server tenant...</h5>
-  </div>
-
-  <style>
-    @keyframes spinner-border {
-      to { transform: rotate(360deg); }
-    }
-  </style>
-
   <div class="admin-wrapper">
 
     <!-- Sidebar Navigation -->
@@ -317,7 +291,7 @@
 
   <script src="{{ asset('js/main.js') }}"></script>
 
-  <!-- Global Custom Toast & Impersonation Script -->
+  <!-- Global Custom Toast Script -->
   <script>
     // 1. Toast Notification System
     function showToast(title, message, type = 'success') {
@@ -355,27 +329,6 @@
       // Auto remove after 4.5 seconds
       setTimeout(closeToast, 4500);
     }
-
-    // 2. Impersonation System Logic
-    $(document).ready(function() {
-      const impersonatingTenant = localStorage.getItem('impersonating_tenant');
-      if (impersonatingTenant) {
-        $('body').addClass('impersonating');
-        $('#impersonation-tenant-name').text(impersonatingTenant);
-        $('#impersonation-bar').slideDown(300);
-      }
-
-      // Exit Impersonation Button Handler
-      $('.btn-exit-impersonation').on('click', function() {
-        $('#overlay-text').text('Mengembalikan sesi ke Superadmin...');
-        $('#impersonation-overlay').css('display', 'flex').hide().fadeIn(300);
-
-        setTimeout(function() {
-          localStorage.removeItem('impersonating_tenant');
-          window.location.reload();
-        }, 1200);
-      });
-    });
 
     // Handle Laravel Session Success/Error
     @if(session('success'))
