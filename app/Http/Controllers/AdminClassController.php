@@ -7,13 +7,30 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\GymClass;
 use App\Models\Trainer;
 use App\Models\StaffLog;
+use App\Models\Tenant;
 
 class AdminClassController extends Controller
 {
+    private function getTenant()
+    {
+        $user = Auth::user();
+        if ($user && $user->tenant) {
+            return $user->tenant;
+        }
+
+        return Tenant::first() ?? Tenant::create([
+            'name' => 'FitLife Studio',
+            'subdomain' => 'fitlife.workout.id',
+            'owner_name' => 'Budi Pratama',
+            'owner_email' => 'budi@fitlife.com',
+            'status' => 'active',
+        ]);
+    }
+
     public function index()
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $tenant = $this->getTenant();
 
         $classes = GymClass::where('tenant_id', $tenant->id)->with('trainer')->get();
         $trainers = Trainer::where('tenant_id', $tenant->id)->get();
@@ -24,7 +41,7 @@ class AdminClassController extends Controller
     public function storeClass(Request $request)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $tenant = $this->getTenant();
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -47,19 +64,19 @@ class AdminClassController extends Controller
 
         StaffLog::create([
             'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
+            'user_id' => $user ? $user->id : null,
             'action' => 'Tambah Kelas Gym',
             'description' => "Menambahkan kelas baru: {$gymClass->name} pada hari {$gymClass->day}",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('admin.classes.index')->with('success', 'Jadwal kelas berhasil ditambahkan.');
+        return redirect()->route('admin.classes.index')->with('success', 'Jadwal kelas berhasil ditambahkan ke database.');
     }
 
     public function updateClass(Request $request, $id)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $tenant = $this->getTenant();
 
         $gymClass = GymClass::where('tenant_id', $tenant->id)->findOrFail($id);
 
@@ -77,19 +94,19 @@ class AdminClassController extends Controller
 
         StaffLog::create([
             'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
+            'user_id' => $user ? $user->id : null,
             'action' => 'Alokasi Kelas Gym',
             'description' => "Mengalokasikan kelas {$gymClass->name}: Ruangan {$gymClass->room}, Kuota {$gymClass->max_capacity}",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('admin.classes.index')->with('success', 'Alokasi instruktur, ruangan, dan kuota kelas berhasil disimpan.');
+        return redirect()->route('admin.classes.index')->with('success', 'Alokasi instruktur, ruangan, dan kuota kelas berhasil disimpan ke database.');
     }
 
     public function storeTrainer(Request $request)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $tenant = $this->getTenant();
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -107,19 +124,19 @@ class AdminClassController extends Controller
 
         StaffLog::create([
             'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
+            'user_id' => $user ? $user->id : null,
             'action' => 'Tambah Data Trainer',
             'description' => "Menambahkan trainer baru: {$trainer->name} ({$trainer->specialization})",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('admin.classes.index')->with('success', 'Data trainer berhasil ditambahkan.');
+        return redirect()->route('admin.classes.index')->with('success', "Trainer '{$trainer->name}' berhasil disimpan ke database!");
     }
 
     public function updateTrainer(Request $request, $id)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $tenant = $this->getTenant();
 
         $trainer = Trainer::where('tenant_id', $tenant->id)->findOrFail($id);
 
@@ -137,23 +154,24 @@ class AdminClassController extends Controller
 
         StaffLog::create([
             'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
+            'user_id' => $user ? $user->id : null,
             'action' => 'Update Data Trainer',
             'description' => "Memperbarui data trainer: {$trainer->name}",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('admin.classes.index')->with('success', 'Data trainer berhasil diperbarui.');
+        return redirect()->route('admin.classes.index')->with('success', "Data trainer '{$trainer->name}' berhasil diperbarui di database.");
     }
 
     public function destroyTrainer(Request $request, $id)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $tenant = $this->getTenant();
 
         $trainer = Trainer::where('tenant_id', $tenant->id)->findOrFail($id);
+        $trainerName = $trainer->name;
         $trainer->delete();
 
-        return redirect()->route('admin.classes.index')->with('success', 'Data trainer berhasil dihapus.');
+        return redirect()->route('admin.classes.index')->with('success', "Data trainer '{$trainerName}' berhasil dihapus dari database.");
     }
 }

@@ -5,6 +5,13 @@
 @section('page_subtitle', 'Pengaturan jadwal kelas olahraga dan entri data pelatih (Trainer)')
 
 @section('content')
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="border-radius: 8px;">
+    <strong>Sukses!</strong> {{ session('success') }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">&times;</button>
+  </div>
+@endif
+
 <div class="row">
   <!-- Left Side: Jadwal Kelas -->
   <div class="col-md-7">
@@ -205,6 +212,37 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
         <button type="submit" class="btn btn-primary font-weight-bold">Update Trainer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Tambah Trainer Baru -->
+<div class="modal fade" id="addTrainerModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form action="{{ route('admin.classes.store-trainer') }}" method="POST" class="modal-content" style="border-radius: 12px;">
+      @csrf
+      <div class="modal-header">
+        <h5 class="modal-title font-weight-bold text-dark">Tambah Trainer Baru</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Trainer *</label>
+          <input type="text" name="name" class="form-control" placeholder="Contoh: Budi Santoso" required>
+        </div>
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nomor Telepon / WhatsApp</label>
+          <input type="text" name="phone" class="form-control" placeholder="081234567890">
+        </div>
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Spesialisasi / Keahlian</label>
+          <input type="text" name="specialization" class="form-control" placeholder="Contoh: Bodybuilding, Yoga, Personal Trainer">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-success font-weight-bold">Simpan Trainer</button>
       </div>
     </form>
   </div>
