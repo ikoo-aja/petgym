@@ -17,19 +17,23 @@
       color: #1f2937 !important;
       font-family: 'Muli', sans-serif;
     }
-    .admin-content, .admin-content table, .admin-content td, .admin-content th {
+    .admin-main, .admin-content, .admin-content p, .admin-content label {
       color: #1f2937;
+    }
+    .admin-main table td, .admin-main table th,
+    .admin-content table td, .admin-content table th {
+      color: #1f2937 !important;
     }
     .admin-sidebar {
       color: #9ca3af;
     }
     ::selection {
-      background: #e2e8f0;
-      color: #0f172a;
+      background: #e2e8f0 !important;
+      color: #0f172a !important;
     }
     ::-moz-selection {
-      background: #e2e8f0;
-      color: #0f172a;
+      background: #e2e8f0 !important;
+      color: #0f172a !important;
     }
     .admin-wrapper {
       display: flex;
