@@ -373,4 +373,106 @@ class SuperadminController extends Controller
 
         return redirect()->back()->with('success', $message);
     }
+
+    /**
+     * Handle Public Checkout & DP 50% Proof Submission from Landing Page.
+     */
+    public function publicCheckout(Request $request)
+    {
+        $request->validate([
+            'gym_name' => 'required|string|max:255',
+            'subdomain' => 'required|string|max:255',
+            'owner_name' => 'required|string|max:255',
+            'owner_email' => 'required|email|max:255',
+            'owner_phone' => 'required|string|max:255',
+            'plan_name' => 'required|string',
+            'dp_price' => 'required|numeric',
+            'proof_file' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
+        ]);
+
+        // Upload Proof Image File
+        $proofUrl = null;
+        if ($request->hasFile('proof_file')) {
+            $file = $request->file('proof_file');
+            $filename = 'dp_proof_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            
+            $targetDir = public_path('uploads/proofs');
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+
+            $file->move($targetDir, $filename);
+            $proofUrl = asset('uploads/proofs/' . $filename);
+        }
+
+        // Subdomain Formatting
+        $rawSub = strtolower(trim($request->subdomain));
+        $subdomainFormatted = (strpos($rawSub, '.workout.id') === false) ? $rawSub . '.workout.id' : $rawSub;
+
+        // Find Plan
+        $plan = Plan::where('name', 'like', "%{$request->plan_name}%")->first();
+        $features = $plan ? ($plan->features ?? []) : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'];
+
+        // Create Tenant in Database
+        $tenant = Tenant::create([
+            'name' => $request->gym_name,
+            'subdomain' => $subdomainFormatted,
+            'owner_name' => $request->owner_name,
+            'owner_email' => $request->owner_email,
+            'plan_id' => $plan ? $plan->id : null,
+            'plan_name' => $request->plan_name,
+            'status' => 'active',
+            'joined_at' => now(),
+            'expires_at' => now()->addDays(30),
+            'features' => $features,
+        ]);
+
+        // Create Invoice Record in Database
+        $invoiceCount = Invoice::count() + 1;
+        $invNumber = '#INV-' . date('Y') . '-' . str_pad($invoiceCount, 3, '0', STR_PAD_LEFT);
+
+        $invoice = Invoice::create([
+            'invoice_number' => $invNumber,
+            'tenant_id' => $tenant->id,
+            'amount' => $request->dp_price,
+            'due_date' => now()->addDays(3),
+            'status' => 'pending',
+            'proof_url' => $proofUrl,
+        ]);
+
+        // Audit Log
+        SystemLog::create([
+            'user_id' => null,
+            'action' => 'Pembayaran DP Tenant',
+            'description' => "Pendaftaran Gym '{$tenant->name}' dengan DP 50% Rp " . number_format($request->dp_price, 0, ',', '.') . " (#{$invoice->invoice_number}).",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect('/#pricing-section')->with('checkout_success', "Pendaftaran & Bukti Transfer DP 50% untuk Gym '{$tenant->name}' berhasil terkirim! Tim Superadmin kami akan memverifikasi dalam 1x24 jam.");
+    }
+
+    /**
+     * Verifikasi Lunas Invoice / DP Tenant oleh Superadmin.
+     */
+    public function verifyInvoice(Request $request, $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+        $invoice->update([
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        if ($invoice->tenant) {
+            $invoice->tenant->update(['status' => 'active']);
+        }
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Verifikasi Pembayaran',
+            'description' => "Superadmin menyetujui verifikasi lunas invoice {$invoice->invoice_number} untuk tenant " . ($invoice->tenant ? $invoice->tenant->name : 'N/A') . ".",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->back()->with('success', "Invoice {$invoice->invoice_number} berhasil diverifikasi LUNAS!");
+    }
 }

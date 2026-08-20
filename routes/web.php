@@ -7,6 +7,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::post('/checkout', [\App\Http\Controllers\SuperadminController::class, 'publicCheckout'])->name('public.checkout');
+
 Route::get('/home', function () {
     return redirect('/admin/dashboard');
 });
@@ -48,6 +50,7 @@ Route::middleware('auth')->prefix('superadmin')->group(function () {
     Route::post('/plans/{id}/toggle-status', [SuperadminController::class, 'togglePlanStatus'])->name('superadmin.plans.toggle-status');
     Route::delete('/plans/{id}', [SuperadminController::class, 'destroyPlan'])->name('superadmin.plans.destroy');
     Route::get('/billing', [SuperadminController::class, 'billing'])->name('superadmin.billing');
+    Route::post('/billing/{id}/verify', [SuperadminController::class, 'verifyInvoice'])->name('superadmin.billing.verify');
     Route::get('/announcements', [SuperadminController::class, 'announcements'])->name('superadmin.announcements');
     Route::get('/logs', [SuperadminController::class, 'logs'])->name('superadmin.logs');
     Route::get('/settings', [SuperadminController::class, 'settings'])->name('superadmin.settings');

@@ -13,6 +13,15 @@
     <button class="btn btn-outline-primary btn-sm" onclick="showToast('Invoice Manual', 'Modul pembuatan invoice tagihan manual berhasil dibuka.', 'info');">+ Buat Invoice Manual</button>
   </div>
 
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+      <strong>Sukses!</strong> {{ session('success') }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  @endif
+
   <div class="table-custom p-4">
     <!-- Filter Bar -->
     <div class="row mb-4">
@@ -32,8 +41,8 @@
           <tr>
             <th class="text-black font-weight-bold">No. Invoice</th>
             <th class="text-black font-weight-bold">Gym / Tenant</th>
-            <th class="text-black font-weight-bold">Jumlah Tagihan</th>
-            <th class="text-black font-weight-bold">Jatuh Tempo</th>
+            <th class="text-black font-weight-bold">Jumlah Tagihan (DP 50%)</th>
+            <th class="text-black font-weight-bold">Tanggal Tagihan</th>
             <th class="text-black font-weight-bold">Status Pembayaran</th>
             <th class="text-black font-weight-bold">Aksi / Verifikasi</th>
           </tr>
@@ -50,8 +59,11 @@
           @endphp
           <tr>
             <td class="font-weight-bold text-black">{{ $invNo }}</td>
-            <td class="text-black">{{ $tenantName }}</td>
-            <td class="font-weight-bold text-black">{{ $amountFormatted }}</td>
+            <td class="text-black">
+              <strong>{{ $tenantName }}</strong><br>
+              <small class="text-muted">{{ $invoice->tenant->subdomain ?? '' }}</small>
+            </td>
+            <td class="font-weight-bold text-success">{{ $amountFormatted }}</td>
             <td class="text-black">{{ $dueDateFormatted }}</td>
             <td>
               @if($statusVal == 'pending')
@@ -66,16 +78,18 @@
                 <button class="btn btn-sm btn-outline-info py-1 px-2 mr-2 btn-view-proof"
                         data-toggle="modal"
                         data-target="#viewProofModal"
+                        data-id="{{ $invoice->id }}"
                         data-invoice="{{ $invNo }}"
                         data-tenant="{{ $tenantName }}"
                         data-proof="{{ $proofVal }}"
-                        title="Lihat Bukti Transfer"
+                        title="Lihat Bukti Transfer SS"
                         style="font-size: 12px; font-weight: bold;">
-                  <span class="icon-search"></span> Lihat Bukti
+                  <span class="icon-search"></span> Lihat Bukti SS
                 </button>
 
                 @if($statusVal == 'pending')
                   <button class="btn btn-sm btn-success py-1 px-2 btn-verify-direct"
+                          data-id="{{ $invoice->id }}"
                           data-invoice="{{ $invNo }}"
                           style="font-size: 12px; font-weight: bold;">
                     Verifikasi Lunas
@@ -104,24 +118,25 @@
 <!-- MODAL: LIHAT BUKTI PEMBAYARAN -->
 <div class="modal fade" id="viewProofModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-header-title font-weight-bold text-black" id="proofModalLabel">Bukti Transfer Pembayaran</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-header-title font-weight-bold text-white mb-0" id="proofModalLabel">Bukti Transfer Pembayaran DP 50%</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="modal-body text-center bg-light">
+      <div class="modal-body text-center bg-light p-4">
         <div class="mb-3">
-          <strong class="text-black" id="proofInvoiceNo">#INV-XXX</strong> &mdash; <span id="proofTenantName">Nama Gym</span>
+          <strong class="text-black h5 d-block" id="proofInvoiceNo">#INV-XXX</strong>
+          <span id="proofTenantName" class="text-muted font-weight-bold">Nama Gym</span>
         </div>
         <div class="p-2 border bg-white rounded shadow-sm d-inline-block">
-          <img id="proofImage" src="" alt="Bukti Transfer" class="img-fluid rounded" style="max-height: 400px; object-fit: contain;">
+          <img id="proofImage" src="" alt="Bukti Transfer SS Pembelian" class="img-fluid rounded" style="max-height: 420px; object-fit: contain;">
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer bg-white">
         <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
-        <button type="button" class="btn btn-success btn-sm btn-approve-direct">Verifikasi Lunas Sekarang</button>
+        <button type="button" class="btn btn-success btn-sm btn-approve-direct font-weight-bold">Verifikasi Lunas Sekarang (Simpan ke DB)</button>
       </div>
     </div>
   </div>
@@ -133,7 +148,7 @@
   $(document).ready(function() {
     let currentVerifyButton = null;
 
-    // 1. Tampilkan bukti transfer di modal
+    // 1. Tampilkan bukti transfer SS di modal
     $('.btn-view-proof').on('click', function() {
       const invoice = $(this).data('invoice');
       const tenant = $(this).data('tenant');
@@ -145,7 +160,6 @@
       $('#proofTenantName').text(tenant);
       $('#proofImage').attr('src', proofUrl);
 
-      // Sembunyikan tombol verifikasi di modal jika invoice sudah lunas
       if (currentVerifyButton.length === 0) {
         $('.btn-approve-direct').hide();
       } else {
@@ -167,14 +181,26 @@
     });
 
     function executeVerification(button) {
-      const row = button.closest('tr');
-      const statusBadge = row.find('.badge-status-pending, .badge-status-active');
-      const invoiceNo = row.find('td').first().text();
+      const invoiceId = button.data('id');
+      const invoiceNo = button.data('invoice') || button.closest('tr').find('td').first().text();
 
-      statusBadge.removeClass('badge-status-pending').addClass('badge-status-active').text('Lunas');
-      button.removeClass('btn-success btn-verify-direct').addClass('btn-light').prop('disabled', true).text('Verified');
+      button.prop('disabled', true).text('Memproses...');
 
-      showToast('Verifikasi Berhasil', `Pembayaran untuk invoice ${invoiceNo} berhasil diverifikasi Lunas.`, 'success');
+      fetch("{{ url('/superadmin/billing') }}/" + invoiceId + "/verify", {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => {
+        window.location.reload();
+      })
+      .catch(err => {
+        showToast('Error', 'Gagal memverifikasi invoice di database.', 'error');
+        button.prop('disabled', false).text('Verifikasi Lunas');
+      });
     }
   });
 </script>

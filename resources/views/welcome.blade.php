@@ -223,6 +223,17 @@
     <!-- 4. PAKET SEWA WEBSITE GYM (PRICING PLANS) -->
     <div class="site-section bg-light" id="pricing-section">
       <div class="container">
+        @if(session('checkout_success'))
+          <div class="row justify-content-center mb-4">
+            <div class="col-md-10">
+              <div class="alert alert-success border-0 shadow-sm p-4 text-center rounded" style="border-radius: 12px; background-color: #d1e7dd; color: #0f5132;">
+                <h5 class="font-weight-bold mb-2">🎉 Pendaftaran & Transfer DP 50% Berhasil Dikirim!</h5>
+                <p class="mb-0">{{ session('checkout_success') }}</p>
+              </div>
+            </div>
+          </div>
+        @endif
+
         <div class="row justify-content-center text-center mb-5">
           <div class="col-md-8 section-heading" data-aos="fade-up">
             <span class="subheading">Harga Transparan</span>
@@ -242,12 +253,11 @@
                   <span class="h2 font-weight-bold text-primary">Rp 500.000</span>
                   <span class="text-muted"> / bulan</span>
                 </div>
-                <ul class="list-unstyled mb-4 text-left text-dark" style="line-height: 2;">
+                <ul class="list-unstyled mb-0 text-left text-dark" style="line-height: 2;">
                   <li>✔ Kapasitas maksimal 150 Member Aktif</li>
-                  <li>✔ Maksimal 3 Akun Karyawan (Admin & Resepsionis)</li>
+                  <li>✔ Maksimal 5 Akun Karyawan (Admin & Resepsionis)</li>
                   <li>✔ Termasuk Modul POS, Kasir, dan Check-in Cepat</li>
                 </ul>
-                <a href="login" class="btn btn-outline-primary btn-block py-3 mt-auto font-weight-bold" style="border-radius: 30px;">Pilih Paket Basic</a>
               </div>
             </div>
           </div>
@@ -265,15 +275,14 @@
                   <span class="h2 font-weight-bold text-primary">Rp 1.200.000</span>
                   <span class="text-muted"> / bulan</span>
                 </div>
-                <ul class="list-unstyled mb-4 text-left text-dark" style="line-height: 2;">
+                <ul class="list-unstyled mb-0 text-left text-dark" style="line-height: 2;">
                   <li>✔ Kapasitas maksimal 500 Member Aktif</li>
-                  <li>✔ Maksimal 10 Akun Karyawan (Termasuk Manager & PT)</li>
+                  <li>✔ Maksimal 15 Akun Karyawan (Termasuk Manager & PT)</li>
                   <li>✔ Termasuk semua fitur Basic</li>
                   <li>✔ Manajemen Inventaris Ritel</li>
                   <li>✔ Modul Retensi Member</li>
                   <li>✔ Analitik Kelas</li>
                 </ul>
-                <a href="login" class="btn btn-primary btn-block py-3 mt-auto font-weight-bold text-white shadow-sm" style="border-radius: 30px;">Pilih Paket Pro</a>
               </div>
             </div>
           </div>
@@ -288,14 +297,13 @@
                   <span class="h2 font-weight-bold text-primary">Rp 2.500.000</span>
                   <span class="text-muted"> / bulan</span>
                 </div>
-                <ul class="list-unstyled mb-4 text-left text-dark" style="line-height: 2;">
+                <ul class="list-unstyled mb-0 text-left text-dark" style="line-height: 2;">
                   <li>✔ Kapasitas Member Aktif Tanpa Batas (Unlimited)</li>
                   <li>✔ Akun Karyawan Tanpa Batas (Unlimited)</li>
                   <li>✔ Termasuk semua fitur Pro</li>
                   <li>✔ Custom Domain (nama website gym sendiri)</li>
                   <li>✔ Prioritas Support 24/7</li>
                 </ul>
-                <a href="login" class="btn btn-outline-primary btn-block py-3 mt-auto font-weight-bold" style="border-radius: 30px;">Pilih Enterprise</a>
               </div>
             </div>
           </div>
