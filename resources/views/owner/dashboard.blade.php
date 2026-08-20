@@ -5,18 +5,6 @@
 @section('page_subtitle', 'Pusat pemantauan omset harian, statistik keanggotaan, okupansi loker, dan kesehatan bisnis gym Anda (Mode Pemantauan & Read-Only)')
 
 @section('content')
-<!-- Alert Read-Only & Privacy Mode Banner -->
-<div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4" style="border-radius: 12px; background: #e0f2fe; color: #0369a1;">
-  <div class="mr-3" style="font-size: 24px;">👁️‍🗨️</div>
-  <div>
-    <h6 class="font-weight-bold mb-1" style="color: #0284c7;">Mode Pemantauan Eksekutif & Perlindungan Privasi Customer Active</h6>
-    <p class="mb-0 small" style="color: #0369a1;">
-      Sebagai <strong>Owner (Pemilik Gym)</strong>, Anda memiliki hak akses penuh untuk memantau performa keuangan, absensi, dan operasional gym. 
-      Demi menjaga privasi customer, informasi pribadi seperti Email, No. Telepon, dan Kode PIN disamarkan secara otomatis. Seluruh aksi pengubahan data (tambah/edit/hapus) dinonaktifkan.
-    </p>
-  </div>
-</div>
-
 <!-- Key Performance Indicators (KPI Grid) -->
 <div class="row">
   <div class="col-md-3">
