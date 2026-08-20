@@ -5,30 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class LockerRental extends Model
+class ClassRsvp extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'tenant_id',
-        'locker_id',
+        'gym_class_id',
         'member_id',
-        'rental_type',
-        'start_date',
-        'end_date',
-        'pin_code',
-        'amount',
-        'payment_status',
+        'class_date',
         'status',
-        'rented_at',
-        'returned_at',
+        'queue_position',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'rented_at' => 'datetime',
-        'returned_at' => 'datetime',
+        'class_date' => 'date',
     ];
 
     public function tenant()
@@ -36,9 +27,9 @@ class LockerRental extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public function locker()
+    public function gymClass()
     {
-        return $this->belongsTo(Locker::class);
+        return $this->belongsTo(GymClass::class);
     }
 
     public function member()

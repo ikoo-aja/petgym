@@ -59,7 +59,7 @@
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">📦 Pemantauan Okupansi Loker Gym</h6>
-        <a href="{{ route('admin.lockers.index') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Loker &rarr;</a>
+        <a href="{{ route('owner.inventory') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Loker &rarr;</a>
       </div>
 
       <div class="row text-center my-3">
@@ -103,7 +103,7 @@
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">⏱️ Pemantauan Kunjungan Member Terbaru (Presensi Masked)</h6>
-        <a href="{{ route('admin.checkin.index') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Absensi &rarr;</a>
+        <a href="{{ route('owner.members') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Data Member &rarr;</a>
       </div>
 
       <div class="table-responsive">
@@ -147,7 +147,7 @@
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">🧘 Pemantauan Jadwal Kelas & Trainer</h6>
-        <a href="{{ route('admin.classes.index') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Jadwal Kelas &rarr;</a>
+        <a href="{{ route('owner.classes') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Jadwal Kelas &rarr;</a>
       </div>
 
       <div class="table-responsive">
@@ -190,7 +190,7 @@
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">🛡️ Audit Log Aktivitas Staf</h6>
-        <a href="{{ route('admin.logs.index') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Log &rarr;</a>
+        <a href="{{ route('owner.logs') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Log &rarr;</a>
       </div>
 
       <div class="table-responsive">

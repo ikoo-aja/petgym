@@ -180,6 +180,8 @@
       $dashUrl = route('receptionist.dashboard');
   } elseif ($userRole === 'trainer') {
       $dashUrl = route('trainer.dashboard');
+  } elseif ($userRole === 'member') {
+      $dashUrl = route('member.dashboard');
   }
 @endphp
 
@@ -201,15 +203,87 @@
 
       <li class="menu-header">Fitur Operasional</li>
 
-      @if(in_array($userRole, ['owner', 'admin', 'manager', 'receptionist', 'trainer']))
+      @if($userRole === 'member')
       <li>
-        <a href="{{ route('admin.members.index') }}" class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member {{ $userRole === 'owner' ? ' ' : '' }}
+        <a href="{{ route('member.lockers') }}" class="{{ request()->routeIs('member.lockers') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Manajemen Loker Gym
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.membership') }}" class="{{ request()->routeIs('member.membership') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-star"></span></span> Paket Keanggotaan
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.pt') }}" class="{{ request()->routeIs('member.pt') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Personal Trainer (PT)
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.classes') }}" class="{{ request()->routeIs('member.classes') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Kelas Kebugaran
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.billing') }}" class="{{ request()->routeIs('member.billing') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Tagihan & Invoice
         </a>
       </li>
       @endif
 
-      @if(in_array($userRole, ['owner', 'admin']))
+      @if($userRole === 'owner')
+      <li>
+        <a href="{{ route('owner.transactions') }}" class="{{ request()->routeIs('owner.transactions') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> Transaksi Kasir POS
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('owner.members') }}" class="{{ request()->routeIs('owner.members') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Data & Status Member
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('owner.classes') }}" class="{{ request()->routeIs('owner.classes') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Jadwal Kelas & Trainer
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('owner.inventory') }}" class="{{ request()->routeIs('owner.inventory') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Stok Produk & Loker
+        </a>
+      </li>
+      <li class="menu-header">Pemantauan & Laporan</li>
+      <li>
+        <a href="{{ route('owner.staff') }}" class="{{ request()->routeIs('owner.staff') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Data Akun Staf
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('owner.logs') }}" class="{{ request()->routeIs('owner.logs') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-history"></span></span> Audit Trail Log Staf
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('owner.reports') }}" class="{{ request()->routeIs('owner.reports') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Laporan Omset & Keuangan
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('owner.settings') }}" class="{{ request()->routeIs('owner.settings') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Profil Gym Tenant
+        </a>
+      </li>
+      @endif
+
+      @if(in_array($userRole, ['admin', 'manager', 'receptionist', 'trainer']))
+      <li>
+        <a href="{{ route('admin.members.index') }}" class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member
+        </a>
+      </li>
+      @endif
+
+      @if($userRole === 'admin')
       <li>
         <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir
@@ -217,7 +291,32 @@
       </li>
       <li>
         <a href="{{ route('admin.lockers.index') }}" class="{{ request()->routeIs('admin.lockers.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym {{ $userRole === 'owner' ? ' ' : '' }}
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.classes.index') }}" class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Kelas & Trainer
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Staf (RBAC)
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.logs.index') }}" class="{{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-history"></span></span> Audit Trail Log
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Pusat Laporan
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Gym
         </a>
       </li>
       @endif
@@ -247,22 +346,6 @@
       <li>
         <a href="{{ route('receptionist.shifts') }}" class="{{ request()->routeIs('receptionist.shifts') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-history"></span></span> Shift & Keluhan Staf
-        </a>
-      </li>
-      @endif
-
-      @if($userRole === 'owner')
-      <li>
-        <a href="{{ route('admin.checkin.index') }}" class="{{ request()->routeIs('admin.checkin.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-check"></span></span> Check-In Absensi
-        </a>
-      </li>
-      @endif
-
-      @if(in_array($userRole, ['owner', 'admin', 'trainer']))
-      <li>
-        <a href="{{ route('admin.classes.index') }}" class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Kelas & Trainer {{ $userRole === 'owner' ? ' ' : '' }}
         </a>
       </li>
       @endif
@@ -317,42 +400,6 @@
       <li>
         <a href="/manager/features?tab=vendors" class="{{ request()->query('tab') === 'vendors' ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-people"></span></span> Kontak Vendor
-        </a>
-      </li>
-      @endif
-
-      @if(in_array($userRole, ['owner', 'admin', 'manager']))
-      <li class="menu-header">Manajemen Internal</li>
-      @endif
-
-      @if(in_array($userRole, ['owner', 'admin']))
-      <li>
-        <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Staf (RBAC) {{ $userRole === 'owner' ? ' ' : '' }}
-        </a>
-      </li>
-      @endif
-
-      @if(in_array($userRole, ['owner', 'admin', 'manager']))
-      <li>
-        <a href="{{ route('admin.logs.index') }}" class="{{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-history"></span></span> Audit Trail Log
-        </a>
-      </li>
-      @endif
-
-      @if(in_array($userRole, ['owner', 'admin', 'manager']))
-      <li>
-        <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Pusat Laporan {{ $userRole === 'owner' ? 'Eksekutif' : '' }}
-        </a>
-      </li>
-      @endif
-
-      @if(in_array($userRole, ['owner', 'admin']))
-      <li>
-        <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Gym {{ $userRole === 'owner' ? ' ' : '' }}
         </a>
       </li>
       @endif

@@ -11,6 +11,7 @@ class Member extends Model
 
     protected $fillable = [
         'tenant_id',
+        'user_id',
         'name',
         'email',
         'phone',
@@ -18,17 +19,26 @@ class Member extends Model
         'gender',
         'photo_url',
         'access_code',
+        'membership_tier',
         'status',
+        'no_show_count',
+        'penalty_blocked_until',
         'expired_at',
     ];
 
     protected $casts = [
         'expired_at' => 'date',
+        'penalty_blocked_until' => 'datetime',
     ];
 
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function posTransactions()
@@ -39,6 +49,26 @@ class Member extends Model
     public function checkIns()
     {
         return $this->hasMany(CheckIn::class);
+    }
+
+    public function lockerRentals()
+    {
+        return $this->hasMany(LockerRental::class);
+    }
+
+    public function ptQuotas()
+    {
+        return $this->hasMany(MemberPtQuota::class);
+    }
+
+    public function ptBookings()
+    {
+        return $this->hasMany(PtBooking::class);
+    }
+
+    public function classRsvps()
+    {
+        return $this->hasMany(ClassRsvp::class);
     }
 
     public function getIsExpiredAttribute(): bool
@@ -52,5 +82,10 @@ class Member extends Model
             return 0;
         }
         return (int) now()->diffInDays($this->expired_at, false);
+    }
+
+    public function getIsPenaltyBlockedAttribute(): bool
+    {
+        return $this->penalty_blocked_until && $this->penalty_blocked_until->isFuture();
     }
 }

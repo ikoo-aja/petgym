@@ -199,8 +199,44 @@ Route::middleware('auth')->prefix('trainer')->group(function () {
 });
 
 use App\Http\Controllers\OwnerController;
+use App\Http\Controllers\MemberPortalController;
 
-// Group Pemilik Gym (Owner) - Mode Pemantauan & Laporan
+// Group Pemilik Gym (Owner) - Mode Pemantauan Eksekutif (Read-Only)
 Route::middleware('auth')->prefix('owner')->group(function () {
     Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('owner.dashboard');
+    Route::get('/transactions', [OwnerController::class, 'transactions'])->name('owner.transactions');
+    Route::get('/members', [OwnerController::class, 'members'])->name('owner.members');
+    Route::get('/classes', [OwnerController::class, 'classes'])->name('owner.classes');
+    Route::get('/inventory', [OwnerController::class, 'inventory'])->name('owner.inventory');
+    Route::get('/staff', [OwnerController::class, 'staff'])->name('owner.staff');
+    Route::get('/logs', [OwnerController::class, 'logs'])->name('owner.logs');
+    Route::get('/reports', [OwnerController::class, 'reports'])->name('owner.reports');
+    Route::get('/settings', [OwnerController::class, 'settings'])->name('owner.settings');
+});
+
+// Group User / Member Gym Portal
+Route::middleware('auth')->prefix('member')->group(function () {
+    Route::get('/dashboard', [MemberPortalController::class, 'dashboard'])->name('member.dashboard');
+
+    // Loker & Sewa Visual Grid
+    Route::get('/lockers', [MemberPortalController::class, 'lockers'])->name('member.lockers');
+    Route::post('/lockers/rent', [MemberPortalController::class, 'rentLocker'])->name('member.lockers.rent');
+    Route::post('/lockers/return/{id}', [MemberPortalController::class, 'returnLocker'])->name('member.lockers.return');
+
+    // Multi-Tier Membership
+    Route::get('/membership', [MemberPortalController::class, 'membership'])->name('member.membership');
+    Route::post('/membership/upgrade', [MemberPortalController::class, 'upgradeMembership'])->name('member.membership.upgrade');
+
+    // Personal Trainer (PT) Quotas & Booking
+    Route::get('/pt', [MemberPortalController::class, 'pt'])->name('member.pt');
+    Route::post('/pt/buy-quota', [MemberPortalController::class, 'buyPtQuota'])->name('member.pt.buy_quota');
+    Route::post('/pt/book', [MemberPortalController::class, 'bookPt'])->name('member.pt.book');
+
+    // Class RSVP & Waitlist
+    Route::get('/classes', [MemberPortalController::class, 'classes'])->name('member.classes');
+    Route::post('/classes/rsvp', [MemberPortalController::class, 'rsvpClass'])->name('member.classes.rsvp');
+    Route::post('/classes/cancel/{id}', [MemberPortalController::class, 'cancelRsvp'])->name('member.classes.cancel');
+
+    // Billing & Tagihan
+    Route::get('/billing', [MemberPortalController::class, 'billing'])->name('member.billing');
 });

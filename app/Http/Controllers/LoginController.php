@@ -69,7 +69,11 @@ class LoginController extends Controller
                 return redirect()->intended('/trainer/dashboard')->with('success', 'Selamat datang di Dashboard Personal Trainer!');
             }
 
-            return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang kembali!');
+            if ($user->role === 'member') {
+                return redirect()->intended('/member/dashboard')->with('success', 'Selamat datang di Portal Keanggotaan Member Gym!');
+            }
+
+            return redirect()->intended('/member/dashboard')->with('success', 'Selamat datang kembali!');
         }
 
         // 3. Jika Autentikasi Gagal

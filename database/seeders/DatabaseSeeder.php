@@ -270,6 +270,27 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
+            // Akun 6: Member (Portal Keanggotaan Member Gym)
+            $mbrUser = User::updateOrCreate(
+                ['email' => 'member@fitlife.com'],
+                [
+                    'name' => 'Budi Member',
+                    'password' => Hash::make('1234'),
+                    'role' => 'member',
+                    'tenant_id' => $fitlife->id,
+                ]
+            );
+
+            // Master Lockers FitLife Studio (#01 s/d #12)
+            for ($i = 1; $i <= 12; $i++) {
+                $lockerNum = str_pad($i, 2, '0', STR_PAD_LEFT);
+                $status = ($i == 3) ? 'terpakai' : (($i == 10) ? 'rusak' : 'tersedia');
+                \App\Models\Locker::updateOrCreate(
+                    ['tenant_id' => $fitlife->id, 'locker_number' => $lockerNum],
+                    ['status' => $status]
+                );
+            }
+
             // Members
             $m1 = \App\Models\Member::updateOrCreate(
                 ['tenant_id' => $fitlife->id, 'access_code' => '881234'],
