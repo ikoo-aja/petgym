@@ -200,7 +200,7 @@ class DatabaseSeeder extends Seeder
             $ownerUser = User::updateOrCreate(
                 ['email' => 'owner@fitlife.com'],
                 [
-                    'name' => 'Budi Pratama (Owner)',
+                    'name' => 'Budi Pratama',
                     'password' => Hash::make('1234'),
                     'role' => 'owner',
                     'tenant_id' => $fitlife->id,
