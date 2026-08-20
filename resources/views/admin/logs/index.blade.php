@@ -22,10 +22,6 @@
         </button>
       </form>
       @endif
-    @else
-    <span class="badge badge-info px-3 py-2 font-weight-bold" style="border-radius: 8px; background: #e0f2fe; color: #0369a1;">
-      👁️ Mode Pemantauan Owner (Read-Only)
-    </span>
     @endif
   </div>
 

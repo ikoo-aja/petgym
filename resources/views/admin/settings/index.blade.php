@@ -15,9 +15,6 @@
           <h5 class="font-weight-bold text-dark mb-1">🏢 Profil & Informasi Resmi Gym</h5>
           <p class="text-muted mb-0" style="font-size: 12.5px;">Informasi identitas tenant gym dan preferensi operasional resmi</p>
         </div>
-        <span class="badge badge-info px-3 py-2 font-weight-bold" style="border-radius: 8px; background: #e0f2fe; color: #0369a1;">
-          👁️ Mode Pemantauan Owner (Read-Only)
-        </span>
       </div>
 
       <div class="row mb-3">
