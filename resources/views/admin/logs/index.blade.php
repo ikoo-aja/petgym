@@ -6,6 +6,29 @@
 
 @section('content')
 <div class="card-custom">
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div>
+      <h6 class="font-weight-bold text-dark mb-1">🛡️ Rekap Riwayat Audit Trail Log</h6>
+      <small class="text-muted">Total {{ $logs->total() }} riwayat aktivitas tercatat</small>
+    </div>
+
+    @if(!Auth::user() || !Auth::user()->isOwner())
+      @if($logs->total() > 0)
+      <form action="{{ route('admin.logs.clear') }}" method="POST" onsubmit="return confirm('Bersihkan seluruh pesan riwayat log audit?')">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 8px;">
+          🗑️ Bersihkan Audit Log
+        </button>
+      </form>
+      @endif
+    @else
+    <span class="badge badge-info px-3 py-2 font-weight-bold" style="border-radius: 8px; background: #e0f2fe; color: #0369a1;">
+      👁️ Mode Pemantauan Owner (Read-Only)
+    </span>
+    @endif
+  </div>
+
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">

@@ -20,4 +20,17 @@ class AdminLogController extends Controller
 
         return view('admin.logs.index', compact('logs', 'tenant'));
     }
+
+    public function clear(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+        }
+
+        $tenant = $user->tenant;
+        StaffLog::where('tenant_id', $tenant->id)->delete();
+
+        return redirect()->route('admin.logs.index')->with('success', 'Seluruh riwayat pesan log audit berhasil dibersihkan dari sistem.');
+    }
 }

@@ -113,6 +113,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // 8. Audit Trail Log
     Route::get('/logs', [AdminLogController::class, 'index'])->name('admin.logs.index');
+    Route::delete('/logs/clear', [AdminLogController::class, 'clear'])->name('admin.logs.clear');
 
     // 9. Ekspor Laporan
     Route::get('/reports', [AdminReportController::class, 'index'])->name('admin.reports.index');
