@@ -25,6 +25,9 @@ class AdminLockerController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+        }
         $tenant = $user->tenant;
 
         $request->validate([
@@ -61,6 +64,9 @@ class AdminLockerController extends Controller
     public function update(Request $request, $id)
     {
         $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+        }
         $tenant = $user->tenant;
 
         $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($id);
@@ -98,6 +104,9 @@ class AdminLockerController extends Controller
     public function destroy(Request $request, $id)
     {
         $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+        }
         $tenant = $user->tenant;
 
         $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($id);

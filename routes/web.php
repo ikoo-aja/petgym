@@ -193,3 +193,10 @@ Route::middleware('auth')->prefix('receptionist')->group(function () {
 Route::middleware('auth')->prefix('trainer')->group(function () {
     Route::get('/dashboard', [TrainerController::class, 'dashboard'])->name('trainer.dashboard');
 });
+
+use App\Http\Controllers\OwnerController;
+
+// Group Pemilik Gym (Owner) - Mode Pemantauan & Laporan
+Route::middleware('auth')->prefix('owner')->group(function () {
+    Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('owner.dashboard');
+});

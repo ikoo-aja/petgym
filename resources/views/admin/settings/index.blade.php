@@ -8,6 +8,68 @@
 <div class="row">
   <div class="col-md-8">
     <div class="card-custom">
+      @if(Auth::user() && Auth::user()->isOwner())
+      <!-- Tampilan Khusus Owner (Murni Informasi Tanpa Form Input) -->
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+          <h5 class="font-weight-bold text-dark mb-1">🏢 Profil & Informasi Resmi Gym</h5>
+          <p class="text-muted mb-0" style="font-size: 12.5px;">Informasi identitas tenant gym dan preferensi operasional resmi</p>
+        </div>
+        <span class="badge badge-info px-3 py-2 font-weight-bold" style="border-radius: 8px; background: #e0f2fe; color: #0369a1;">
+          👁️ Mode Pemantauan Owner (Read-Only)
+        </span>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+          <div class="p-3 border rounded bg-light">
+            <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Nama Gym / Tenant</small>
+            <h5 class="font-weight-bold text-dark mb-0 mt-1">{{ $tenant->name ?? '-' }}</h5>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="p-3 border rounded bg-light">
+            <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Subdomain SaaS</small>
+            <h5 class="font-weight-bold text-primary mb-0 mt-1">{{ $tenant->subdomain ?? '-' }}</h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+          <div class="p-3 border rounded bg-light">
+            <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Nama Pemilik (Owner)</small>
+            <h6 class="font-weight-bold text-dark mb-0 mt-1">{{ $tenant->owner_name ?? '-' }}</h6>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="p-3 border rounded bg-light">
+            <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Email Resmi Owner (Masked)</small>
+            <h6 class="font-weight-bold text-dark mb-0 mt-1">{{ $tenant->owner_email ? \App\Helpers\PrivacyHelper::maskEmail($tenant->owner_email) : '-' }}</h6>
+          </div>
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <h6 class="font-weight-bold text-dark mb-3">⏰ Jam Operasional Gym</h6>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="p-3 border rounded bg-light">
+            <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px;">Hari Kerja (Senin - Jumat)</small>
+            <div class="font-weight-bold text-dark mt-1" style="font-size: 14.5px;">06:00 - 22:00 WIB</div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="p-3 border rounded bg-light">
+            <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px;">Akhir Pekan (Sabtu - Minggu)</small>
+            <div class="font-weight-bold text-dark mt-1" style="font-size: 14.5px;">07:00 - 20:00 WIB</div>
+          </div>
+        </div>
+      </div>
+
+      @else
+      <!-- Form Edit Pengaturan untuk Admin -->
       <h6 class="font-weight-bold text-dark mb-4">Profil & Identitas Gym</h6>
 
       <form action="{{ route('admin.settings.update') }}" method="POST">
@@ -51,6 +113,7 @@
           Simpan Perubahan Pengaturan
         </button>
       </form>
+      @endif
     </div>
   </div>
 

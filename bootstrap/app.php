@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $user = auth()->user();
                 if (!$user) return '/login';
                 if ($user->isSuperadmin()) return '/superadmin/dashboard';
+                if ($user->isOwner()) return '/owner/dashboard';
                 if ($user->isAdmin()) return '/admin/dashboard';
                 if ($user->isManager()) return '/manager/dashboard';
                 if ($user->isReceptionist()) return '/receptionist/dashboard';

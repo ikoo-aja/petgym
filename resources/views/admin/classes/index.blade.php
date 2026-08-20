@@ -30,7 +30,9 @@
               <th>Ruangan & Jam</th>
               <th>Kuota Harian</th>
               <th>Trainer</th>
+              @if(!Auth::user() || !Auth::user()->isOwner())
               <th class="text-right">Alokasi</th>
+              @endif
             </tr>
           </thead>
           <tbody>
@@ -39,14 +41,14 @@
                 <td><span class="badge badge-info px-2 py-1">{{ $c->day }}</span></td>
                 <td>
                   <div class="font-weight-bold text-dark">{{ $c->name }}</div>
-                  <small class="text-muted">Durasi: {{ $c->duration_minutes ?? 60 }} menit</small>
                 </td>
-                <td style="font-size: 13px;">
-                  <div class="font-weight-bold text-secondary">{{ $c->room ?? 'Belum Dialokasikan' }}</div>
-                  <small class="text-muted">{{ substr($c->start_time, 0, 5) }} - {{ substr($c->end_time, 0, 5) }} WIB</small>
+                <td style="font-size: 12.5px;" class="text-dark">
+                  <div>{{ $c->room ?? 'Belum Set' }}</div>
+                  <small class="text-muted">{{ substr($c->start_time, 0, 5) }} - {{ substr($c->end_time, 0, 5) }}</small>
                 </td>
-                <td style="font-size: 13px;" class="text-dark font-weight-bold">{{ $c->max_capacity ?? 0 }} Peserta</td>
-                <td style="font-size: 13px;" class="text-dark font-weight-bold">{{ $c->trainer ? $c->trainer->name : 'N/A' }}</td>
+                <td style="font-size: 12.5px;" class="text-dark font-weight-bold">{{ $c->max_capacity }} Peserta</td>
+                <td style="font-size: 12.5px;" class="text-dark font-weight-bold">{{ $c->trainer ? $c->trainer->name : 'Tanpa Trainer' }}</td>
+                @if(!Auth::user() || !Auth::user()->isOwner())
                 <td class="text-right">
                   <button class="btn btn-sm btn-primary btn-edit-class"
                     data-id="{{ $c->id }}"
@@ -60,10 +62,11 @@
                     data-trainer_id="{{ $c->trainer_id }}"
                     style="border-radius: 6px; font-weight: bold;">Alokasikan</button>
                 </td>
+                @endif
               </tr>
             @empty
               <tr>
-                <td colspan="6" class="text-center py-4 text-muted">Belum ada jadwal kelas dari Manager.</td>
+                <td colspan="{{ Auth::user() && Auth::user()->isOwner() ? '5' : '6' }}" class="text-center py-4 text-muted">Belum ada jadwal kelas dari Manager.</td>
               </tr>
             @endforelse
           </tbody>
@@ -77,9 +80,15 @@
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">Daftar Trainer / Pelatih</h6>
+        @if(!Auth::user() || !Auth::user()->isOwner())
         <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#addTrainerModal" style="border-radius: 8px;">
           + Tambah Trainer
         </button>
+        @else
+        <span class="badge badge-info px-2 py-1 font-weight-bold" style="border-radius: 6px; background: #e0f2fe; color: #0369a1;">
+          Read-Only
+        </span>
+        @endif
       </div>
 
       <div class="table-responsive">
@@ -88,7 +97,9 @@
             <tr>
               <th>Nama Trainer</th>
               <th>Spesialisasi</th>
+              @if(!Auth::user() || !Auth::user()->isOwner())
               <th class="text-right">Aksi</th>
+              @endif
             </tr>
           </thead>
           <tbody>
@@ -96,9 +107,10 @@
               <tr>
                 <td>
                   <div class="font-weight-bold text-dark">{{ $t->name }}</div>
-                  <small class="text-muted">{{ $t->phone ?? '-' }}</small>
+                  <small class="text-muted">{{ $t->phone ? \App\Helpers\PrivacyHelper::maskPhone($t->phone) : '-' }}</small>
                 </td>
                 <td style="font-size: 13px;" class="text-dark">{{ $t->specialization ?? 'General' }}</td>
+                @if(!Auth::user() || !Auth::user()->isOwner())
                 <td class="text-right">
                   <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-trainer"
                     data-id="{{ $t->id }}"
@@ -112,6 +124,7 @@
                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
                   </form>
                 </td>
+                @endif
               </tr>
             @empty
               <tr>

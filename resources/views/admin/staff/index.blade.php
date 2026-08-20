@@ -8,9 +8,11 @@
 <div class="card-custom">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h6 class="font-weight-bold text-dark mb-0">Daftar Akun Pengelola & Staf Internal</h6>
+    @if(!Auth::user() || !Auth::user()->isOwner())
     <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#createStaffModal" style="border-radius: 8px;">
       + Tambah Akun Staf Baru
     </button>
+    @endif
   </div>
 
   <div class="table-responsive">
@@ -18,17 +20,21 @@
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
         <tr>
           <th>Nama Staf</th>
-          <th>Email Login</th>
+          <th>Email Login (Masked for Owner)</th>
           <th>Role / Jabatan</th>
           <th>Tanggal Dibuat</th>
+          @if(!Auth::user() || !Auth::user()->isOwner())
           <th class="text-right">Aksi</th>
+          @endif
         </tr>
       </thead>
       <tbody>
         @forelse($staffs as $st)
           <tr>
             <td class="font-weight-bold text-dark">{{ $st->name }}</td>
-            <td style="font-size: 13.5px;" class="text-dark font-weight-semibold">{{ $st->email }}</td>
+            <td style="font-size: 13.5px;" class="text-dark font-weight-semibold">
+              {{ \App\Helpers\PrivacyHelper::maskEmail($st->email) }}
+            </td>
             <td>
               @if($st->role === 'admin')
                 <span class="badge badge-primary px-3 py-1">Admin</span>
@@ -43,6 +49,7 @@
               @endif
             </td>
             <td style="font-size: 13px;" class="text-dark">{{ $st->created_at ? $st->created_at->format('d M Y H:i') : '-' }}</td>
+            @if(!Auth::user() || !Auth::user()->isOwner())
             <td class="text-right">
               <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-staff" data-id="{{ $st->id }}" data-name="{{ $st->name }}" data-email="{{ $st->email }}" data-role="{{ $st->role }}" style="border-radius: 6px;">Edit</button>
               <button class="btn btn-sm btn-outline-warning mr-1 btn-reset" data-id="{{ $st->id }}" data-name="{{ $st->name }}" style="border-radius: 6px;">Reset Password</button>
@@ -54,6 +61,7 @@
                 </form>
               @endif
             </td>
+            @endif
           </tr>
         @empty
           <tr>

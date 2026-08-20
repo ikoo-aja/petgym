@@ -13,7 +13,8 @@
 @endif
 
 <div class="row">
-  <!-- Form Tambah Loker Baru -->
+  @if(!Auth::user() || !Auth::user()->isOwner())
+  <!-- Form Tambah Loker Baru (Khusus Admin) -->
   <div class="col-md-4">
     <div class="card-custom mb-4">
       <h6 class="font-weight-bold text-dark mb-3">➕ Daftarkan Loker Baru</h6>
@@ -53,12 +54,13 @@
       </form>
     </div>
   </div>
+  @endif
 
   <!-- Daftar Master Loker -->
-  <div class="col-md-8">
+  <div class="{{ Auth::user() && Auth::user()->isOwner() ? 'col-md-12' : 'col-md-8' }}">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">📦 Daftar Master Loker</h6>
+        <h6 class="font-weight-bold text-dark mb-0">📦 Pemantauan Status & Kapasitas Loker Gym</h6>
         <span class="badge badge-info font-weight-bold px-3 py-2" style="border-radius:10px;">Total: {{ count($lockers) }} Loker</span>
       </div>
 
@@ -67,8 +69,10 @@
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase; position: sticky; top: 0; z-index: 1;">
             <tr>
               <th>No. Loker</th>
-              <th>Status</th>
+              <th>Status Okupansi</th>
+              @if(!Auth::user() || !Auth::user()->isOwner())
               <th class="text-right">Aksi Admin</th>
+              @endif
             </tr>
           </thead>
           <tbody>
@@ -86,6 +90,7 @@
                   <span class="badge badge-danger px-2 py-1">Rusak / Diblokir</span>
                 @endif
               </td>
+              @if(!Auth::user() || !Auth::user()->isOwner())
               <td class="text-right">
                 @if($l->status === 'tersedia')
                   <form action="{{ route('admin.lockers.update', $l->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Blokir loker ini? Status akan menjadi Rusak dan tidak bisa dipakai Resepsionis.')">
@@ -115,6 +120,7 @@
                 </form>
                 @endif
               </td>
+              @endif
             </tr>
             @empty
             <tr>

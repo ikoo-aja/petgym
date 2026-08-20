@@ -6,6 +6,7 @@
 
 @section('content')
 <div class="row">
+  @if(!Auth::user() || !Auth::user()->isOwner())
   <!-- Left Side: POS Checkout Form -->
   <div class="col-md-7">
     <div class="card-custom">
@@ -39,13 +40,6 @@
                 <small class="text-muted">Hemat Rp 150.000</small>
               </div>
             </div>
-            {{-- <div class="col-md-6 mb-3">
-              <div class="card border p-3 text-center cursor-pointer item-card" onclick="addToCart('Paket Daily Pass (Harian)', 50000, null, 'membership', 0)" style="border-radius: 10px; cursor: pointer;">
-                <h6 class="font-weight-bold text-info">Pass Harian (Daily Pass)</h6>
-                <h4 class="font-weight-bold text-dark">Rp 50.000</h4>
-                <small class="text-muted">Akses 1 Hari Saja</small>
-              </div>
-            </div> --}}
             <div class="col-md-6 mb-3">
               <div class="card border p-3 text-center cursor-pointer item-card" onclick="addToCart('Paket Membership 1 Tahun', 4500000, null, 'membership', 12)" style="border-radius: 10px; cursor: pointer;">
                 <h6 class="font-weight-bold text-warning">Paket Membership 1 Tahun</h6>
@@ -59,43 +53,28 @@
         <!-- Tab Inventory Ritel -->
         <div class="tab-pane fade" id="inventory-sec" role="tabpanel">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <small class="text-muted font-weight-bold">Klik card untuk masuk keranjang, atau gunakan tombol opsi di samping.</small>
-            <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#addProductModal" style="border-radius: 6px;">
+            <span class="text-muted font-weight-bold" style="font-size: 13px;">Daftar Produk Ritel Aktif</span>
+            <button type="button" class="btn btn-sm btn-outline-success font-weight-bold" data-toggle="modal" data-target="#addProductModal" style="border-radius: 6px;">
               + Tambah Produk
             </button>
           </div>
+
           <div class="row">
-            @forelse($products->where('category', '!=', 'membership') as $prod)
+            @forelse($products as $p)
               <div class="col-md-6 mb-3">
-                <div class="card border p-3 item-card position-relative" style="border-radius: 10px;">
-                  <div onclick="addToCart('{{ $prod->name }}', {{ $prod->price }}, {{ $prod->id }}, 'inventory', 0)" style="cursor: pointer;">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="font-weight-bold text-dark">{{ $prod->name }}</span>
-                      <span class="badge badge-secondary">{{ ucfirst($prod->category) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                      <span class="font-weight-bold text-success">Rp {{ number_format($prod->price, 0, ',', '.') }}</span>
-                      <small class="text-muted">Stok: {{ $prod->stock }}</small>
-                    </div>
+                <div class="card border p-3 cursor-pointer item-card h-100" onclick="addToCart('{{ $p->name }}', {{ $p->price }}, {{ $p->id }}, 'inventory', 0)" style="border-radius: 10px; cursor: pointer;">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="font-weight-bold text-dark mb-0" style="font-size: 13.5px;">{{ $p->name }}</h6>
+                    <span class="badge badge-light border text-dark">{{ ucfirst($p->category) }}</span>
                   </div>
-                  <div class="mt-2 pt-2 border-top d-flex justify-content-end align-items-center">
-                    <button type="button" class="btn btn-xs btn-outline-primary mr-1 btn-edit-prod py-0 px-2"
-                      data-id="{{ $prod->id }}"
-                      data-name="{{ $prod->name }}"
-                      data-category="{{ $prod->category }}"
-                      data-price="{{ $prod->price }}"
-                      data-stock="{{ $prod->stock }}"
-                      style="font-size:11px;">Edit</button>
-                    <form action="{{ route('admin.products.destroy', $prod->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus produk ini?')">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size:11px;">Hapus</button>
-                    </form>
-                  </div>
+                  <div class="font-weight-bold text-primary mb-1">Rp {{ number_format($p->price, 0, ',', '.') }}</div>
+                  <small class="text-muted">Stok: {{ $p->stock }} pcs</small>
                 </div>
               </div>
             @empty
-              <div class="col-12 py-3 text-center text-muted">Belum ada barang inventaris ritel terdaftar.</div>
+              <div class="col-12 text-center py-4 text-muted">
+                Belum ada produk ritel. Klik "+ Tambah Produk" untuk mendaftarkan barang.
+              </div>
             @endforelse
           </div>
         </div>
@@ -118,7 +97,7 @@
               $expiredAt = $m->expired_at ? \Carbon\Carbon::parse($m->expired_at) : null;
               $memberStatus = !$expiredAt ? '🔴 Belum Aktif' : ($expiredAt->isPast() ? '⚠️ Expired' : '🟢 Aktif');
             @endphp
-            <option value="{{ $m->id }}">{{ $m->name }} (PIN: {{ $m->access_code }}) — {{ $memberStatus }}</option>
+            <option value="{{ $m->id }}">{{ $m->name }} (PIN: {{ \App\Helpers\PrivacyHelper::maskCode($m->access_code) }}) — {{ $memberStatus }}</option>
           @endforeach
         </select>
       </div>
@@ -165,6 +144,54 @@
       </button>
     </form>
   </div>
+  @else
+  <!-- Owner View: Full Width Transaction History & Revenue Report -->
+  <div class="col-md-12">
+    <div class="card-custom">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="font-weight-bold text-dark mb-0">🛒 Riwayat Penjualan Kasir POS & Omset Transaksi</h6>
+        <span class="badge badge-success font-weight-bold px-3 py-2" style="border-radius: 10px;">{{ count($recentTransactions) }} Transaksi Terakhir</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
+            <tr>
+              <th>Waktu Transaksi</th>
+              <th>No. Struk / Invoice</th>
+              <th>Member / Pembeli</th>
+              <th>Kasir / Staf</th>
+              <th>Metode Pembayaran</th>
+              <th class="text-right">Total Transaksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($recentTransactions as $tx)
+              <tr>
+                <td style="font-size: 12.5px;" class="text-dark font-weight-bold">{{ $tx->created_at ? $tx->created_at->format('d M Y H:i WIB') : '-' }}</td>
+                <td style="font-size: 12.5px;"><code class="font-weight-bold text-primary">{{ $tx->invoice_number ?? 'POS-'.$tx->id }}</code></td>
+                <td>
+                  <div class="font-weight-bold text-dark">{{ $tx->member ? $tx->member->name : 'Pembeli Umum / Non-Member' }}</div>
+                </td>
+                <td style="font-size: 12.5px;" class="text-dark">{{ $tx->user ? $tx->user->name : 'Kasir System' }}</td>
+                <td>
+                  <span class="badge badge-light border text-uppercase font-weight-bold px-2 py-1">{{ $tx->payment_method ?? 'Cash' }}</span>
+                </td>
+                <td class="text-right font-weight-bold text-success" style="font-size: 14px;">
+                  Rp {{ number_format($tx->total_amount, 0, ',', '.') }}
+                </td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">Belum ada riwayat transaksi kasir tercatat.</td>
+              </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  @endif
 </div>
 
 <!-- Modal Printable Struk Invoice Thermal Printer -->

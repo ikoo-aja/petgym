@@ -49,6 +49,10 @@ class LoginController extends Controller
                 return redirect()->intended('/superadmin/dashboard')->with('success', 'Selamat datang Superadmin!');
             }
 
+            if ($user->isOwner()) {
+                return redirect()->intended('/owner/dashboard')->with('success', 'Selamat datang Pemilik Gym! Anda dalam mode pemantauan bisnis (Read-Only).');
+            }
+
             if ($user->isAdmin()) {
                 return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang di Dashboard Admin!');
             }

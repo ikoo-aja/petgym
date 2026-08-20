@@ -8,8 +8,11 @@ use App\Models\Plan;
 use App\Models\Invoice;
 use App\Models\Announcement;
 use App\Models\SystemLog;
+use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class SuperadminController extends Controller
 {
@@ -108,14 +111,40 @@ class SuperadminController extends Controller
             'features' => $features,
         ]);
 
+        // Otomatis Buat 2 Akun Pengguna: (1) Akun Owner Pemantau & (2) Akun Admin Eksekutor
+        $cleanSub = Str::slug(explode('.', $rawSub)[0]);
+
+        // 1. Akun Owner (Pemilik Gym)
+        User::updateOrCreate(
+            ['email' => $request->owner_email],
+            [
+                'name' => $ownerName,
+                'password' => Hash::make('1234'),
+                'role' => 'owner',
+                'tenant_id' => $tenant->id,
+            ]
+        );
+
+        // 2. Akun Admin (Pengelola Operasional)
+        $adminEmail = "admin.{$cleanSub}@workout.id";
+        User::updateOrCreate(
+            ['email' => $adminEmail],
+            [
+                'name' => "Admin {$tenant->name}",
+                'password' => Hash::make('1234'),
+                'role' => 'admin',
+                'tenant_id' => $tenant->id,
+            ]
+        );
+
         SystemLog::create([
             'user_id' => Auth::id(),
             'action' => 'Tenant Registration',
-            'description' => "Superadmin mendaftarkan tenant baru: {$tenant->name} ({$tenant->subdomain}).",
+            'description' => "Superadmin mendaftarkan tenant baru: {$tenant->name} ({$tenant->subdomain}). 2 Akun otomatis dibuat: Owner ({$request->owner_email}) & Admin ({$adminEmail}).",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar di database!");
+        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar! 2 Akun dibuat otomatis: Owner ({$request->owner_email}) & Admin ({$adminEmail}). Password default: 1234");
     }
 
     /**

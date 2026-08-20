@@ -31,6 +31,11 @@ class User extends Authenticatable
         return $this->role === 'superadmin';
     }
 
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -48,7 +53,7 @@ class User extends Authenticatable
 
     public function isTenantUser(): bool
     {
-        return in_array($this->role, ['admin', 'manager', 'receptionist', 'trainer']) || !is_null($this->tenant_id);
+        return in_array($this->role, ['owner', 'admin', 'manager', 'receptionist', 'trainer']) || !is_null($this->tenant_id);
     }
 
     public function hasRole(string $role): bool

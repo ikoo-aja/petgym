@@ -17,9 +17,11 @@
       <button type="submit" class="btn btn-sm btn-primary font-weight-bold" style="border-radius: 8px;">Cari</button>
     </form>
 
+    @if(!Auth::user() || !Auth::user()->isOwner())
     <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#registerMemberModal" style="border-radius: 8px;">
       + Register Member Baru
     </button>
+    @endif
   </div>
 
   <div class="table-responsive">
@@ -28,7 +30,7 @@
         <tr>
           <th>Kode PIN Akses</th>
           <th>Nama Member</th>
-          <th>Kontak</th>
+          <th>Kontak (Masked for Owner)</th>
           <th>Gender</th>
           <th>Status</th>
           <th>Masa Aktif</th>
@@ -39,14 +41,16 @@
         @forelse($members as $m)
           <tr>
             <td>
-              <span class="badge badge-dark px-3 py-2" style="font-size: 13px; letter-spacing: 1.5px; border-radius: 6px;">{{ $m->access_code }}</span>
+              <span class="badge badge-dark px-3 py-2" style="font-size: 13px; letter-spacing: 1.5px; border-radius: 6px;">
+                {{ \App\Helpers\PrivacyHelper::maskCode($m->access_code) }}
+              </span>
             </td>
             <td>
               <div class="font-weight-bold text-dark">{{ $m->name }}</div>
-              <small class="text-muted">{{ $m->email ?? 'No email' }}</small>
+              <small class="text-muted">{{ $m->email ? \App\Helpers\PrivacyHelper::maskEmail($m->email) : 'No email' }}</small>
             </td>
-            <td style="font-size: 13px;">{{ $m->phone ?? '-' }}</td>
-            <td style="font-size: 13px;">{{ $m->gender }}</td>
+            <td style="font-size: 13px;" class="text-dark">{{ $m->phone ? \App\Helpers\PrivacyHelper::maskPhone($m->phone) : '-' }}</td>
+            <td style="font-size: 13px;" class="text-dark">{{ $m->gender }}</td>
             <td>
               @php
                 $expiredAt = $m->expired_at ? \Carbon\Carbon::parse($m->expired_at)->startOfDay() : null;
@@ -81,22 +85,24 @@
               @endif
             </td>
             <td class="text-right">
-              <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-member"
-                data-id="{{ $m->id }}"
-                data-name="{{ $m->name }}"
-                data-email="{{ $m->email }}"
-                data-phone="{{ $m->phone }}"
-                data-gender="{{ $m->gender }}"
-                data-address="{{ $m->address }}"
-                data-status="{{ $m->status }}"
-                data-expired_at="{{ $m->expired_at ? $m->expired_at->format('Y-m-d') : '' }}"
-                style="border-radius: 6px;">Edit</button>
               <button class="btn btn-sm btn-outline-info btn-history mr-1" data-id="{{ $m->id }}" data-name="{{ $m->name }}" style="border-radius: 6px;">Histori</button>
-              <form action="{{ route('admin.members.destroy', $m->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus data member ini?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
-              </form>
+              @if(!Auth::user() || !Auth::user()->isOwner())
+                <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-member"
+                  data-id="{{ $m->id }}"
+                  data-name="{{ $m->name }}"
+                  data-email="{{ $m->email }}"
+                  data-phone="{{ $m->phone }}"
+                  data-gender="{{ $m->gender }}"
+                  data-address="{{ $m->address }}"
+                  data-status="{{ $m->status }}"
+                  data-expired_at="{{ $m->expired_at ? $m->expired_at->format('Y-m-d') : '' }}"
+                  style="border-radius: 6px;">Edit</button>
+                <form action="{{ route('admin.members.destroy', $m->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus data member ini?')">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
+                </form>
+              @endif
             </td>
           </tr>
         @empty

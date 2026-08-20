@@ -6,7 +6,8 @@
 
 @section('content')
 <div class="row">
-  <!-- Left Side: Numpad PIN & Manual Input -->
+  @if(!Auth::user() || !Auth::user()->isOwner())
+  <!-- Left Side: Numpad PIN & Manual Input (Khusus Staf/Admin) -->
   <div class="col-md-5">
     <div class="card-custom text-center">
       <h5 class="font-weight-bold text-dark mb-1">Check-In Kode Akses (PIN)</h5>
@@ -49,7 +50,7 @@
           <select name="member_id" class="form-control" required style="border-radius: 8px;">
             <option value="">-- Cari Nama Member --</option>
             @foreach($allActiveMembers as $mem)
-              <option value="{{ $mem->id }}">{{ $mem->name }} (PIN: {{ $mem->access_code }})</option>
+              <option value="{{ $mem->id }}">{{ $mem->name }} (PIN: {{ \App\Helpers\PrivacyHelper::maskCode($mem->access_code) }})</option>
             @endforeach
           </select>
         </div>
@@ -59,13 +60,14 @@
       </form>
     </div>
   </div>
+  @endif
 
-  <!-- Right Side: Visit Logs Today -->
-  <div class="col-md-7">
+  <!-- Visit Logs Table -->
+  <div class="{{ Auth::user() && Auth::user()->isOwner() ? 'col-md-12' : 'col-md-7' }}">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Log Kunjungan Hari Ini</h6>
-        <span class="badge badge-primary font-weight-bold px-3 py-2" style="border-radius: 12px;">{{ count($todayCheckIns) }} Kunjungan</span>
+        <h6 class="font-weight-bold text-dark mb-0">⏱️ Rekap Log Kunjungan & Absensi Hari Ini</h6>
+        <span class="badge badge-primary font-weight-bold px-3 py-2" style="border-radius: 12px;">Total: {{ count($todayCheckIns) }} Kunjungan</span>
       </div>
 
       <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
@@ -90,7 +92,9 @@
                   <small class="text-muted">Expired: {{ ($ci->member && $ci->member->expired_at) ? $ci->member->expired_at->format('d M Y') : '-' }}</small>
                 </td>
                 <td>
-                  <span class="badge badge-secondary" style="font-size: 12px; letter-spacing: 1px;">{{ $ci->access_code }}</span>
+                  <span class="badge badge-secondary" style="font-size: 12px; letter-spacing: 1px;">
+                    {{ \App\Helpers\PrivacyHelper::maskCode($ci->access_code) }}
+                  </span>
                 </td>
                 <td>
                   @if($ci->check_in_method === 'code')
@@ -100,11 +104,15 @@
                   @endif
                 </td>
                 <td class="text-right">
-                  <form action="{{ route('admin.checkin.destroy', $ci->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Batalkan/Hapus log check-in ini?')">
+                  @if(!Auth::user() || !Auth::user()->isOwner())
+                  <form action="{{ route('admin.checkin.destroy', $ci->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Batalkan presensi kunjungan ini?')">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-xs btn-outline-danger" style="font-size: 11px;">Batal</button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Batalkan</button>
                   </form>
+                  @else
+                  <span class="text-muted small">Read-Only</span>
+                  @endif
                 </td>
               </tr>
             @empty

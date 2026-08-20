@@ -196,6 +196,18 @@ class DatabaseSeeder extends Seeder
         if (isset($tenantModels['FitLife Studio'])) {
             $fitlife = $tenantModels['FitLife Studio'];
 
+            // Akun 1: Owner (Pemilik Gym - Mode Pemantauan Eksekutif)
+            $ownerUser = User::updateOrCreate(
+                ['email' => 'owner@fitlife.com'],
+                [
+                    'name' => 'Budi Pratama (Owner)',
+                    'password' => Hash::make('1234'),
+                    'role' => 'owner',
+                    'tenant_id' => $fitlife->id,
+                ]
+            );
+
+            // Akun 2: Admin (Pengelola Operasional Harian)
             $adminUser = User::updateOrCreate(
                 ['email' => 'admin@fitlife.com'],
                 [

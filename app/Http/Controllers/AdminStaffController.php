@@ -26,6 +26,9 @@ class AdminStaffController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+        }
         $tenant = $user->tenant;
 
         $request->validate([

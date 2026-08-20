@@ -172,7 +172,9 @@
 
   // Tentukan rute dashboard sesuai role
   $dashUrl = route('admin.dashboard');
-  if ($userRole === 'manager') {
+  if ($userRole === 'owner') {
+      $dashUrl = route('owner.dashboard');
+  } elseif ($userRole === 'manager') {
       $dashUrl = route('manager.dashboard');
   } elseif ($userRole === 'receptionist') {
       $dashUrl = route('receptionist.dashboard');
@@ -199,23 +201,23 @@
 
       <li class="menu-header">Fitur Operasional</li>
 
-      @if(in_array($userRole, ['admin', 'manager', 'receptionist', 'trainer']))
+      @if(in_array($userRole, ['owner', 'admin', 'manager', 'receptionist', 'trainer']))
       <li>
         <a href="{{ route('admin.members.index') }}" class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member {{ $userRole === 'owner' ? ' ' : '' }}
         </a>
       </li>
       @endif
 
-      @if($userRole === 'admin')
+      @if(in_array($userRole, ['owner', 'admin']))
       <li>
         <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir 
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir
         </a>
       </li>
       <li>
         <a href="{{ route('admin.lockers.index') }}" class="{{ request()->routeIs('admin.lockers.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym {{ $userRole === 'owner' ? ' ' : '' }}
         </a>
       </li>
       @endif
@@ -229,7 +231,7 @@
       </li>
       <li>
         <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir 
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir
         </a>
       </li>
       <li>
@@ -249,10 +251,18 @@
       </li>
       @endif
 
-      @if(in_array($userRole, ['admin', 'trainer']))
+      @if($userRole === 'owner')
+      <li>
+        <a href="{{ route('admin.checkin.index') }}" class="{{ request()->routeIs('admin.checkin.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-check"></span></span> Check-In Absensi
+        </a>
+      </li>
+      @endif
+
+      @if(in_array($userRole, ['owner', 'admin', 'trainer']))
       <li>
         <a href="{{ route('admin.classes.index') }}" class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Kelas & Trainer
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Kelas & Trainer {{ $userRole === 'owner' ? ' ' : '' }}
         </a>
       </li>
       @endif
@@ -311,19 +321,19 @@
       </li>
       @endif
 
-      @if(in_array($userRole, ['admin', 'manager']))
+      @if(in_array($userRole, ['owner', 'admin', 'manager']))
       <li class="menu-header">Manajemen Internal</li>
       @endif
 
-      @if($userRole === 'admin')
+      @if(in_array($userRole, ['owner', 'admin']))
       <li>
         <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Staf (RBAC)
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Staf (RBAC) {{ $userRole === 'owner' ? ' ' : '' }}
         </a>
       </li>
       @endif
 
-      @if(in_array($userRole, ['admin', 'manager']))
+      @if(in_array($userRole, ['owner', 'admin', 'manager']))
       <li>
         <a href="{{ route('admin.logs.index') }}" class="{{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-history"></span></span> Audit Trail Log
@@ -331,18 +341,18 @@
       </li>
       @endif
 
-      @if(in_array($userRole, ['admin', 'manager']))
+      @if(in_array($userRole, ['owner', 'admin', 'manager']))
       <li>
         <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Ekspor Laporan
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Pusat Laporan {{ $userRole === 'owner' ? 'Eksekutif' : '' }}
         </a>
       </li>
       @endif
 
-      @if($userRole === 'admin')
+      @if(in_array($userRole, ['owner', 'admin']))
       <li>
         <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Gym
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Gym {{ $userRole === 'owner' ? ' ' : '' }}
         </a>
       </li>
       @endif
@@ -360,7 +370,7 @@
       <div class="user-profile-nav">
         <div class="text-right mr-2">
           <div style="font-weight: 700; color: #111827; font-size: 13.5px;">{{ $currentUser ? $currentUser->name : 'User' }}</div>
-          <div style="font-size: 11px; color: #6b7280;">Role: {{ ucfirst($userRole) }}</div>
+          <div style="font-size: 12px; color: #36393f; font-weight: Bold">Role: {{ ucfirst($userRole) }}</div>
         </div>
 
         <form action="{{ route('logout') }}" method="POST" class="d-inline">
