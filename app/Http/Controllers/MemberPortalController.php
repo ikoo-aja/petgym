@@ -93,13 +93,27 @@ class MemberPortalController extends Controller
             ->take(3)
             ->get();
 
+        // Total spending this month
+        $totalSpending = PosTransaction::where('tenant_id', $tenantId)
+            ->where('user_id', $user->id)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('total_amount');
+
+        // Classes attended total
+        $classesAttendedCount = ClassRsvp::where('member_id', $member->id)
+            ->where('status', 'attended')
+            ->count();
+
         return view('member.dashboard', compact(
             'user',
             'member',
             'activeRental',
             'ptQuotas',
             'upcomingPtBookings',
-            'upcomingClassRsvps'
+            'upcomingClassRsvps',
+            'totalSpending',
+            'classesAttendedCount'
         ));
     }
 
@@ -183,16 +197,18 @@ class MemberPortalController extends Controller
         ]);
 
         // Invoice Record
+        $paymentMethod = $request->input('payment_method', 'qris');
         PosTransaction::create([
             'tenant_id' => $tenantId,
             'user_id' => Auth::id(),
+            'member_id' => $member->id,
             'invoice_number' => 'INV-LKR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
             'total_amount' => $amount,
-            'payment_method' => 'qris',
-            'payment_status' => 'paid',
+            'payment_method' => $paymentMethod,
+            'type' => 'inventory',
         ]);
 
-        return redirect()->route('member.lockers')->with('success', "Loker #{$locker->locker_number} berhasil disewa! Access PIN Anda: {$pinCode}");
+        return redirect()->route('member.lockers')->with('success', "Pembayaran berhasil! Loker #{$locker->locker_number} berhasil disewa. Access PIN Anda: {$pinCode}");
     }
 
     /**
@@ -245,16 +261,18 @@ class MemberPortalController extends Controller
             'expired_at' => now()->addDays(30),
         ]);
 
+        $paymentMethod = $request->input('payment_method', 'qris');
         PosTransaction::create([
             'tenant_id' => $member->tenant_id,
             'user_id' => Auth::id(),
+            'member_id' => $member->id,
             'invoice_number' => 'INV-MBR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
             'total_amount' => $tierPrice,
-            'payment_method' => 'qris',
-            'payment_status' => 'paid',
+            'payment_method' => $paymentMethod,
+            'type' => 'membership',
         ]);
 
-        return redirect()->route('member.membership')->with('success', "Selamat! Keanggotaan Anda berhasil diperbarui ke Tier " . strtoupper($request->tier) . "!");
+        return redirect()->route('member.membership')->with('success', "Pembayaran Lunas! Keanggotaan Anda berhasil diperbarui ke Tier " . strtoupper($request->tier) . "!");
     }
 
     /**
@@ -307,16 +325,18 @@ class MemberPortalController extends Controller
         }
 
         $sessionPrice = 150000 * $sessions;
+        $paymentMethod = $request->input('payment_method', 'qris');
         PosTransaction::create([
             'tenant_id' => $tenantId,
             'user_id' => Auth::id(),
+            'member_id' => $member->id,
             'invoice_number' => 'INV-PT-' . strtoupper(substr(md5(uniqid()), 0, 6)),
             'total_amount' => $sessionPrice,
-            'payment_method' => 'qris',
-            'payment_status' => 'paid',
+            'payment_method' => $paymentMethod,
+            'type' => 'membership',
         ]);
 
-        return redirect()->route('member.pt')->with('success', "Berhasil membeli paket {$sessions} sesi PT dengan Trainer {$trainer->name}!");
+        return redirect()->route('member.pt')->with('success', "Pembayaran Lunas! Berhasil membeli paket {$sessions} sesi PT dengan Trainer {$trainer->name}!");
     }
 
     public function bookPt(Request $request)
@@ -330,6 +350,16 @@ class MemberPortalController extends Controller
             'booking_time' => 'required',
         ]);
 
+        $bookingDateObj = Carbon::parse($request->booking_date);
+        if ($bookingDateObj->isBefore(Carbon::today())) {
+            return back()->with('error', 'Tanggal booking PT tidak boleh di masa lalu.');
+        }
+
+        $maxBookingDate = Carbon::today()->addDays(14);
+        if ($bookingDateObj->greaterThan($maxBookingDate)) {
+            return back()->with('error', "Booking PT hanya dapat dilakukan maksimal 14 hari ke depan.");
+        }
+
         $trainer = Trainer::where('tenant_id', $tenantId)->findOrFail($request->trainer_id);
 
         // Check Quota
@@ -339,7 +369,7 @@ class MemberPortalController extends Controller
             ->first();
 
         if (!$quota) {
-            return back()->with('error', "Anda tidak memiliki sisa kuota sesi PT dengan Trainer {$trainer->name}. Silakan beli paket sesi lebih dulu!");
+            return back()->with('error', "Sisa kuota sesi PT Anda dengan Trainer {$trainer->name} adalah 0. Silakan beli paket kuota sesi lebih dulu!");
         }
 
         // Conflict Resolution Engine: Cek apakah Trainer sudah di-booking di tanggal & jam tersebut
@@ -369,7 +399,7 @@ class MemberPortalController extends Controller
             'status' => 'scheduled',
         ]);
 
-        return redirect()->route('member.pt')->with('success', "Jadwal PT dengan {$trainer->name} pada " . Carbon::parse($request->booking_date)->format('d M Y') . " jam {$request->booking_time} berhasil di-booking!");
+        return redirect()->route('member.pt')->with('success', "Berhasil! Jadwal PT dengan {$trainer->name} pada " . Carbon::parse($request->booking_date)->format('d M Y') . " jam {$request->booking_time} telah terdaftar.");
     }
 
     /**
@@ -399,15 +429,20 @@ class MemberPortalController extends Controller
 
         $request->validate([
             'gym_class_id' => 'required|exists:gym_classes,id',
-            'class_date' => 'required|date|after_or_equal:today',
+            'class_date' => 'required|date',
         ]);
 
         $gymClass = GymClass::where('tenant_id', $tenantId)->findOrFail($request->gym_class_id);
 
-        // Batasan Maksimal H-2
         $classDateObj = Carbon::parse($request->class_date);
-        if ($classDateObj->diffInDays(now(), false) < -2) {
-            return back()->with('error', "Booking kelas maksimal dapat dilakukan H-2 sebelum tanggal kelas!");
+
+        if ($classDateObj->isBefore(Carbon::today())) {
+            return back()->with('error', 'Tanggal kelas tidak boleh di masa lalu.');
+        }
+
+        $maxAllowedDate = Carbon::today()->addDays(7);
+        if ($classDateObj->greaterThan($maxAllowedDate)) {
+            return back()->with('error', "Pendaftaran kelas hanya dibuka hingga 7 hari ke depan (maksimal tanggal " . $maxAllowedDate->format('d M Y') . ").");
         }
 
         // Cek RSVP ganda
@@ -488,13 +523,18 @@ class MemberPortalController extends Controller
     /**
      * 5. RIWAYAT TAGIHAN & INVOICING
      */
-    public function billing()
+    public function billing(Request $request)
     {
         $member = $this->getMemberProfile();
-        $transactions = PosTransaction::where('tenant_id', $member->tenant_id)
-            ->where('user_id', Auth::id())
-            ->latest()
-            ->get();
+        
+        $query = PosTransaction::where('tenant_id', $member->tenant_id)
+            ->where('user_id', Auth::id());
+
+        if ($request->has('type') && in_array($request->type, ['membership', 'inventory'])) {
+            $query->where('type', $request->type);
+        }
+
+        $transactions = $query->latest()->get();
 
         return view('member.billing', compact('member', 'transactions'));
     }
@@ -515,5 +555,68 @@ class MemberPortalController extends Controller
                 $rental->locker->update(['status' => 'tersedia']);
             }
         }
+    }
+
+    /**
+     * 6. PANDUAN PENGGUNAAN PORTAL MEMBER (Step-by-Step Guide)
+     */
+    public function guide()
+    {
+        $member = $this->getMemberProfile();
+        return view('member.guide', compact('member'));
+    }
+
+    /**
+     * 7. PENGATURAN PROFIL & KEAMANAN AKUN MEMBER
+     */
+    public function settings()
+    {
+        $user = Auth::user();
+        $member = $this->getMemberProfile();
+        return view('member.settings', compact('user', 'member'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        $member = $this->getMemberProfile();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'gender' => 'required|in:Laki-laki,Perempuan',
+            'address' => 'nullable|string',
+        ]);
+
+        $user->update(['name' => $request->name]);
+
+        $member->update([
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'gender' => $request->gender,
+            'address' => $request->address,
+        ]);
+
+        return redirect()->route('member.settings')->with('success', 'Informasi profil akun Anda berhasil diperbarui!');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return back()->with('error', 'Kata sandi saat ini tidak cocok!');
+        }
+
+        $user->update([
+            'password' => \Illuminate\Support\Facades\Hash::make($request->new_password)
+        ]);
+
+        return redirect()->route('member.settings')->with('success', 'Kata sandi akun Anda berhasil diubah!');
     }
 }

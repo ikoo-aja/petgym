@@ -8,13 +8,13 @@
 
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-  <strong>✅ Berhasil!</strong> {{ session('success') }}
+  <strong>Berhasil!</strong> {{ session('success') }}
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 </div>
 @endif
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-  <strong>❌ Gagal!</strong> {{ session('error') }}
+  <strong>Gagal!</strong> {{ session('error') }}
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 </div>
 @endif
@@ -24,7 +24,7 @@
   <div class="col-md-7">
     <div class="card-custom mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">📋 Buku Tamu / Walk-in Leads</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Buku Tamu / Walk-in Leads</h6>
         <button class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addGuestModal" style="border-radius: 8px;">+ Tambah Tamu</button>
       </div>
 
@@ -79,7 +79,7 @@
   <!-- RIGHT: Form Tambah Tamu Singkat -->
   <div class="col-md-5">
     <div class="card-custom mb-4">
-      <h6 class="font-weight-bold text-dark mb-3">✏️ Form Catat Tamu Baru (Quick Add)</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Form Catat Tamu Baru (Quick Add)</h6>
       <form action="{{ route('receptionist.guests.store') }}" method="POST">
         @csrf
         <div class="form-group mb-2">
@@ -109,7 +109,7 @@
   <div class="col-md-8">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">🔍 Log Barang Tertinggal (Lost & Found)</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Log Barang Tertinggal (Lost & Found)</h6>
         <button class="btn btn-sm btn-warning text-dark font-weight-bold" data-toggle="modal" data-target="#addLostFoundModal" style="border-radius: 8px;">+ Catat Barang Temuan</button>
       </div>
       <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
@@ -158,7 +158,7 @@
   <!-- Form Catat Barang Temuan -->
   <div class="col-md-4">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">📦 Catat Barang Temuan Baru</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Catat Barang Temuan Baru</h6>
       <form action="{{ route('receptionist.lost-found.store') }}" method="POST">
         @csrf
         <div class="form-group mb-2">

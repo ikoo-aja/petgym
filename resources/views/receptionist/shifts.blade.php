@@ -8,30 +8,30 @@
 
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-  <strong>✅ Berhasil!</strong> {{ session('success') }}
+  <strong>Berhasil!</strong> {{ session('success') }}
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 </div>
 @endif
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-  <strong>❌ Gagal!</strong> {{ session('error') }}
+  <strong>Gagal!</strong> {{ session('error') }}
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 </div>
 @endif
 
+@php
+  $openShift = $shifts->where('status', 'open')->first();
+@endphp
+
 <div class="row mb-4">
-  <!-- Buka Shift Kasir -->
+  <!-- Buka / Tutup Shift Kasir -->
   <div class="col-md-5">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">🟢 Buka Shift Kasir Baru</h6>
-
-      @php
-        $openShift = $shifts->where('status', 'open')->first();
-      @endphp
-
       @if($openShift)
-        <div class="alert alert-info mb-3">
-          <strong>Shift Aktif</strong> — Dibuka sejak <strong>{{ $openShift->opened_at ? \Carbon\Carbon::parse($openShift->opened_at)->format('d M Y, H:i') : '-' }}</strong> WIB.
+        <h6 class="font-weight-bold text-dark mb-3">Shift Kasir Aktif</h6>
+        <div class="alert alert-success mb-3 border-0" style="background-color: #ecfdf5;">
+          <strong>Shift Sedang Berjalan</strong>
+          <br>Dibuka sejak <strong>{{ $openShift->opened_at ? \Carbon\Carbon::parse($openShift->opened_at)->format('d M Y, H:i') : '-' }} WIB</strong>
           <br>Kas Awal: <strong>Rp {{ number_format($openShift->start_cash, 0, ',', '.') }}</strong>
         </div>
 
@@ -48,10 +48,15 @@
             <small class="text-muted">Hitung secara manual uang fisik yang ada di laci kasir saat ini.</small>
           </div>
           <button type="submit" class="btn btn-danger btn-block font-weight-bold" onclick="return confirm('Yakin ingin menutup shift kasir? Pastikan nominal kas laci sudah benar.')">
-            🔴 Tutup Shift & Setor Kas
+            Tutup Shift & Setor Kas
           </button>
         </form>
       @else
+        <h6 class="font-weight-bold text-dark mb-3">Buka Shift Kasir Baru</h6>
+        <div class="alert alert-info mb-3 border-0" style="background-color: #eff6ff; color: #1e40af;">
+          <small><strong>Informasi:</strong> Anda belum memiliki shift kasir yang aktif. Buka shift baru untuk mulai mencatat transaksi kasir hari ini.</small>
+        </div>
+
         <form action="{{ route('receptionist.shifts.start') }}" method="POST">
           @csrf
           <div class="form-group mb-3">
@@ -65,7 +70,7 @@
             <small class="text-muted">Hitung kas yang ada di laci saat serah terima dari shift sebelumnya.</small>
           </div>
           <button type="submit" class="btn btn-success btn-block font-weight-bold">
-            🟢 Buka Shift Kasir Sekarang
+            Buka Shift Kasir Sekarang
           </button>
         </form>
       @endif
@@ -75,7 +80,7 @@
   <!-- Riwayat Shift -->
   <div class="col-md-7">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">📅 Riwayat Shift Kasir Anda</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Riwayat Shift Kasir Anda</h6>
       <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
@@ -131,7 +136,7 @@
 <div class="row">
   <div class="col-md-5">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">📝 Form Input Keluhan Member Baru</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Form Input Keluhan Member Baru</h6>
       <form action="{{ route('receptionist.complaints.store') }}" method="POST">
         @csrf
         <div class="form-group mb-2">
@@ -161,7 +166,7 @@
   <!-- Daftar Keluhan Tercatat -->
   <div class="col-md-7">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">📋 Riwayat Tiket Keluhan Member</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Riwayat Tiket Keluhan Member</h6>
       <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
@@ -204,3 +209,15 @@
   </div>
 </div>
 @endsection
+
+@section('scripts')
+<script>
+  $(document).ready(function() {
+    $('form').on('submit', function() {
+      // Disable all submit buttons inside the submitted form
+      $(this).find('button[type="submit"]').prop('disabled', true).text('Memproses...');
+    });
+  });
+</script>
+@endsection
+

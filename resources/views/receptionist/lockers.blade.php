@@ -8,13 +8,13 @@
 
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-  <strong>✅ Berhasil!</strong> {{ session('success') }}
+  <strong>Berhasil!</strong> {{ session('success') }}
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 </div>
 @endif
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-  <strong>❌ Gagal!</strong> {{ session('error') }}
+  <strong>Gagal!</strong> {{ session('error') }}
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 </div>
 @endif
@@ -85,21 +85,28 @@
         <tr>
           <th>Loker</th>
           <th>Member</th>
-          <th>Jam Pinjam</th>
-          <th>Durasi</th>
+          <th>Tipe Sewa</th>
+          <th>Access PIN</th>
+          <th>Waktu Pinjam</th>
+          <th>Berakhir</th>
           <th class="text-right">Aksi</th>
         </tr>
       </thead>
       <tbody>
         @forelse($activeRentals as $r)
         <tr>
-          <td><span class="badge badge-primary font-weight-bold px-2 py-1" style="font-size:13px;">{{ $r->locker ? $r->locker->locker_number : '-' }}</span></td>
+          <td><span class="badge badge-primary font-weight-bold px-2 py-1" style="font-size:13px;">#{{ $r->locker ? $r->locker->locker_number : '-' }}</span></td>
           <td class="font-weight-bold text-dark">{{ $r->member ? $r->member->name : '-' }}</td>
-          <td style="font-size:13px;">{{ $r->rented_at ? \Carbon\Carbon::parse($r->rented_at)->format('H:i:s') : '-' }}</td>
           <td>
-            @if($r->rented_at)
-              @php $dur = \Carbon\Carbon::parse($r->rented_at)->diffForHumans(null, true) @endphp
-              <span class="badge badge-warning text-dark">{{ $dur }}</span>
+            <span class="badge badge-info font-weight-bold text-uppercase">{{ $r->rental_type ?? 'Harian' }}</span>
+          </td>
+          <td>
+            <span class="badge badge-light border text-dark font-weight-bold" style="font-size:12px; letter-spacing: 2px;">{{ $r->pin_code ?? '-' }}</span>
+          </td>
+          <td style="font-size:13px;">{{ $r->rented_at ? \Carbon\Carbon::parse($r->rented_at)->format('d M H:i') : '-' }}</td>
+          <td style="font-size:13px;">
+            @if($r->end_date)
+              <span class="text-dark font-weight-bold">{{ \Carbon\Carbon::parse($r->end_date)->format('d M Y') }}</span>
             @else
               -
             @endif
@@ -108,14 +115,14 @@
             <form action="{{ route('receptionist.lockers.return', $r->locker_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Konfirmasi pengembalian kunci loker ini?')">
               @csrf
               <button type="submit" class="btn btn-sm btn-outline-success font-weight-bold" style="border-radius: 8px;">
-                <span class="icon-check"></span> Kembalikan Kunci
+                Kembalikan Loker
               </button>
             </form>
           </td>
         </tr>
         @empty
         <tr>
-          <td colspan="5" class="text-center py-4 text-muted">Semua kunci loker telah dikembalikan — tidak ada peminjaman aktif saat ini.</td>
+          <td colspan="7" class="text-center py-4 text-muted">Semua loker telah dikembalikan. Tidak ada penyewaan aktif saat ini.</td>
         </tr>
         @endforelse
       </tbody>

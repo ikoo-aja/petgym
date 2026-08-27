@@ -1,3 +1,7 @@
+@php
+  $currentUser = Auth::user();
+  $userRole = $currentUser ? $currentUser->role : 'admin';
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -163,13 +167,134 @@
       margin-bottom: 24px;
     }
   </style>
+
+  @if($userRole === 'member')
+  <style>
+    /* Clean White & Red Branding for Member Portal */
+    :root {
+      --brand-red: #f43f5e;
+      --brand-red-hover: #e11d48;
+      --brand-red-light: rgba(244, 63, 94, 0.08);
+      --brand-red-glow: rgba(244, 63, 94, 0.15);
+      --mp-border: #e5e7eb;
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: #1e293b !important;
+    }
+
+    /* Override buttons */
+    .btn-primary {
+      background-color: var(--brand-red) !important;
+      border-color: var(--brand-red) !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+      box-shadow: 0 2px 4px rgba(244, 63, 94, 0.2) !important;
+      transition: all 0.2s ease !important;
+    }
+    .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+      background-color: var(--brand-red-hover) !important;
+      border-color: var(--brand-red-hover) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px rgba(244, 63, 94, 0.3) !important;
+    }
+    .btn-outline-primary {
+      color: var(--brand-red) !important;
+      border-color: var(--brand-red) !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+    }
+    .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+      background-color: var(--brand-red) !important;
+      border-color: var(--brand-red) !important;
+      color: #ffffff !important;
+    }
+
+    /* Override primary text & borders */
+    .text-primary {
+      color: var(--brand-red) !important;
+    }
+    .border-primary {
+      border-color: var(--brand-red) !important;
+    }
+
+    /* Custom Cards for Member Portal */
+    .card-custom {
+      background: #ffffff !important;
+      border: 1px solid var(--mp-border) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+      border-radius: 12px !important;
+      transition: all 0.2s ease !important;
+    }
+    .card-custom:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Custom Badges */
+    .badge-primary {
+      background-color: var(--brand-red-light) !important;
+      color: var(--brand-red) !important;
+      border: 1px solid rgba(244, 63, 94, 0.2) !important;
+    }
+    .badge-success {
+      background-color: rgba(16, 185, 129, 0.1) !important;
+      color: #10b981 !important;
+      border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    }
+    .badge-warning {
+      background-color: rgba(245, 158, 11, 0.1) !important;
+      color: #d97706 !important;
+      border: 1px solid rgba(245, 158, 11, 0.2) !important;
+    }
+    .badge-danger {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+      color: #ef4444 !important;
+      border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    }
+    .badge-info {
+      background-color: rgba(59, 130, 246, 0.1) !important;
+      color: #3b82f6 !important;
+      border: 1px solid rgba(59, 130, 246, 0.2) !important;
+    }
+    .badge-secondary {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border: 1px solid #e2e8f0 !important;
+    }
+
+    /* Table styles */
+    .table thead th {
+      border-bottom: 2px solid #f1f5f9 !important;
+      color: #475569 !important;
+      font-weight: 700 !important;
+    }
+    .table td {
+      border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    /* Modal Styling */
+    .modal-content {
+      border-radius: 16px !important;
+      border: 1px solid var(--mp-border) !important;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04) !important;
+    }
+    .modal-header {
+      border-bottom: 1px solid #f1f5f9 !important;
+    }
+    .modal-footer {
+      border-top: 1px solid #f1f5f9 !important;
+      background-color: #f8fafc !important;
+      border-radius: 0 0 16px 16px !important;
+    }
+  </style>
+  @endif
 </head>
 <body>
 
 @php
-  $currentUser = Auth::user();
-  $userRole = $currentUser ? $currentUser->role : 'admin';
-
   // Tentukan rute dashboard sesuai role
   $dashUrl = route('admin.dashboard');
   if ($userRole === 'owner') {

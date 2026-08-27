@@ -565,11 +565,11 @@
 
       @if(count($lowStockProducts) > 0)
         <div class="alert alert-warning mb-3">
-          <strong>⚠️ Peringatan Restock!</strong> Terdapat {{ count($lowStockProducts) }} barang retail yang persediaannya hampir habis. Harap segera restock ke supplier.
+          <strong>Peringatan Restock!</strong> Terdapat {{ count($lowStockProducts) }} barang retail yang persediaannya hampir habis. Harap segera restock ke supplier.
         </div>
       @else
         <div class="alert alert-success mb-3">
-          <strong>✅ Stok Aman!</strong> Seluruh barang inventaris retail saat ini dalam kondisi stok aman (di atas 10 unit).
+          <strong>Stok Aman!</strong> Seluruh barang inventaris retail saat ini dalam kondisi stok aman (di atas 10 unit).
         </div>
       @endif
 

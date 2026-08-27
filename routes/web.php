@@ -239,4 +239,10 @@ Route::middleware('auth')->prefix('member')->group(function () {
 
     // Billing & Tagihan
     Route::get('/billing', [MemberPortalController::class, 'billing'])->name('member.billing');
+
+    // Panduan Penggunaan & Pengaturan Akun Member
+    Route::get('/guide', [MemberPortalController::class, 'guide'])->name('member.guide');
+    Route::get('/settings', [MemberPortalController::class, 'settings'])->name('member.settings');
+    Route::post('/settings/profile', [MemberPortalController::class, 'updateProfile'])->name('member.settings.update_profile');
+    Route::post('/settings/password', [MemberPortalController::class, 'updatePassword'])->name('member.settings.update_password');
 });

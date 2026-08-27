@@ -7,7 +7,7 @@
 @section('content')
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-  <strong>❌ Gagal!</strong> {{ session('error') }}
+  <strong>Gagal!</strong> {{ session('error') }}
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 </div>
 @endif
@@ -17,7 +17,7 @@
   <!-- Form Tambah Loker Baru (Khusus Admin) -->
   <div class="col-md-4">
     <div class="card-custom mb-4">
-      <h6 class="font-weight-bold text-dark mb-3">➕ Daftarkan Loker Baru</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Daftarkan Loker Baru</h6>
       <form action="{{ route('admin.lockers.store') }}" method="POST">
         @csrf
         <div class="form-group mb-2">
@@ -36,7 +36,7 @@
 
       <hr>
 
-      <h6 class="font-weight-bold text-dark mb-3 mt-3">⚡ Tambah Loker Massal</h6>
+      <h6 class="font-weight-bold text-dark mb-3 mt-3">Tambah Loker Massal</h6>
       <form action="" method="POST" id="bulkLockerForm">
         @csrf
         <div class="form-group mb-2">
@@ -60,7 +60,7 @@
   <div class="{{ Auth::user() && Auth::user()->isOwner() ? 'col-md-12' : 'col-md-8' }}">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">📦 Pemantauan Status & Kapasitas Loker Gym</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Pemantauan Status & Kapasitas Loker Gym</h6>
         <span class="badge badge-info font-weight-bold px-3 py-2" style="border-radius:10px;">Total: {{ count($lockers) }} Loker</span>
       </div>
 
@@ -98,7 +98,7 @@
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">
                     <input type="hidden" name="status" value="rusak">
-                    <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius:6px;">🔒 Blokir (Rusak)</button>
+                    <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius:6px;">Blokir (Rusak)</button>
                   </form>
                 @elseif($l->status === 'rusak')
                   <form action="{{ route('admin.lockers.update', $l->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Aktifkan kembali loker ini?')">
@@ -106,7 +106,7 @@
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">
                     <input type="hidden" name="status" value="tersedia">
-                    <button type="submit" class="btn btn-xs btn-outline-success font-weight-bold" style="border-radius:6px;">🔓 Aktifkan</button>
+                    <button type="submit" class="btn btn-xs btn-outline-success font-weight-bold" style="border-radius:6px;">Aktifkan</button>
                   </form>
                 @else
                   <span class="text-muted font-italic" style="font-size:12px;">Sedang dipakai member</span>
@@ -116,7 +116,7 @@
                 <form action="{{ route('admin.lockers.destroy', $l->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus loker ini dari database secara permanen?')">
                   @csrf
                   @method('DELETE')
-                  <button type="submit" class="btn btn-xs btn-outline-dark font-weight-bold ml-1" style="border-radius:6px;">🗑 Hapus</button>
+                  <button type="submit" class="btn btn-xs btn-outline-dark font-weight-bold ml-1" style="border-radius:6px;">Hapus</button>
                 </form>
                 @endif
               </td>

@@ -9,14 +9,14 @@
 @if(!$activeShift)
 <div class="alert alert-danger shadow-sm mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <strong>⚠️ Shift Belum Dibuka!</strong> Harap buka shift kasir terlebih dahulu untuk mencatat nominal kas laci meja depan sebelum memproses transaksi kasir.
+    <strong>Shift Belum Dibuka!</strong> Harap buka shift kasir terlebih dahulu untuk mencatat nominal kas laci meja depan sebelum memproses transaksi kasir.
   </div>
   <a href="{{ route('receptionist.shifts') }}" class="btn btn-sm btn-danger font-weight-bold">Buka Shift Sekarang</a>
 </div>
 @else
 <div class="alert alert-success shadow-sm mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <strong>🟢 Shift Aktif:</strong> Terbuka sejak {{ $activeShift->opened_at->format('H:i') }} WIB dengan kas awal sebesar <strong>Rp {{ number_format($activeShift->start_cash, 0, ',', '.') }}</strong>.
+    <strong>Shift Aktif:</strong> Terbuka sejak {{ $activeShift->opened_at->format('H:i') }} WIB dengan kas awal sebesar <strong>Rp {{ number_format($activeShift->start_cash, 0, ',', '.') }}</strong>.
   </div>
   <a href="{{ route('receptionist.shifts') }}" class="btn btn-sm btn-outline-success font-weight-bold">Kelola Shift</a>
 </div>

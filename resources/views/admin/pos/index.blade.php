@@ -95,7 +95,7 @@
           @foreach($members as $m)
             @php
               $expiredAt = $m->expired_at ? \Carbon\Carbon::parse($m->expired_at) : null;
-              $memberStatus = !$expiredAt ? '🔴 Belum Aktif' : ($expiredAt->isPast() ? '⚠️ Expired' : '🟢 Aktif');
+              $memberStatus = !$expiredAt ? 'Belum Aktif' : ($expiredAt->isPast() ? 'Expired' : 'Aktif');
             @endphp
             <option value="{{ $m->id }}">{{ $m->name }} (PIN: {{ \App\Helpers\PrivacyHelper::maskCode($m->access_code) }}) — {{ $memberStatus }}</option>
           @endforeach
@@ -149,7 +149,7 @@
   <div class="col-md-12">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">🛒 Riwayat Penjualan Kasir POS & Omset Transaksi</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Riwayat Penjualan Kasir POS & Omset Transaksi</h6>
         <span class="badge badge-success font-weight-bold px-3 py-2" style="border-radius: 10px;">{{ count($recentTransactions) }} Transaksi Terakhir</span>
       </div>
 
