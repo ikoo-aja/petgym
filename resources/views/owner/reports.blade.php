@@ -12,28 +12,28 @@
 <div class="row mb-4">
   <div class="col-md-3">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Omset Kumulatif</small>
+      <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Omset</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
-      <small class="text-white-50">Total dari seluruh transaksi POS</small>
+      <small class="text-white-50">Total seluruh transaksi</small>
     </div>
   </div>
   <div class="col-md-3">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset Bulan Ini</small>
+      <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset Bulan Ini</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">Rp {{ number_format($monthRevenue, 0, ',', '.') }}</h3>
       <small class="text-white-50">Total pendapatan bulan ini</small>
     </div>
   </div>
   <div class="col-md-3">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Base Member</small>
+      <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Base Member</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $totalMembers }} Member</h3>
       <small class="text-white-50">Pertumbuhan basis pelanggan</small>
     </div>
   </div>
   <div class="col-md-3">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Member Aktif</small>
+      <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Member Aktif</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $activeMembers }} Member</h3>
       <small class="text-white-50">Tingkat retensi member aktif</small>
     </div>

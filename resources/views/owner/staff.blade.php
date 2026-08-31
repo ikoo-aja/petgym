@@ -14,10 +14,10 @@
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
         <tr>
           <th>Nama Karyawan</th>
-          <th>Email Login (Sensor Privasi)</th>
-          <th>Hak Akses Role</th>
-          <th>Tanggal Dibuat</th>
-          <th>Status Akun</th>
+          <th>Email</th>
+          <th>Peran</th>
+          <th>Tanggal Masuk</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -47,7 +47,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="5" class="text-center py-4 text-muted">Belum ada akun karyawan terdaftar.</td>
+            <td colspan="5" class="text-center py-4 text-muted">Belum ada akun staf terdaftar.</td>
           </tr>
         @endforelse
       </tbody>
