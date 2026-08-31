@@ -553,23 +553,7 @@
     </div>
 
     <div class="admin-content">
-      @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
-          <strong>Sukses!</strong> {{ session('success') }}
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-      @endif
-
-      @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
-          <strong>Peringatan!</strong> {{ session('error') }}
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-      @endif
+      @include('partials.flash-toast')
 
       @yield('content')
     </div>
