@@ -12,17 +12,15 @@
 <div class="row mb-4">
   <div class="col-md-6">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Member Terdaftar</small>
+      <small class="text-white  text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Member</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $totalMembers }} Member</h3>
-      <small class="text-white-50">Database seluruh anggota di sistem gym Anda</small>
     </div>
   </div>
 
   <div class="col-md-6">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Member Status Aktif</small>
+      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Member Aktif</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $activeMembers }} Member</h3>
-      <small class="text-white-50">Anggota dengan keanggotaan masih berlaku</small>
     </div>
   </div>
 </div>
@@ -49,17 +47,15 @@
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
         <tr>
-          <th>Kode Akses</th>
           <th>Nama Member</th>
-          <th>Kontak (Sensor Privasi)</th>
-          <th>Masa Berlaku (Expired)</th>
+          <th>Kontak</th>
+          <th>Masa Berlaku</th>
           <th>Status</th>
         </tr>
       </thead>
       <tbody>
         @forelse($members as $m)
           <tr>
-            <td class="font-weight-bold text-primary" style="font-size: 12.5px;">{{ $m->access_code }}</td>
             <td class="font-weight-bold text-dark" style="font-size: 12.5px;">{{ $m->name }}</td>
             <td style="font-size: 12px;" class="text-muted">
               {{ $m->phone ? \App\Helpers\PrivacyHelper::maskPhone($m->phone) : '-' }}

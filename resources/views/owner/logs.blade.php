@@ -14,7 +14,7 @@
       <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari Jenis Aksi atau Deskripsi Log Aktivitas..." value="{{ request('search') }}">
     </div>
     <div class="col-md-3">
-      <button type="submit" class="btn btn-sm btn-outline-primary btn-block">Filter Log</button>
+      <button type="submit" class="btn btn-sm btn-outline-primary btn-block">Filter Aktivitas</button>
     </div>
   </form>
 
@@ -22,11 +22,10 @@
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
         <tr>
-          <th>Waktu Log</th>
-          <th>Nama Staf / User</th>
-          <th>Jenis Aksi</th>
-          <th>Rincian Deskripsi Audit</th>
-          <th>IP Address</th>
+          <th>Waktu</th>
+          <th>Nama Staf </th>
+          <th>Aktivitas</th>
+          <th>Rincian Aktivitas</th>
         </tr>
       </thead>
       <tbody>
@@ -38,7 +37,6 @@
               <span class="badge badge-secondary px-2 py-1" style="font-size: 11px;">{{ $log->action }}</span>
             </td>
             <td style="font-size: 12.5px;" class="text-dark">{{ $log->description }}</td>
-            <td style="font-size: 11.5px;" class="text-muted font-monospace">{{ $log->ip_address ?? '127.0.0.1' }}</td>
           </tr>
         @empty
           <tr>

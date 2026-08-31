@@ -8,16 +8,16 @@
 
 
 <div class="card-custom">
-  <h6 class="font-weight-bold text-dark mb-3">👥 Daftar Akun Karyawan Gym & RBAC</h6>
+  <h6 class="font-weight-bold text-dark mb-3">Daftar Akun Staf</h6>
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
         <tr>
           <th>Nama Karyawan</th>
-          <th>Email Login (Sensor Privasi)</th>
-          <th>Hak Akses Role</th>
-          <th>Tanggal Dibuat</th>
-          <th>Status Akun</th>
+          <th>Email</th>
+          <th>Peran</th>
+          <th>Tanggal Masuk</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -47,7 +47,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="5" class="text-center py-4 text-muted">Belum ada akun karyawan terdaftar.</td>
+            <td colspan="5" class="text-center py-4 text-muted">Belum ada akun staf terdaftar.</td>
           </tr>
         @endforelse
       </tbody>

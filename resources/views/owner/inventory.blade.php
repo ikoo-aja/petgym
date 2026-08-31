@@ -11,23 +11,23 @@
 <div class="row mb-4">
   <div class="col-md-4">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Loker Tersedia</small>
+      <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Tersedia</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $availableLockers }} Loker</h3>
-      <small class="text-white-50">Siap digunakan oleh member gym</small>
+      <small class="text-white-50">Siap digunakan</small>
     </div>
   </div>
   <div class="col-md-4">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Loker Sedang Terpakai</small>
+      <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Sedang Terpakai</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $occupiedLockers }} Loker</h3>
-      <small class="text-white-50">Sedang disewa/dipakai saat ini</small>
+      <small class="text-white-50">Sedang disewa/dipakai</small>
     </div>
   </div>
   <div class="col-md-4">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-      <small class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Loker Rusak / Blokir</small>
+      <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Rusak / Blokir</small>
       <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $brokenLockers }} Loker</h3>
-      <small class="text-white-50">Perlu perbaikan atau perawatan</small>
+      <small class="text-white-50">Perlu perbaikan</small>
     </div>
   </div>
 </div>
@@ -36,7 +36,7 @@
   <!-- Stok Produk Ritel Kasir -->
   <div class="col-md-7">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">🛒 Inventaris Stok Produk Ritel Kasir</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Stok Produk</h6>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
@@ -79,7 +79,7 @@
   <!-- Master Loker Gym -->
   <div class="col-md-5">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">🔐 Master Loker Gym</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Loker Gym</h6>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">

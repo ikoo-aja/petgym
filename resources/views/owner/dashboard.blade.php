@@ -10,19 +10,19 @@
   <div class="col-md-3">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset Kasir Hari Ini</span>
-        <span class="badge badge-light text-primary font-weight-bold">Hari Ini</span>
+        <span class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset</span>
+        <span class="badge badge-light text-primary font-weight-bold">Harian</span>
       </div>
       <h3 class="font-weight-bold text-white mb-1">Rp {{ number_format($revenueToday, 0, ',', '.') }}</h3>
-      <small class="text-white-50">Total transaksi dari POS kasir ritel & perpanjangan</small>
+      <small class="text-white-50">Total transaksi Kasir</small>
     </div>
   </div>
 
   <div class="col-md-3">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset Kasir Bulan Ini</span>
-        <span class="badge badge-light text-success font-weight-bold">Bulan Ini</span>
+        <span class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset Kasir</span>
+        <span class="badge badge-light text-success font-weight-bold">Bulanan</span>
       </div>
       <h3 class="font-weight-bold text-white mb-1">Rp {{ number_format($revenueMonth, 0, ',', '.') }}</h3>
       <small class="text-white-50">Dari total {{ $totalTransactionsMonth }} transaksi kasir</small>
@@ -32,18 +32,18 @@
   <div class="col-md-3">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Kunjungan Hari Ini</span>
+        <span class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Kunjungan Pelanggan</span>
         <span class="badge badge-light text-purple font-weight-bold">Presensi</span>
       </div>
-      <h3 class="font-weight-bold text-white mb-1">{{ $checkinsToday }} Kunjungan</h3>
-      <small class="text-white-50">Member yang melakukan check-in hari ini</small>
+      <h3 class="font-weight-bold text-white mb-1">{{ $checkinsToday }} Pelanggan</h3>
+      <small class="text-white-50">Check-in hari ini</small>
     </div>
   </div>
 
   <div class="col-md-3">
     <div class="card-custom text-white" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-white-50 text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Member Aktif</span>
+        <span class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Member Aktif</span>
         <span class="badge badge-light text-warning font-weight-bold">{{ $expiringSoonMembers }} Kadaluarsa 7hr</span>
       </div>
       <h3 class="font-weight-bold text-white mb-1">{{ $activeMembers }} / {{ $totalMembers }}</h3>
@@ -58,7 +58,7 @@
   <div class="col-md-5">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">📦 Pemantauan Okupansi Loker Gym</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Pemakaian Loker Gym</h6>
         <a href="{{ route('owner.inventory') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Loker &rarr;</a>
       </div>
 
@@ -102,7 +102,7 @@
   <div class="col-md-7">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">⏱️ Pemantauan Kunjungan Member Terbaru (Presensi Masked)</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Kunjungan Member</h6>
         <a href="{{ route('owner.members') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Data Member &rarr;</a>
       </div>
 
@@ -112,7 +112,6 @@
             <tr>
               <th>Waktu Check-In</th>
               <th>Nama Member</th>
-              <th>Kode PIN (Masked)</th>
               <th>Metode</th>
             </tr>
           </thead>
@@ -121,7 +120,6 @@
               <tr>
                 <td style="font-size: 12.5px;" class="text-dark font-weight-bold">{{ $ci->checked_in_at ? \Carbon\Carbon::parse($ci->checked_in_at)->format('H:i:s WIB') : '-' }}</td>
                 <td class="font-weight-bold text-dark">{{ $ci->member ? $ci->member->name : 'Non-Member' }}</td>
-                <td style="font-size: 12.5px;"><code class="text-dark font-weight-bold">{{ \App\Helpers\PrivacyHelper::maskCode($ci->access_code) }}</code></td>
                 <td>
                   <span class="badge badge-soft-info px-2 py-1" style="background: #e0f2fe; color: #0369a1;">
                     {{ $ci->check_in_method === 'code' ? 'PIN Kode' : 'Manual Resepsionis' }}
@@ -146,8 +144,8 @@
   <div class="col-md-6">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">🧘 Pemantauan Jadwal Kelas & Trainer</h6>
-        <a href="{{ route('owner.classes') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Jadwal Kelas &rarr;</a>
+        <h6 class="font-weight-bold text-dark mb-0">Jadwal Kelas & Trainer</h6>
+        <a href="{{ route('owner.classes') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Jadwal &rarr;</a>
       </div>
 
       <div class="table-responsive">
@@ -185,41 +183,6 @@
     </div>
   </div>
 
-  <!-- Audit Trail Aktivitas Staf -->
-  <div class="col-md-6">
-    <div class="card-custom">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">🛡️ Audit Log Aktivitas Staf</h6>
-        <a href="{{ route('owner.logs') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Log &rarr;</a>
-      </div>
 
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-            <tr>
-              <th>Waktu</th>
-              <th>Staf/User</th>
-              <th>Aksi</th>
-              <th>Deskripsi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($recentStaffLogs as $log)
-              <tr>
-                <td style="font-size: 12px;" class="text-muted">{{ $log->created_at ? $log->created_at->format('d M H:i') : '-' }}</td>
-                <td class="font-weight-bold text-dark" style="font-size: 12.5px;">{{ $log->user ? $log->user->name : 'System' }}</td>
-                <td><span class="badge badge-secondary py-1" style="font-size: 11px;">{{ $log->action }}</span></td>
-                <td style="font-size: 12px;" class="text-dark">{{ $log->description }}</td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="4" class="text-center py-3 text-muted">Belum ada log staf tercatat.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 </div>
 @endsection
