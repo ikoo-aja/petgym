@@ -30,7 +30,7 @@
         </div>
 
         <div class="col-md-6 mb-3">
-          <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Email Resmi</small>
+          <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Email Resmi Owner</small>
           <h6 class="font-weight-bold text-dark mb-0 mt-1">{{ $tenant->owner_email ? \App\Helpers\PrivacyHelper::maskEmail($tenant->owner_email) : '-' }}</h6>
         </div>
 
@@ -40,7 +40,7 @@
         </div>
 
         <div class="col-md-6 mb-3">
-          <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Status Akun</small>
+          <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Status Akun Tenant</small>
           <div>
             @if($tenant->status == 'active')
               <span class="badge badge-success px-3 py-1 font-weight-bold" style="font-size: 12px;">Aktif</span>

@@ -8,7 +8,7 @@
 
 
 <div class="card-custom">
-  <h6 class="font-weight-bold text-dark mb-3">👥 Daftar Akun Karyawan Gym & RBAC</h6>
+  <h6 class="font-weight-bold text-dark mb-3">Daftar Akun Karyawan Gym & RBAC</h6>
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">

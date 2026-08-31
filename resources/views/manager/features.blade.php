@@ -312,12 +312,12 @@
           <thead class="bg-light">
             <tr>
               <th>No. Invoice</th>
-              <th>Tanggal Pengajuan</th>
+              <th>Tgl Pengajuan</th>
               <th>Kasir</th>
-              <th>Member / Pelanggan</th>
-              <th>Total Transaksi</th>
-              <th>Alasan Void</th>
-              <th>Status Otorisasi</th>
+              <th>Pelanggan</th>
+              <th>Total</th>
+              <th>Alasan Batal</th>
+              <th>Status</th>
               <th class="text-center">Aksi</th>
             </tr>
           </thead>
@@ -446,11 +446,11 @@
       <div class="row">
         <!-- Resepsionis Leaderboard -->
         <div class="col-md-6 mb-3">
-          <div class="p-3 bg-light rounded border">
+          <div class="p-3 bg-white rounded border">
             <h6 class="font-weight-bold text-dark mb-3"><span class="icon-people"></span> Evaluasi Penjualan Resepsionis (Bulan Ini)</h6>
             <div class="table-responsive">
-              <table class="table table-hover table-striped">
-                <thead class="thead-dark">
+              <table class="table table-hover table-bordered">
+                <thead class="bg-light text-muted">
                   <tr>
                     <th>Resepsionis</th>
                     <th class="text-center">Trx</th>
@@ -477,11 +477,11 @@
 
         <!-- PT Leaderboard -->
         <div class="col-md-6 mb-3">
-          <div class="p-3 bg-light rounded border">
+          <div class="p-3 bg-white rounded border">
             <h6 class="font-weight-bold text-dark mb-3"><span class="icon-calendar"></span> Jam Terbang & Jumlah Kelas Trainer</h6>
             <div class="table-responsive">
-              <table class="table table-hover table-striped">
-                <thead class="thead-dark">
+              <table class="table table-hover table-bordered">
+                <thead class="bg-light text-muted">
                   <tr>
                     <th>Personal Trainer</th>
                     <th class="text-center">Kelas Mengajar</th>
@@ -574,8 +574,8 @@
       @endif
 
       <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-          <thead class="thead-dark">
+        <table class="table table-hover table-bordered">
+          <thead class="bg-light text-muted">
             <tr>
               <th>Nama Produk</th>
               <th>Kategori</th>
@@ -607,8 +607,8 @@
     <div class="tab-pane fade" id="complaints-sec" role="tabpanel">
       <h5 class="font-weight-bold text-dark mb-3">Tiket Komplain & Masukan Member</h5>
       <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-          <thead class="bg-light">
+        <table class="table table-hover table-bordered">
+          <thead class="bg-light text-muted">
             <tr>
               <th>Tanggal Masuk</th>
               <th>Member</th>
