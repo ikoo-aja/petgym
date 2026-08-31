@@ -322,7 +322,8 @@
       <li class="menu-header">Utama</li>
       <li>
         <a href="{{ $dashUrl }}" class="{{ request()->routeIs('*.dashboard') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-dashboard"></span></span> Dashboard {{ ucfirst($userRole) }}
+          <span class="icon-wrapper"><span class="icon-dashboard"></span></span> Beranda {{ ucfirst($userRole) }}
+        </a>
         </a>
       </li>
 
@@ -411,12 +412,12 @@
       @if($userRole === 'admin')
       <li>
         <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span>Kasir
         </a>
       </li>
       <li>
         <a href="{{ route('admin.lockers.index') }}" class="{{ request()->routeIs('admin.lockers.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym
+          <span class="icon-wrapper"><span class="icon-settings"></span></span>Loker Gym
         </a>
       </li>
       <li>
@@ -426,22 +427,22 @@
       </li>
       <li>
         <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Staf (RBAC)
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Staf
         </a>
       </li>
       <li>
         <a href="{{ route('admin.logs.index') }}" class="{{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-history"></span></span> Audit Trail Log
+          <span class="icon-wrapper"><span class="icon-history"></span></span> Riwayat Sistem
         </a>
       </li>
       <li>
         <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Pusat Laporan
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span>Laporan
         </a>
       </li>
       <li>
         <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Gym
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan
         </a>
       </li>
       @endif
@@ -450,12 +451,12 @@
       <li class="menu-header">Operasional Resepsionis</li>
       <li>
         <a href="{{ route('admin.checkin.index') }}" class="{{ request()->routeIs('admin.checkin.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-check"></span></span> Check-In / Absensi
+          <span class="icon-wrapper"><span class="icon-check"></span></span>Absensi
         </a>
       </li>
       <li>
         <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> POS Kasir
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span>Kasir
         </a>
       </li>
       <li>
@@ -465,10 +466,9 @@
       </li>
       <li>
         <a href="{{ route('receptionist.guests') }}" class="{{ request()->routeIs('receptionist.guests') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Buku Tamu & Lost Found
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Buku Tamu
         </a>
-      </li>
-      <li>
+      </li> <li>
         <a href="{{ route('receptionist.shifts') }}" class="{{ request()->routeIs('receptionist.shifts') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-history"></span></span> Shift & Keluhan Staf
         </a>
@@ -479,7 +479,7 @@
       <li class="menu-header">Operasional Manager</li>
       <li>
         <a href="/manager/features?tab=class" class="{{ request()->query('tab', 'class') === 'class' && request()->routeIs('manager.features') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Master Kelas
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span>Kelas
         </a>
       </li>
       <li>
