@@ -327,7 +327,7 @@
         </a>
       </li>
 
-      <li class="menu-header">Fitur Operasional</li>
+      <li class="menu-header">Operasional</li>
 
       @if($userRole === 'member')
       <li>
@@ -342,7 +342,7 @@
       </li>
       <li>
         <a href="{{ route('member.pt') }}" class="{{ request()->routeIs('member.pt') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Personal Trainer (PT)
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Personal Trainer
         </a>
       </li>
       <li>
@@ -352,7 +352,7 @@
       </li>
       <li>
         <a href="{{ route('member.billing') }}" class="{{ request()->routeIs('member.billing') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Tagihan & Invoice
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Struk & Tagihan
         </a>
       </li>
       @endif
@@ -360,7 +360,7 @@
       @if($userRole === 'owner')
       <li>
         <a href="{{ route('owner.transactions') }}" class="{{ request()->routeIs('owner.transactions') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> Transaksi Kasir POS
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> Detail Transaksi
         </a>
       </li>
       <li>
@@ -381,22 +381,22 @@
       <li class="menu-header">Pemantauan & Laporan</li>
       <li>
         <a href="{{ route('owner.staff') }}" class="{{ request()->routeIs('owner.staff') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Data Akun Staf
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Data Staf
         </a>
       </li>
       <li>
         <a href="{{ route('owner.logs') }}" class="{{ request()->routeIs('owner.logs') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-history"></span></span> Audit Trail Log Staf
+          <span class="icon-wrapper"><span class="icon-history"></span></span> Riwayat Aktivitas
         </a>
       </li>
       <li>
         <a href="{{ route('owner.reports') }}" class="{{ request()->routeIs('owner.reports') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Laporan Omset & Keuangan
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Laporan Keuangan
         </a>
       </li>
       <li>
         <a href="{{ route('owner.settings') }}" class="{{ request()->routeIs('owner.settings') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Profil Gym Tenant
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan
         </a>
       </li>
       @endif
@@ -432,7 +432,7 @@
       </li>
       <li>
         <a href="{{ route('admin.logs.index') }}" class="{{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-history"></span></span> Riwayat Sistem
+          <span class="icon-wrapper"><span class="icon-history"></span></span> Riwayat Aktivitas
         </a>
       </li>
       <li>
@@ -484,7 +484,7 @@
       </li>
       <li>
         <a href="/manager/features?tab=maintenance" class="{{ request()->query('tab') === 'maintenance' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Alat & Maintenance
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Alat & Perawatan
         </a>
       </li>
       <li>
@@ -494,7 +494,7 @@
       </li>
       <li>
         <a href="/manager/features?tab=approval" class="{{ request()->query('tab') === 'approval' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-check"></span></span> Otorisasi Void
+          <span class="icon-wrapper"><span class="icon-check"></span></span> Kelola Pembatalan
         </a>
       </li>
       <li>
@@ -519,7 +519,7 @@
       </li>
       <li>
         <a href="/manager/features?tab=complaints" class="{{ request()->query('tab') === 'complaints' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Komplain Member
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Komplain Pelanggan
         </a>
       </li>
       <li>
