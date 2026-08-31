@@ -24,7 +24,7 @@
 @section('content')
 <div class="card-custom">
   <div class="tab-content" id="managerTabContent">
-    
+
     <!-- 1. PERENCANAAN MASTER KELAS -->
     <div class="tab-pane fade {{ $activeTab === 'class' ? 'show active' : '' }}" id="class-sec" role="tabpanel">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -278,7 +278,7 @@
                 </div>
                 <div class="text-muted" style="font-size:12.5px;">Tanggal: {{ $lr->start_date->format('d M') }} s/d {{ $lr->end_date->format('d M Y') }}</div>
                 <p class="my-2 bg-light p-2 rounded" style="font-size: 13px;">"{{ $lr->reason }}"</p>
-                
+
                 @if($lr->status === 'pending')
                   <div class="d-flex justify-content-end">
                     <form action="{{ route('manager.leave.reject', $lr->id) }}" method="POST" class="mr-1">
@@ -516,7 +516,7 @@
             <div class="alert alert-info py-2" style="font-size:12.5px;">
               <strong>Info:</strong> Verifikasi kesesuaian angka laci kasir di sistem dengan setoran fisik resepsionis.
             </div>
-            
+
             @php
               $totalSystemCash = $dailyCashRecap->where('payment_method', 'cash')->sum('total_amount');
               $totalSystemNonCash = $dailyCashRecap->where('payment_method', '!=', 'cash')->sum('total_amount');
