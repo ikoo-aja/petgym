@@ -573,7 +573,16 @@ class MemberPortalController extends Controller
     {
         $user = Auth::user();
         $member = $this->getMemberProfile();
-        return view('member.settings', compact('user', 'member'));
+
+        $activeRental = LockerRental::where('member_id', $member->id)
+            ->where('status', 'active')
+            ->with('locker')
+            ->first();
+
+        $recentTransactionsCount = PosTransaction::where('member_id', $member->id)->count();
+        $checkInsCount = \App\Models\CheckIn::where('member_id', $member->id)->count();
+
+        return view('member.settings', compact('user', 'member', 'activeRental', 'recentTransactionsCount', 'checkInsCount'));
     }
 
     public function updateProfile(Request $request)

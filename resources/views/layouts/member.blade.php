@@ -87,39 +87,83 @@
       justify-content: center;
     }
 
-    /* ── Sub Navigation Menu Bar ── */
-    .member-menu-bar {
+    /* ── Member Top Header & Brand Logo Override ── */
+    .member-top-nav .brand-logo-text-airs {
+      color: #111827 !important;
+    }
+
+    /* ── Member Sidebar & Backdrop Overlay ── */
+    .member-sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(2px);
+      z-index: 1040;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .member-sidebar-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .member-sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
       background: #ffffff;
-      border-bottom: 1px solid var(--mp-border);
-      padding: 0 30px;
-    }
-    .member-nav-tabs {
+      border-right: 1px solid var(--mp-border);
+      z-index: 1050;
       display: flex;
-      gap: 8px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      overflow-x: auto;
+      flex-direction: column;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 25px rgba(0,0,0,0.12);
     }
-    .member-nav-tabs .nav-item a {
+    .member-sidebar.active {
+      left: 0;
+    }
+
+    .member-sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--mp-border);
       display: flex;
       align-items: center;
-      padding: 14px 18px;
-      color: var(--mp-text-muted);
+      justify-content: space-between;
+      background: #ffffff;
+    }
+    .member-sidebar-body {
+      padding: 16px 0;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    .member-sidebar-nav {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .member-sidebar-nav li a {
+      display: flex;
+      align-items: center;
+      padding: 12px 24px;
+      color: #334155;
       font-weight: 600;
-      font-size: 13.5px;
+      font-size: 14px;
       text-decoration: none;
-      border-bottom: 3px solid transparent;
+      border-left: 4px solid transparent;
       transition: all 0.2s ease;
-      white-space: nowrap;
     }
-    .member-nav-tabs .nav-item a:hover {
+    .member-sidebar-nav li a:hover {
       color: var(--brand-red);
-      background: rgba(244, 63, 94, 0.03);
+      background: rgba(244, 63, 94, 0.05);
+      border-left-color: var(--brand-red);
     }
-    .member-nav-tabs .nav-item a.active {
+    .member-sidebar-nav li a.active {
       color: var(--brand-red);
-      border-bottom-color: var(--brand-red);
+      background: rgba(244, 63, 94, 0.08);
+      border-left-color: var(--brand-red);
       font-weight: 700;
     }
 
@@ -205,78 +249,91 @@
 </head>
 <body>
 
+<!-- Member Sidebar Overlay -->
+<div class="member-sidebar-overlay" id="sidebarOverlay" onclick="toggleMemberSidebar()"></div>
+
+<!-- Member Sidebar Drawer -->
+<aside class="member-sidebar" id="memberSidebar">
+  <div class="member-sidebar-header">
+    <x-brand-logo type="full" theme="light" size="36" :url="route('member.dashboard')" />
+    <button type="button" class="btn btn-sm btn-light border p-1" onclick="toggleMemberSidebar()" style="font-size: 18px; line-height: 1; border-radius: 6px;" title="Tutup Menu">&times;</button>
+  </div>
+
+  <div class="member-sidebar-body">
+    <div class="px-4 py-2 text-uppercase font-weight-bold text-muted" style="font-size: 11px; letter-spacing: 0.5px;">Navigasi Portal Member</div>
+    <ul class="member-sidebar-nav">
+      <li>
+        <a href="{{ route('member.dashboard') }}" class="{{ request()->routeIs('member.dashboard') ? 'active' : '' }}">
+          <span class="icon-dashboard mr-3" style="font-size: 16px;"></span> Beranda
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.lockers') }}" class="{{ request()->routeIs('member.lockers') ? 'active' : '' }}">
+          <span class="icon-settings mr-3" style="font-size: 16px;"></span> Loker Saya
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.membership') }}" class="{{ request()->routeIs('member.membership') ? 'active' : '' }}">
+          <span class="icon-file-text mr-3" style="font-size: 16px;"></span> Keanggotaan
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.pt') }}" class="{{ request()->routeIs('member.pt') ? 'active' : '' }}">
+          <span class="icon-person mr-3" style="font-size: 16px;"></span> Personal Trainer
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.classes') }}" class="{{ request()->routeIs('member.classes') ? 'active' : '' }}">
+          <span class="icon-calendar mr-3" style="font-size: 16px;"></span> Kelas Kebugaran
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.billing') }}" class="{{ request()->routeIs('member.billing') ? 'active' : '' }}">
+          <span class="icon-shopping-cart mr-3" style="font-size: 16px;"></span> Struk & Tagihan
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.guide') }}" class="{{ request()->routeIs('member.guide') ? 'active' : '' }}">
+          <span class="icon-file-text mr-3" style="font-size: 16px;"></span> Panduan Portal
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('member.settings') }}" class="{{ request()->routeIs('member.settings') ? 'active' : '' }}">
+          <span class="icon-settings mr-3" style="font-size: 16px;"></span> Pengaturan Profil
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="p-3 border-top bg-light text-center">
+    <small class="text-muted d-block font-weight-semibold">{{ $tenantName }}</small>
+    <small class="text-muted" style="font-size: 10px;">PetGym Member Portal</small>
+  </div>
+</aside>
+
 <!-- Member Top Navigation Bar -->
 <header class="member-top-nav">
   <div class="d-flex justify-content-between align-items-center">
-    <div class="d-flex align-items-center gap-3">
-      <a href="{{ route('member.dashboard') }}" class="brand-logo-text">
-        PetGym <span class="badge badge-primary font-weight-bold ml-1" style="font-size:10px;">MEMBER PORTAL</span>
-      </a>
+    <div class="d-flex align-items-center">
+      <!-- Hamburger Toggle Button -->
+      <button type="button" class="btn btn-light border mr-3" onclick="toggleMemberSidebar()" style="border-radius: 8px; padding: 6px 12px;" title="Buka Sidebar Navigasi">
+        <span class="icon-menu" style="font-size: 18px; font-weight: bold; color: #1e293b;"></span>
+      </button>
+
+      <x-brand-logo type="full" theme="light" size="38" :url="route('member.dashboard')" />
+      <span class="badge badge-primary font-weight-bold ml-2 d-none d-sm-inline-block" style="font-size:10px; background-color: var(--brand-red-light) !important; color: var(--brand-red) !important; border: 1px solid var(--brand-red-border) !important;">MEMBER PORTAL</span>
       <span class="text-muted small d-none d-md-inline border-left pl-3 ml-2">{{ $tenantName }}</span>
     </div>
 
     <div class="d-flex align-items-center gap-3">
-      <div class="member-profile-pill mr-2">
-        <div class="member-avatar-circle">{{ substr($currentUser->name ?? 'M', 0, 1) }}</div>
-        <div style="line-height: 1.2;">
-          <strong style="font-size: 12.5px;" class="text-dark d-block">{{ $currentUser->name ?? 'Member' }}</strong>
-          <span class="text-muted" style="font-size: 10.5px;">@yield('member_tier_badge', 'Member Gym')</span>
+      <a href="{{ route('member.settings') }}" class="d-inline-flex align-items-center justify-content-center text-decoration-none" title="Pengaturan Profil">
+        <div class="member-avatar-circle" style="width: 36px; height: 36px; font-size: 15px; font-weight: 800; box-shadow: 0 2px 5px rgba(244,63,94,0.3);">
+          {{ substr($currentUser->name ?? 'M', 0, 1) }}
         </div>
-      </div>
-
-      <form action="{{ route('logout') }}" method="POST" class="d-inline">
-        @csrf
-        <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 8px;">Logout</button>
-      </form>
+      </a>
     </div>
   </div>
 </header>
-
-<!-- Member Sub Menu Tabs -->
-<nav class="member-menu-bar">
-  <ul class="member-nav-tabs">
-    <li class="nav-item">
-      <a href="{{ route('member.dashboard') }}" class="{{ request()->routeIs('member.dashboard') ? 'active' : '' }}">
-        Beranda
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{{ route('member.lockers') }}" class="{{ request()->routeIs('member.lockers') ? 'active' : '' }}">
-        Loker Saya
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{{ route('member.membership') }}" class="{{ request()->routeIs('member.membership') ? 'active' : '' }}">
-        Keanggotaan
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{{ route('member.pt') }}" class="{{ request()->routeIs('member.pt') ? 'active' : '' }}">
-        Personal Trainer
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{{ route('member.classes') }}" class="{{ request()->routeIs('member.classes') ? 'active' : '' }}">
-        Kelas Kebugaran
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{{ route('member.billing') }}" class="{{ request()->routeIs('member.billing') ? 'active' : '' }}">
-        Riwayat Tagihan
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{{ route('member.guide') }}" class="{{ request()->routeIs('member.guide') ? 'active' : '' }}">
-        Panduan
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{{ route('member.settings') }}" class="{{ request()->routeIs('member.settings') ? 'active' : '' }}">
-        Pengaturan
-      </a>
-    </li>
-  </ul>
-</nav>
 
 <!-- Main Page Content -->
 <main class="member-container">
@@ -310,6 +367,16 @@
 
 <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
 <script src="{{ asset('js/bootstrap.min.js') }}"></script>
+<script>
+  function toggleMemberSidebar() {
+    const sidebar = document.getElementById('memberSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar && overlay) {
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+  }
+</script>
 @yield('scripts')
 
 </body>

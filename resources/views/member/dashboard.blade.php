@@ -71,111 +71,126 @@
   </div>
 </div>
 
-<!-- Quick Navigation Bar -->
+<!-- Dashboard Shortcut Cards -->
 <div class="card-custom mb-4">
-  <h6 class="font-weight-bold text-dark mb-3">Navigasi Cepat Portal</h6>
-  <div class="row text-center">
-    <div class="col-6 col-md-3 mb-2 mb-md-0">
-      <a href="{{ route('member.lockers') }}" class="btn btn-outline-primary btn-block py-3 font-weight-bold">
-        Loker Saya
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="font-weight-bold text-dark mb-0">⚡ Shortcut Utama</h6>
+    <small class="text-muted">Akses kilat ke fasilitas & jadwal kebugaran Anda</small>
+  </div>
+  <div class="row">
+    <div class="col-md-4 mb-3 mb-md-0">
+      <a href="{{ route('member.lockers') }}" class="card border text-decoration-none p-3 h-100 shadow-sm text-left" style="border-radius: 12px; transition: transform 0.2s ease;">
+        <div class="d-flex align-items-center">
+          <div class="rounded-circle p-3 mr-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(244, 63, 94, 0.08); color: var(--brand-red);">
+            <span class="icon-settings" style="font-size: 22px;"></span>
+          </div>
+          <div>
+            <h6 class="font-weight-bold text-dark mb-1" style="font-size: 15px;">Loker Saya</h6>
+            <small class="text-muted">Sewa & akses PIN loker digital</small>
+          </div>
+        </div>
       </a>
     </div>
-    <div class="col-6 col-md-3 mb-2 mb-md-0">
-      <a href="{{ route('member.membership') }}" class="btn btn-outline-primary btn-block py-3 font-weight-bold">
-        Keanggotaan
+
+    <div class="col-md-4 mb-3 mb-md-0">
+      <a href="{{ route('member.pt') }}" class="card border text-decoration-none p-3 h-100 shadow-sm text-left" style="border-radius: 12px; transition: transform 0.2s ease;">
+        <div class="d-flex align-items-center">
+          <div class="rounded-circle p-3 mr-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(244, 63, 94, 0.08); color: var(--brand-red);">
+            <span class="icon-person" style="font-size: 22px;"></span>
+          </div>
+          <div>
+            <h6 class="font-weight-bold text-dark mb-1" style="font-size: 15px;">Personal Trainer</h6>
+            <small class="text-muted">Beli sesi & booking pelatih</small>
+          </div>
+        </div>
       </a>
     </div>
-    <div class="col-6 col-md-3">
-      <a href="{{ route('member.pt') }}" class="btn btn-outline-primary btn-block py-3 font-weight-bold">
-        Personal Trainer
-      </a>
-    </div>
-    <div class="col-6 col-md-3">
-      <a href="{{ route('member.classes') }}" class="btn btn-outline-primary btn-block py-3 font-weight-bold">
-        Kelas Kebugaran
+
+    <div class="col-md-4">
+      <a href="{{ route('member.classes') }}" class="card border text-decoration-none p-3 h-100 shadow-sm text-left" style="border-radius: 12px; transition: transform 0.2s ease;">
+        <div class="d-flex align-items-center">
+          <div class="rounded-circle p-3 mr-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(244, 63, 94, 0.08); color: var(--brand-red);">
+            <span class="icon-calendar" style="font-size: 22px;"></span>
+          </div>
+          <div>
+            <h6 class="font-weight-bold text-dark mb-1" style="font-size: 15px;">Class Kebugaran</h6>
+            <small class="text-muted">Jadwal & RSVP kelas harian</small>
+          </div>
+        </div>
       </a>
     </div>
   </div>
 </div>
 
 <div class="row">
-  <!-- Upcoming PT Bookings -->
+  <!-- Upcoming PT Bookings Card List -->
   <div class="col-md-6 mb-4">
     <div class="card-custom h-100">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Jadwal PT Mendatang</h6>
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h6 class="font-weight-bold text-dark mb-0">🏋️ Jadwal PT Mendatang</h6>
         <a href="{{ route('member.pt') }}" class="btn btn-sm btn-link text-primary font-weight-bold p-0">Lihat Semua &rarr;</a>
       </div>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-            <tr>
-              <th>Trainer</th>
-              <th>Tanggal</th>
-              <th>Jam</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($upcomingPtBookings as $ptb)
-              <tr>
-                <td class="font-weight-bold text-dark">{{ $ptb->trainer ? $ptb->trainer->name : '-' }}</td>
-                <td class="text-muted">{{ \Carbon\Carbon::parse($ptb->booking_date)->format('d M Y') }}</td>
-                <td class="text-primary font-weight-bold">{{ $ptb->booking_time }}</td>
-                <td><span class="badge badge-success">Terjadwal</span></td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="4" class="text-center py-4 text-muted small">Belum ada jadwal sesi PT terdaftar.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
+
+      @forelse($upcomingPtBookings as $ptb)
+        <div class="border rounded p-3 mb-3 bg-light d-flex justify-content-between align-items-center" style="border-radius: 10px !important;">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-white text-primary p-2 mr-3 border d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; font-weight: 800; font-size: 16px;">
+              {{ substr($ptb->trainer ? $ptb->trainer->name : 'P', 0, 1) }}
+            </div>
+            <div>
+              <h6 class="font-weight-bold text-dark mb-1" style="font-size: 14px;">{{ $ptb->trainer ? $ptb->trainer->name : 'Personal Trainer' }}</h6>
+              <small class="text-muted"><span class="icon-calendar mr-1"></span> {{ \Carbon\Carbon::parse($ptb->booking_date)->format('d M Y') }} &bull; <strong class="text-primary">{{ $ptb->booking_time }}</strong></small>
+            </div>
+          </div>
+          <div class="ml-2">
+            <span class="badge badge-success px-2 py-1 font-weight-bold" style="font-size: 11px;">Terjadwal</span>
+          </div>
+        </div>
+      @empty
+        <div class="text-center py-4 text-muted bg-light rounded border">
+          <span class="icon-person d-block mb-1" style="font-size: 24px;"></span>
+          <small class="d-block font-weight-semibold">Belum ada jadwal sesi PT terdaftar.</small>
+        </div>
+      @empty
+      @endforelse
     </div>
   </div>
 
-  <!-- Upcoming Class RSVPs -->
+  <!-- Upcoming Class RSVPs Card List -->
   <div class="col-md-6 mb-4">
     <div class="card-custom h-100">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Kelas Kebugaran Didaftarkan</h6>
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h6 class="font-weight-bold text-dark mb-0">🧘 Kelas Kebugaran Didaftarkan</h6>
         <a href="{{ route('member.classes') }}" class="btn btn-sm btn-link text-primary font-weight-bold p-0">Cari Kelas &rarr;</a>
       </div>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-            <tr>
-              <th>Kelas</th>
-              <th>Tanggal</th>
-              <th>Instruktur</th>
-              <th>Status RSVP</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($upcomingClassRsvps as $cr)
-              <tr>
-                <td class="font-weight-bold text-dark">{{ $cr->gymClass ? $cr->gymClass->name : '-' }}</td>
-                <td class="text-muted">{{ \Carbon\Carbon::parse($cr->class_date)->format('d M Y') }}</td>
-                <td class="text-muted">{{ $cr->gymClass && $cr->gymClass->trainer ? $cr->gymClass->trainer->name : 'Staf' }}</td>
-                <td>
-                  @if($cr->status == 'confirmed')
-                    <span class="badge badge-success">Dikonfirmasi</span>
-                  @elseif($cr->status == 'waitlist')
-                    <span class="badge badge-warning">Waitlist #{{ $cr->queue_position }}</span>
-                  @else
-                    <span class="badge badge-secondary">{{ ucfirst($cr->status) }}</span>
-                  @endif
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="4" class="text-center py-4 text-muted small">Belum ada kelas yang diikuti.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
+
+      @forelse($upcomingClassRsvps as $cr)
+        <div class="border rounded p-3 mb-3 bg-light d-flex justify-content-between align-items-center" style="border-radius: 10px !important;">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-white text-primary p-2 mr-3 border d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; font-weight: 800; font-size: 16px;">
+              <span class="icon-calendar"></span>
+            </div>
+            <div>
+              <h6 class="font-weight-bold text-dark mb-1" style="font-size: 14px;">{{ $cr->gymClass ? $cr->gymClass->name : 'Kelas Gym' }}</h6>
+              <small class="text-muted"><span class="icon-person mr-1"></span> {{ $cr->gymClass && $cr->gymClass->trainer ? $cr->gymClass->trainer->name : 'Instruktur Gym' }} &bull; {{ \Carbon\Carbon::parse($cr->class_date)->format('d M Y') }}</small>
+            </div>
+          </div>
+          <div class="ml-2">
+            @if($cr->status == 'confirmed')
+              <span class="badge badge-success px-2 py-1 font-weight-bold" style="font-size: 11px;">Dikonfirmasi</span>
+            @elseif($cr->status == 'waitlist')
+              <span class="badge badge-warning px-2 py-1 font-weight-bold" style="font-size: 11px;">Waitlist #{{ $cr->queue_position }}</span>
+            @else
+              <span class="badge badge-secondary px-2 py-1 font-weight-bold" style="font-size: 11px;">{{ ucfirst($cr->status) }}</span>
+            @endif
+          </div>
+        </div>
+      @empty
+        <div class="text-center py-4 text-muted bg-light rounded border">
+          <span class="icon-calendar d-block mb-1" style="font-size: 24px;"></span>
+          <small class="d-block font-weight-semibold">Belum ada kelas yang diikuti.</small>
+        </div>
+      @endforelse
     </div>
   </div>
 </div>
