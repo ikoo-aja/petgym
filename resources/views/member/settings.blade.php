@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
-@section('title', 'Pengaturan & Profil Member - PetGym')
-@section('page_title', 'Profil & Keanggotaan Member')
-@section('page_subtitle', 'Kelola keanggotaan, statistik fisik, riwayat aktivitas, dan keamanan akun Anda.')
+@section('title', 'Profil- PetGym')
+@section('page_title', 'Profil')
+@section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
 
 @section('styles')
@@ -135,7 +135,6 @@
     <!-- Referral / Promo Banner -->
     <div class="referral-banner shadow-sm">
       <div class="d-flex align-items-center">
-        <span class="mr-2" style="font-size: 20px;">🎁</span>
         <div>
           <strong class="d-block style-14" style="font-size: 13.5px;">Dapatkan lebih dari 12 bulan Membership GRATIS!</strong>
           <small class="text-white-50">Bagikan kode referral Anda ke teman & keluarga.</small>
@@ -174,7 +173,7 @@
     <!-- Club Membership Section (Foto 1) -->
     <div class="card-custom mb-4">
       <h6 class="font-weight-bold text-dark mb-3">Club Membership</h6>
-      
+
       <div class="text-center py-3 mb-3 border rounded bg-light">
         @if($member->status === 'active' && $member->membership_tier)
           <span class="badge badge-success px-3 py-1 font-weight-bold mb-2">Membership Aktif</span>
@@ -270,6 +269,13 @@
           <div class="d-flex align-items-center">
             <span class="setting-icon text-primary"><span class="icon-shopping-cart"></span></span>
             <span class="font-weight-semibold" style="font-size: 14px;">Voucher & Promo</span>
+          </div>
+          <span class="text-muted">&rsaquo;</span>
+        </a>
+        <a href="{{ route('member.guide') }}" class="setting-list-item">
+          <div class="d-flex align-items-center">
+            <span class="setting-icon text-info"><span class="icon-file-text"></span></span>
+            <span class="font-weight-semibold" style="font-size: 14px;">Panduan Penggunaan Portal</span>
           </div>
           <span class="text-muted">&rsaquo;</span>
         </a>

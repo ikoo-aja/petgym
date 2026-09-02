@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
-@section('title', 'Manajemen Loker Gym - PetGym')
-@section('page_title', 'Sistem Penyewaan Loker & Access PIN')
-@section('page_subtitle', 'Pilih lokasi nomor loker gym secara visual dan ikuti alur pembayaran untuk mengaktifkan Access PIN.')
+@section('title', 'Booking loker - PetGym')
+@section('page_title', 'Booking Loker')
+@section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
 
 @section('content')
@@ -16,7 +16,7 @@
       <p class="mb-0 text-muted small">Tipe Sewa: <strong>{{ strtoupper($activeRental->rental_type) }}</strong> | Berakhir pada: <strong>{{ \Carbon\Carbon::parse($activeRental->end_date)->format('d M Y') }}</strong></p>
     </div>
     <div class="mt-3 mt-md-0 text-md-right">
-      <small class="text-muted text-uppercase font-weight-bold d-block mb-1">Kode Access PIN 6-Digit</small>
+      <small class="text-muted text-uppercase font-weight-bold d-block mb-1">Kode Access PIN</small>
       <div class="d-inline-block bg-light text-dark font-weight-bold px-3 py-2 rounded border shadow-sm" style="font-size: 22px; letter-spacing: 4px;">
         {{ $activeRental->pin_code ?? '849201' }}
       </div>
@@ -31,13 +31,21 @@
 
 <!-- Non-Premium Upgrade Banner Teaser -->
 @if($member->membership_tier !== 'premium')
-<div class="alert alert-info border-0 shadow-sm mb-4" style="background-color: #eff6ff; color: #1e40af; border-radius: 10px;">
-  <div class="d-flex justify-content-between align-items-center">
-    <div>
-      <strong class="d-block">Informasi Sewa Loker Gratis:</strong>
-      <small>Member Tier Premium berhak mendapatkan fasilitas <strong>Gratis Sewa Loker Bulanan</strong>!</small>
+<div class="alert alert-info border-0 shadow-sm mb-4 p-3" style="background-color: #eff6ff; color: #1e40af; border-radius: 12px;">
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
+    <div class="mb-3 mb-sm-0 mr-sm-3">
+      <div class="d-flex align-items-center mb-1">
+        <strong style="font-size: 14px;">Informasi Sewa Loker Gratis</strong>
+      </div>
+      <p class="mb-0 small" style="color: #2563eb;">
+        Member Tier <strong>Premium</strong> berhak mendapatkan fasilitas <strong>Gratis Sewa Loker Bulanan</strong>!
+      </p>
     </div>
-    <a href="{{ route('member.membership') }}" class="btn btn-sm btn-primary font-weight-bold">Upgrade Ke Premium</a>
+    <div class="flex-shrink-0">
+      <a href="{{ route('member.membership') }}" class="btn btn-sm btn-primary font-weight-bold btn-block d-sm-inline-block px-3 py-2" style="border-radius: 8px;">
+        Upgrade Ke Premium
+      </a>
+    </div>
   </div>
 </div>
 @endif
@@ -71,12 +79,12 @@
     @forelse($lockers as $l)
       <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
         @if($l->status == 'tersedia')
-          <button type="button" 
-                  class="btn btn-block p-3 border btn-select-locker" 
+          <button type="button"
+                  class="btn btn-block p-3 border btn-select-locker"
                   style="border-radius: 10px; background-color: #f0fdf4; border-color: #bbf7d0 !important; transition: transform 0.2s;"
-                  data-id="{{ $l->id }}" 
+                  data-id="{{ $l->id }}"
                   data-number="{{ $l->locker_number }}"
-                  data-toggle="modal" 
+                  data-toggle="modal"
                   data-target="#rentLockerModal">
             <span class="font-weight-bold d-block text-dark" style="font-size: 15px;">Loker #{{ $l->locker_number }}</span>
             <span class="badge badge-success font-weight-bold mt-2">Tersedia</span>

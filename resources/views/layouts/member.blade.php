@@ -268,33 +268,13 @@
         </a>
       </li>
       <li>
-        <a href="{{ route('member.lockers') }}" class="{{ request()->routeIs('member.lockers') ? 'active' : '' }}">
-          <span class="icon-settings mr-3" style="font-size: 16px;"></span> Loker Saya
-        </a>
-      </li>
-      <li>
         <a href="{{ route('member.membership') }}" class="{{ request()->routeIs('member.membership') ? 'active' : '' }}">
           <span class="icon-file-text mr-3" style="font-size: 16px;"></span> Keanggotaan
         </a>
       </li>
       <li>
-        <a href="{{ route('member.pt') }}" class="{{ request()->routeIs('member.pt') ? 'active' : '' }}">
-          <span class="icon-person mr-3" style="font-size: 16px;"></span> Personal Trainer
-        </a>
-      </li>
-      <li>
-        <a href="{{ route('member.classes') }}" class="{{ request()->routeIs('member.classes') ? 'active' : '' }}">
-          <span class="icon-calendar mr-3" style="font-size: 16px;"></span> Kelas Kebugaran
-        </a>
-      </li>
-      <li>
         <a href="{{ route('member.billing') }}" class="{{ request()->routeIs('member.billing') ? 'active' : '' }}">
           <span class="icon-shopping-cart mr-3" style="font-size: 16px;"></span> Struk & Tagihan
-        </a>
-      </li>
-      <li>
-        <a href="{{ route('member.guide') }}" class="{{ request()->routeIs('member.guide') ? 'active' : '' }}">
-          <span class="icon-file-text mr-3" style="font-size: 16px;"></span> Panduan Portal
         </a>
       </li>
       <li>

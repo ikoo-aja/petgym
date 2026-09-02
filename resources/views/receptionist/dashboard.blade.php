@@ -26,25 +26,25 @@
 <div class="row mb-4">
   <div class="col-md-3">
     <a href="{{ route('admin.checkin.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-primary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold mb-1"><span class="icon-check"></span> Check-In Absensi</h4>
+      <h4 class="font-weight-bold text-white mb-1"><span class="icon-check"></span> Check-In Absensi</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Antarmuka PIN & Manual</p>
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('admin.members.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-success text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold mb-1"><span class="icon-person"></span> Register Member</h4>
+      <h4 class="font-weight-bold text-white mb-1"><span class="icon-person"></span> Register Member</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Pendaftaran & Generate PIN</p>
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('admin.pos.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-info text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold mb-1"><span class="icon-shopping-cart"></span> POS Kasir & Struk</h4>
+      <h4 class="font-weight-bold text-white mb-1"><span class="icon-shopping-cart"></span> POS Kasir & Struk</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Transaksi Kasir & Produk</p>
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('receptionist.lockers') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-secondary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold mb-1"><span class="icon-settings"></span> Manajemen Loker</h4>
+      <h4 class="font-weight-bold text-white     mb-1"><span class="icon-settings"></span> Manajemen Loker</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Peminjaman & Pengembalian</p>
     </a>
   </div>
@@ -65,7 +65,6 @@
             <tr>
               <th>Jam</th>
               <th>Member</th>
-              <th>PIN Akses</th>
               <th>Metode</th>
             </tr>
           </thead>
@@ -74,7 +73,6 @@
               <tr>
                 <td class="font-weight-bold text-dark" style="font-size: 13px;">{{ $ci->checked_in_at ? $ci->checked_in_at->format('H:i:s') : '-' }}</td>
                 <td class="font-weight-bold text-dark">{{ $ci->member ? $ci->member->name : 'Member' }}</td>
-                <td><span class="badge badge-secondary" style="font-size: 12px;">{{ $ci->access_code }}</span></td>
                 <td><span class="badge badge-success">{{ $ci->check_in_method === 'code' ? 'PIN Numpad' : 'Manual' }}</span></td>
               </tr>
             @empty
@@ -92,7 +90,7 @@
   <div class="col-md-6">
     <div class="card-custom">
       <h6 class="font-weight-bold text-dark mb-3">Check-In Sesi Personal Trainer (PT)</h6>
-      
+
       <form action="{{ route('receptionist.pt.checkin') }}" method="POST" class="p-3 bg-light rounded border mb-2">
         @csrf
         <div class="row">
@@ -101,7 +99,7 @@
             <select name="member_id" class="form-control form-control-sm" required>
               <option value="">-- Pilih Member --</option>
               @foreach($activeMembers as $m)
-                <option value="{{ $m->id }}">{{ $m->name }} (PIN: {{ $m->access_code }})</option>
+                <option value="{{ $m->id }}">{{ $m->name }}</option>
               @endforeach
             </select>
           </div>
@@ -110,7 +108,7 @@
             <select name="trainer_id" class="form-control form-control-sm" required>
               <option value="">-- Pilih Trainer --</option>
               @foreach($standbyTrainers as $t)
-                <option value="{{ $t->id }}">{{ $t->name }} ({{ $t->specialization }})</option>
+                <option value="{{ $t->id }}">{{ $t->name }} </option>
               @endforeach
             </select>
           </div>
@@ -129,7 +127,7 @@
   <!-- 10. Pusat Informasi Cepat (Daily Info Hub - Read Only) -->
   <div class="col-md-7">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3"><span class="icon-calendar"></span> Daily Info Hub: Jadwal Kelas Dasar Gym</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Daily Info Hub: Jadwal Kelas Dasar Gym</h6>
       <div class="table-responsive">
         <table class="table table-bordered table-striped">
           <thead class="bg-light text-muted">

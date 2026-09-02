@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
-@section('title', 'Paket Keanggotaan Member - PetGym')
-@section('page_title', 'Paket Keanggotaan & Tier Status')
-@section('page_subtitle', 'Pilih tier keanggotaan gym yang sesuai dengan kebutuhan latihan Anda dan selesaikan pembayaran.')
+@section('title', 'Status Keanggotaan - PetGym')
+@section('page_title', 'Status Keanggotaan')
+@section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
 
 @section('content')
@@ -10,7 +10,7 @@
 <div class="card-custom border-left border-primary mb-4" style="border-left-width: 4px !important;">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
     <div>
-      <span class="badge badge-primary font-weight-bold text-uppercase mb-2">Tier Keanggotaan Aktif Saat Ini</span>
+      <span class="badge badge-primary font-weight-bold text-uppercase mb-2">Tier Aktif</span>
       <h3 class="font-weight-bold text-dark mb-1">Paket Tier {{ strtoupper($member->membership_tier ?? 'Basic') }}</h3>
       <p class="mb-0 text-muted">Masa berlaku hingga: <strong>{{ $member->expired_at ? $member->expired_at->format('d M Y') : '-' }}</strong> (Sisa {{ $member->days_left }} hari)</p>
     </div>
@@ -92,9 +92,6 @@
   <!-- Premium Tier -->
   <div class="col-lg-4 mb-4">
     <div class="card-custom h-100 d-flex flex-column border-primary position-relative" style="border-width: 2px !important;">
-      <div class="position-absolute" style="top: -12px; right: 20px;">
-        <span class="badge badge-primary font-weight-bold text-uppercase px-3 py-1">Gratis Loker Bulanan</span>
-      </div>
       <div class="mb-3">
         <h4 class="font-weight-bold text-dark mb-1">Tier Premium</h4>
         <p class="text-muted small">Pengalaman All-Inclusive kebugaran terlengkap.</p>
@@ -172,10 +169,93 @@
   </div>
 </div>
 
-<!-- Benefit Matrix Table -->
+<!-- Benefit Matrix Section -->
 <div class="card-custom">
-  <h6 class="font-weight-bold text-dark mb-3">Tabel Perbandingan Fitur Keanggotaan</h6>
-  <div class="table-responsive">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="font-weight-bold text-dark mb-0">Fitur Tiap Tier</h6>
+  </div>
+
+  <!-- Mobile View (Cards) -->
+  <div class="d-block d-md-none">
+    <!-- Item 1 -->
+    <div class="border rounded p-3 mb-3 bg-light" style="border-radius: 12px !important;">
+      <div class="font-weight-bold text-dark mb-2" style="font-size: 13.5px;">Akses Fitnes & Beban</div>
+      <div class="row text-center pt-2 border-top" style="font-size: 12px;">
+        <div class="col-4 border-right">
+          <span class="text-muted d-block small mb-1">Basic</span>
+          <span class="badge badge-success px-2 py-1">Ya</span>
+        </div>
+        <div class="col-4 border-right">
+          <span class="text-muted d-block small mb-1">Standard</span>
+          <span class="badge badge-success px-2 py-1">Ya</span>
+        </div>
+        <div class="col-4">
+          <span class="text-muted d-block small mb-1">Premium</span>
+          <span class="badge badge-success px-2 py-1">Ya</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 2 -->
+    <div class="border rounded p-3 mb-3 bg-light" style="border-radius: 12px !important;">
+      <div class="font-weight-bold text-dark mb-2" style="font-size: 13.5px;">Kelas Kebugaran (Yoga/Zumba)</div>
+      <div class="row text-center pt-2 border-top" style="font-size: 12px;">
+        <div class="col-4 border-right">
+          <span class="text-muted d-block small mb-1">Basic</span>
+          <span class="badge badge-secondary px-2 py-1">Tidak</span>
+        </div>
+        <div class="col-4 border-right">
+          <span class="text-muted d-block small mb-1">Standard</span>
+          <span class="badge badge-success px-2 py-1">Bebas</span>
+        </div>
+        <div class="col-4">
+          <span class="text-muted d-block small mb-1">Premium</span>
+          <span class="badge badge-primary px-2 py-1">Prioritas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 3 -->
+    <div class="border rounded p-3 mb-3 bg-light" style="border-radius: 12px !important;">
+      <div class="font-weight-bold text-dark mb-2" style="font-size: 13.5px;">Diskon Paket Personal Trainer</div>
+      <div class="row text-center pt-2 border-top" style="font-size: 12px;">
+        <div class="col-4 border-right">
+          <span class="text-muted d-block small mb-1">Basic</span>
+          <span class="badge badge-secondary px-2 py-1">Tidak</span>
+        </div>
+        <div class="col-4 border-right">
+          <span class="text-muted d-block small mb-1">Standard</span>
+          <span class="badge badge-info px-2 py-1">10%</span>
+        </div>
+        <div class="col-4">
+          <span class="text-muted d-block small mb-1">Premium</span>
+          <span class="badge badge-success px-2 py-1 font-weight-bold">20%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item 4 -->
+    <div class="border rounded p-3 mb-2 bg-light" style="border-radius: 12px !important;">
+      <div class="font-weight-bold text-dark mb-2" style="font-size: 13.5px;">Sewa Loker Bulanan</div>
+      <div class="row text-center pt-2 border-top" style="font-size: 11.5px;">
+        <div class="col-4 border-right">
+          <span class="text-muted d-block small mb-1">Basic</span>
+          <span class="text-muted font-weight-bold">Rp 150rb</span>
+        </div>
+        <div class="col-4 border-right">
+          <span class="text-muted d-block small mb-1">Standard</span>
+          <span class="text-muted font-weight-bold">Rp 150rb</span>
+        </div>
+        <div class="col-4">
+          <span class="text-muted d-block small mb-1">Premium</span>
+          <span class="badge badge-success px-2 py-1 font-weight-bold">GRATIS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop View (Full Matrix Table) -->
+  <div class="table-responsive d-none d-md-block">
     <table class="table table-bordered align-middle text-center mb-0" style="font-size: 13px;">
       <thead class="bg-light">
         <tr>
@@ -188,21 +268,21 @@
       <tbody>
         <tr>
           <td class="text-left font-weight-bold">Akses Fitnes & Beban</td>
-          <td>Ya</td>
-          <td>Ya</td>
-          <td>Ya</td>
+          <td><span class="badge badge-success">Ya</span></td>
+          <td><span class="badge badge-success">Ya</span></td>
+          <td><span class="badge badge-success">Ya</span></td>
         </tr>
         <tr>
           <td class="text-left font-weight-bold">Kelas Kebugaran (Yoga/Zumba)</td>
-          <td>Tidak</td>
-          <td>Ya (Bebas)</td>
-          <td>Ya (Prioritas)</td>
+          <td><span class="badge badge-secondary">Tidak</span></td>
+          <td><span class="badge badge-success">Ya (Bebas)</span></td>
+          <td><span class="badge badge-primary">Ya (Prioritas)</span></td>
         </tr>
         <tr>
           <td class="text-left font-weight-bold">Diskon Paket PT</td>
-          <td>Tidak</td>
-          <td>10%</td>
-          <td>20%</td>
+          <td><span class="badge badge-secondary">Tidak</span></td>
+          <td><span class="badge badge-info">10%</span></td>
+          <td><span class="badge badge-success">20%</span></td>
         </tr>
         <tr>
           <td class="text-left font-weight-bold">Sewa Loker Bulanan</td>

@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
 @section('title', 'Dashboard Member - PetGym')
-@section('page_title', 'Dashboard Portal Member')
-@section('page_subtitle', 'Ringkasan aktivitas keanggotaan, sewa loker, kuota PT, dan jadwal kelas kebugaran Anda.')
+@section('page_title', 'Beranda')
+@section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
 
 @section('content')
@@ -41,7 +41,7 @@
 
   <div class="col-md-4 mb-3 mb-md-0">
     <div class="card-custom h-100">
-      <div class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Sisa Kuota PT</div>
+      <div class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Paket Trainer</div>
       <h3 class="font-weight-bold text-primary mb-1 mt-2">{{ $ptQuotas->sum('remaining_sessions') }} Sesi</h3>
       <div class="d-flex align-items-center justify-content-between mt-2">
         <span class="text-muted small">Dari {{ $ptQuotas->count() }} paket trainer</span>
@@ -52,7 +52,7 @@
 
   <div class="col-md-4">
     <div class="card-custom h-100">
-      <div class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Status Penalti No-Show</div>
+      <div class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Penalti</div>
       <h3 class="font-weight-bold mb-1 mt-2 {{ $member->is_penalty_blocked ? 'text-danger' : 'text-dark' }}">
         @if($member->is_penalty_blocked)
           Diblokir
@@ -74,8 +74,7 @@
 <!-- Dashboard Shortcut Cards -->
 <div class="card-custom mb-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="font-weight-bold text-dark mb-0">⚡ Shortcut Utama</h6>
-    <small class="text-muted">Akses kilat ke fasilitas & jadwal kebugaran Anda</small>
+    <h6 class="font-weight-bold text-dark mb-0">Fitur </h6>
   </div>
   <div class="row">
     <div class="col-md-4 mb-3 mb-md-0">
@@ -85,8 +84,8 @@
             <span class="icon-settings" style="font-size: 22px;"></span>
           </div>
           <div>
-            <h6 class="font-weight-bold text-dark mb-1" style="font-size: 15px;">Loker Saya</h6>
-            <small class="text-muted">Sewa & akses PIN loker digital</small>
+            <h6 class="font-weight-bold text-dark mb-1" style="font-size: 15px;">Loker</h6>
+            <small class="text-muted">Sewa & Akses Loker</small>
           </div>
         </div>
       </a>
@@ -100,7 +99,7 @@
           </div>
           <div>
             <h6 class="font-weight-bold text-dark mb-1" style="font-size: 15px;">Personal Trainer</h6>
-            <small class="text-muted">Beli sesi & booking pelatih</small>
+            <small class="text-muted">Booking personal trainer</small>
           </div>
         </div>
       </a>
@@ -113,8 +112,8 @@
             <span class="icon-calendar" style="font-size: 22px;"></span>
           </div>
           <div>
-            <h6 class="font-weight-bold text-dark mb-1" style="font-size: 15px;">Class Kebugaran</h6>
-            <small class="text-muted">Jadwal & RSVP kelas harian</small>
+            <h6 class="font-weight-bold text-dark mb-1" style="font-size: 15px;">Kelas Kebugaran</h6>
+            <small class="text-muted">Jadwal Kelas Harian</small>
           </div>
         </div>
       </a>
@@ -127,7 +126,7 @@
   <div class="col-md-6 mb-4">
     <div class="card-custom h-100">
       <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-        <h6 class="font-weight-bold text-dark mb-0">🏋️ Jadwal PT Mendatang</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Jadwal Personal Trainer</h6>
         <a href="{{ route('member.pt') }}" class="btn btn-sm btn-link text-primary font-weight-bold p-0">Lihat Semua &rarr;</a>
       </div>
 
@@ -151,7 +150,6 @@
           <span class="icon-person d-block mb-1" style="font-size: 24px;"></span>
           <small class="d-block font-weight-semibold">Belum ada jadwal sesi PT terdaftar.</small>
         </div>
-      @empty
       @endforelse
     </div>
   </div>
@@ -160,8 +158,8 @@
   <div class="col-md-6 mb-4">
     <div class="card-custom h-100">
       <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-        <h6 class="font-weight-bold text-dark mb-0">🧘 Kelas Kebugaran Didaftarkan</h6>
-        <a href="{{ route('member.classes') }}" class="btn btn-sm btn-link text-primary font-weight-bold p-0">Cari Kelas &rarr;</a>
+        <h6 class="font-weight-bold text-dark mb-0">Daftar Kelas Kebugaran</h6>
+        <a href="{{ route('member.classes') }}" class="btn btn-sm btn-link text-primary font-weight-bold p-0">Lihat kelas &rarr;</a>
       </div>
 
       @forelse($upcomingClassRsvps as $cr)

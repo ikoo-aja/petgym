@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
 @section('title', 'Personal Trainer - PetGym')
-@section('page_title', 'Katalog Personal Trainer (PT) & Booking Sesi')
-@section('page_subtitle', 'Beli paket kuota sesi PT dan booking jadwal latihan dengan garansi sistem anti-bentrok.')
+@section('page_title', 'Personal Trainer dan Booking Sesi')
+@section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
 
 @section('content')
@@ -66,10 +66,10 @@
 
         <div class="row">
           <div class="col-6">
-            <button type="button" class="btn btn-outline-primary btn-block btn-sm py-2 font-weight-bold btn-buy-quota" 
-                    data-id="{{ $t->id }}" 
-                    data-name="{{ $t->name }}" 
-                    data-toggle="modal" 
+            <button type="button" class="btn btn-outline-primary btn-block btn-sm py-2 font-weight-bold btn-buy-quota"
+                    data-id="{{ $t->id }}"
+                    data-name="{{ $t->name }}"
+                    data-toggle="modal"
                     data-target="#buyQuotaModal">
               Beli Kuota
             </button>
@@ -79,11 +79,11 @@
               $trainerQuota = $quotas->where('trainer_id', $t->id)->first();
               $remainingSess = $trainerQuota ? $trainerQuota->remaining_sessions : 0;
             @endphp
-            <button type="button" class="btn btn-primary btn-block btn-sm py-2 font-weight-bold btn-book-pt" 
-                    data-id="{{ $t->id }}" 
+            <button type="button" class="btn btn-primary btn-block btn-sm py-2 font-weight-bold btn-book-pt"
+                    data-id="{{ $t->id }}"
                     data-name="{{ $t->name }}"
                     data-quota="{{ $remainingSess }}"
-                    data-toggle="modal" 
+                    data-toggle="modal"
                     data-target="#bookPtModal">
               Booking Sesi
             </button>
@@ -98,43 +98,40 @@
   @endforelse
 </div>
 
-<!-- Scheduled Bookings Table -->
+<!-- Scheduled Bookings Card List -->
 <div class="card-custom">
-  <h6 class="font-weight-bold text-dark mb-3">Riwayat & Jadwal Booking PT Saya</h6>
-  <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
-      <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-        <tr>
-          <th>Tanggal Booking</th>
-          <th>Jam Sesi</th>
-          <th>Nama Trainer</th>
-          <th>Status Booking</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($bookings as $b)
-          <tr>
-            <td class="font-weight-bold text-dark">{{ \Carbon\Carbon::parse($b->booking_date)->format('d M Y') }}</td>
-            <td class="text-primary font-weight-bold">{{ $b->booking_time }}</td>
-            <td class="text-dark font-weight-bold">{{ $b->trainer ? $b->trainer->name : '-' }}</td>
-            <td>
-              @if($b->status == 'scheduled')
-                <span class="badge badge-success">Terjadwal</span>
-              @elseif($b->status == 'completed')
-                <span class="badge badge-secondary">Selesai</span>
-              @else
-                <span class="badge badge-danger">Batal</span>
-              @endif
-            </td>
-          </tr>
-        @empty
-          <tr>
-            <td colspan="4" class="text-center py-4 text-muted small">Belum ada riwayat booking sesi PT.</td>
-          </tr>
-        @endforelse
-      </tbody>
-    </table>
+  <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+    <h6 class="font-weight-bold text-dark mb-0">Riwayat & Jadwal Booking PT </h6>
+    <small class="text-muted">{{ count($bookings) }} Sesi </small>
   </div>
+
+  @forelse($bookings as $b)
+    <div class="border rounded p-3 mb-3 bg-light d-flex justify-content-between align-items-center" style="border-radius: 12px !important;">
+      <div class="d-flex align-items-center">
+        <div class="rounded-circle bg-white text-primary p-2 mr-3 border d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; font-weight: 800; font-size: 16px;">
+          {{ substr($b->trainer ? $b->trainer->name : 'P', 0, 1) }}
+        </div>
+        <div>
+          <h6 class="font-weight-bold text-dark mb-1" style="font-size: 14px;">{{ $b->trainer ? $b->trainer->name : 'Personal Trainer' }}</h6>
+          <small class="text-muted"><span class="icon-calendar mr-1"></span> {{ \Carbon\Carbon::parse($b->booking_date)->format('d M Y') }} &bull; <strong class="text-primary">{{ $b->booking_time }}</strong></small>
+        </div>
+      </div>
+      <div class="ml-2 text-right">
+        @if($b->status == 'scheduled')
+          <span class="badge badge-success px-2 py-1 font-weight-bold" style="font-size: 11px;">Terjadwal</span>
+        @elseif($b->status == 'completed')
+          <span class="badge badge-secondary px-2 py-1 font-weight-bold" style="font-size: 11px;">Selesai</span>
+        @else
+          <span class="badge badge-danger px-2 py-1 font-weight-bold" style="font-size: 11px;">Batal</span>
+        @endif
+      </div>
+    </div>
+  @empty
+    <div class="text-center py-4 text-muted bg-light rounded border">
+      <span class="icon-person d-block mb-1" style="font-size: 24px;"></span>
+      <small class="d-block font-weight-semibold">Belum ada riwayat booking sesi PT.</small>
+    </div>
+  @endforelse
 </div>
 
 <!-- Modal Gateway Pembayaran Paket Kuota PT -->

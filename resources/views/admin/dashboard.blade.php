@@ -57,7 +57,7 @@
   <div class="col-md-7">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Alert: Member Masa Aktif Habis (3 - 7 Hari)</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Masa Aktif Member </h6>
         <span class="badge badge-warning text-dark font-weight-bold">{{ count($expiringMembers) }} Member</span>
       </div>
 
@@ -67,7 +67,6 @@
             <thead class="text-muted bg-light" style="font-size: 11px; text-transform: uppercase;">
               <tr>
                 <th>Nama Member</th>
-                <th>Kode PIN</th>
                 <th>Kontak</th>
                 <th>Tgl Expired</th>
                 <th>Sisa Hari</th>
@@ -76,11 +75,12 @@
             <tbody>
               @foreach($expiringMembers as $m)
                 <tr>
-                  <td class="font-weight-bold text-dark">{{ $m->name }}</td>
-                  <td><span class="badge badge-secondary" style="font-size: 12px; letter-spacing: 1px;">{{ $m->access_code }}</span></td>
-                  <td style="font-size: 13px;">{{ $m->phone ?? '-' }}</td>
-                  <td style="font-size: 13px;">{{ $m->expired_at->format('d M Y') }}</td>
-                  <td><span class="badge badge-warning" style="font-size: 11px;">{{ $m->days_left }} Hari</span></td>
+                <td class="font-weight-bold text-dark">{{ $m->name }}</td>
+                <td style="font-size: 13px;">
+                    {{ $m->phone ? \Illuminate\Support\Str::mask($m->phone, '*', 4, -2) : '-' }}
+                </td>
+                <td style="font-size: 13px;">{{ $m->expired_at->format('d M Y') }}</td>
+                <td><span class="badge badge-warning" style="font-size: 11px;">{{ $m->days_left }} Hari</span></td>
                 </tr>
               @endforeach
             </tbody>
