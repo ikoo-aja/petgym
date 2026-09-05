@@ -395,15 +395,36 @@
           <h6 class="font-weight-bold text-dark mb-3">Ubah Kata Sandi Akun</h6>
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark small">Kata Sandi Saat Ini *</label>
-            <input type="password" name="current_password" class="form-control" required style="border-radius: 8px;">
+            <div class="input-group">
+              <input type="password" name="current_password" id="currentPassword" class="form-control" required style="border-radius: 8px;">
+              <div class="input-group-append">
+                <span class="input-group-text bg-white border-left-0" style="cursor: pointer; border-radius: 0 8px 8px 0;" id="toggleCurrentPasswordBtn">
+                  <i class="icon-eye text-muted" id="toggleCurrentPasswordIcon"></i>
+                </span>
+              </div>
+            </div>
           </div>
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark small">Kata Sandi Baru *</label>
-            <input type="password" name="new_password" class="form-control" required style="border-radius: 8px;">
+            <div class="input-group">
+              <input type="password" name="new_password" id="newPassword" class="form-control" required style="border-radius: 8px;">
+              <div class="input-group-append">
+                <span class="input-group-text bg-white border-left-0" style="cursor: pointer; border-radius: 0 8px 8px 0;" id="toggleNewPasswordBtn">
+                  <i class="icon-eye text-muted" id="toggleNewPasswordIcon"></i>
+                </span>
+              </div>
+            </div>
           </div>
           <div class="form-group mb-4">
             <label class="font-weight-bold text-dark small">Konfirmasi Kata Sandi Baru *</label>
-            <input type="password" name="new_password_confirmation" class="form-control" required style="border-radius: 8px;">
+            <div class="input-group">
+              <input type="password" name="new_password_confirmation" id="newPasswordConfirmation" class="form-control" required style="border-radius: 8px;">
+              <div class="input-group-append">
+                <span class="input-group-text bg-white border-left-0" style="cursor: pointer; border-radius: 0 8px 8px 0;" id="toggleNewPasswordConfirmBtn">
+                  <i class="icon-eye text-muted" id="toggleNewPasswordConfirmIcon"></i>
+                </span>
+              </div>
+            </div>
           </div>
           <button type="submit" class="btn btn-primary btn-block font-weight-bold py-2">Perbarui Kata Sandi</button>
         </form>
@@ -491,4 +512,53 @@
     </div>
   </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+  // Toggle lihat/sembunyi password — Kata Sandi Saat Ini
+  const toggleCurrentPasswordBtn = document.querySelector('#toggleCurrentPasswordBtn');
+  const currentPasswordInput = document.querySelector('#currentPassword');
+  const toggleCurrentPasswordIcon = document.querySelector('#toggleCurrentPasswordIcon');
+
+  toggleCurrentPasswordBtn.addEventListener('click', function () {
+    const isPassword = currentPasswordInput.getAttribute('type') === 'password';
+    currentPasswordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    toggleCurrentPasswordIcon.classList.toggle('icon-eye');
+    toggleCurrentPasswordIcon.classList.toggle('icon-eye-slash');
+    toggleCurrentPasswordIcon.classList.toggle('text-primary');
+    toggleCurrentPasswordIcon.classList.toggle('text-muted');
+  });
+
+  // Toggle lihat/sembunyi password — Kata Sandi Baru
+  const toggleNewPasswordBtn = document.querySelector('#toggleNewPasswordBtn');
+  const newPasswordInput = document.querySelector('#newPassword');
+  const toggleNewPasswordIcon = document.querySelector('#toggleNewPasswordIcon');
+
+  toggleNewPasswordBtn.addEventListener('click', function () {
+    const isPassword = newPasswordInput.getAttribute('type') === 'password';
+    newPasswordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    toggleNewPasswordIcon.classList.toggle('icon-eye');
+    toggleNewPasswordIcon.classList.toggle('icon-eye-slash');
+    toggleNewPasswordIcon.classList.toggle('text-primary');
+    toggleNewPasswordIcon.classList.toggle('text-muted');
+  });
+
+  // Toggle lihat/sembunyi password — Konfirmasi Kata Sandi Baru
+  const toggleNewPasswordConfirmBtn = document.querySelector('#toggleNewPasswordConfirmBtn');
+  const newPasswordConfirmInput = document.querySelector('#newPasswordConfirmation');
+  const toggleNewPasswordConfirmIcon = document.querySelector('#toggleNewPasswordConfirmIcon');
+
+  toggleNewPasswordConfirmBtn.addEventListener('click', function () {
+    const isPassword = newPasswordConfirmInput.getAttribute('type') === 'password';
+    newPasswordConfirmInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    toggleNewPasswordConfirmIcon.classList.toggle('icon-eye');
+    toggleNewPasswordConfirmIcon.classList.toggle('icon-eye-slash');
+    toggleNewPasswordConfirmIcon.classList.toggle('text-primary');
+    toggleNewPasswordConfirmIcon.classList.toggle('text-muted');
+  });
+</script>
 @endsection
