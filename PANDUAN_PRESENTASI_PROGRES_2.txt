@@ -1,0 +1,477 @@
+================================================================================
+PANDUAN PRESENTASI — PROGRES 2 : "PERAN SETIAP PENGGUNA"
+Sistem Manajemen Gym Multi-Tenant (Laravel)
+================================================================================
+
+Dokumen ini dibuat berdasarkan pembacaan menyeluruh terhadap kode project:
+routes/web.php, semua controller, model, migration, seeder, dan tampilan (blade).
+Gunakan sebagai "naskah contekan" latihan — bukan untuk dibaca langsung saat demo.
+
+--------------------------------------------------------------------------------
+A. PITCH PEMBUKA (hafalkan 1 kalimat ini)
+--------------------------------------------------------------------------------
+"Project ini adalah sistem manajemen gym berbasis web dengan model SaaS
+(Software as a Service). Satu aplikasi dipakai oleh banyak pemilik gym
+(tenant), dan setiap orang di dalam gym — pemilik, admin, manager,
+resepsionis, personal trainer, sampai member — punya halaman dan peran
+masing-masing yang berbeda. Pada progress 2 ini saya fokus menyelesaikan
+peran dan fitur dari setiap pengguna tersebut."
+
+Kalau guru minta versi lebih teknis:
+"Secara teknis: Laravel 12 + MySQL, konsep multi-tenant satu-database
+(pemisahan data lewat kolom tenant_id), autentikasi session Laravel, dan
+role disimpan di tabel users sebagai string (superadmin, owner, admin,
+manager, receptionist, trainer, member). Setiap role login diarahkan ke
+dashboard-nya sendiri."
+
+--------------------------------------------------------------------------------
+B. GAMBARAN BESAR (kalau guru tanya "project apa ini, siapa user-nya?")
+--------------------------------------------------------------------------------
+Masalah yang dipecahkan:
+  Pengelolaan gym biasanya berceceran: daftar member di buku, kasir manual,
+  jadwal kelas di grup chat, loker dicatat kertas. Pemilik beberapa cabang
+  gym juga butuh satu sistem terpusat.
+
+Solusi:
+  1 platform yang bisa disewa banyak gym (multi-tenant). Tiap gym punya
+  "tenant" sendiri dengan nama & domain sendiri (contoh: fitlife.workout.id).
+  Di dalam satu tenant, semua orang di gym pakai aplikasi yang sama tapi
+  melihat antarmuka sesuai perannya.
+
+Pelaku / role di sistem (ini inti presentasi progress 2):
+  1. Superadmin      -> pemilik PLATFORM (pihak penyedia software)
+  2. Owner           -> pemilik GYM / tenant (melihat bisnisnya)
+  3. Admin           -> pengelola operasional harian gym
+  4. Manager         -> kepala operasional (alat, shift, approval)
+  5. Resepsionis     -> front desk (tamu, loker, shift, keluhan)
+  6. Personal Trainer-> pelatih (jadwal kelas & sesi PT)
+  7. Member          -> anggota gym (self-service portal)
+  8. Guest           -> pengunjung yang belum daftar (buku tamu / checkout publik)
+
+Alur besar sistem (ceritakan seperti ini biar nyambung):
+  Superadmin mendaftarkan tenant + memilih paket (Basic/Pro/Enterprise)
+  -> tenant aktif -> Owner & staf gym login -> Admin bikin akun staf dengan
+  role tertentu -> Resepsionis layani tamu/member di front desk ->
+  Member akses portal sendiri (loker, kelas, PT, tagihan) -> Manager
+  menyetujui operasional (void, cuti, komplain) -> Owner pantau semuanya
+  read-only.
+
+--------------------------------------------------------------------------------
+C. KONSEP KUNCI YANG HARUS LU PAHAMI (biar gak gugup ditanya)
+--------------------------------------------------------------------------------
+1. Multi-tenant = banyak "perusahaan/gym" pakai 1 aplikasi. Di kode:
+   hampir semua tabel punya kolom tenant_id, dan tiap query di controller
+   selalu difilter `->where('tenant_id', $tenantId)`. Data antar-gym
+   tidak tercampur.
+
+2. Role & alur login: LoginController.login() mengecek kolom role user lalu
+   me-redirect ke dashboard masing-masing, contoh:
+   - superadmin  -> /superadmin/dashboard
+   - owner       -> /owner/dashboard
+   - admin       -> /admin/dashboard
+   - manager     -> /manager/dashboard
+   - receptionist-> /receptionist/dashboard
+   - trainer     -> /trainer/dashboard
+   - member      -> /member/dashboard
+   Session di-regenerate setelah login (anti session-fixation), password
+   di-hash, logout meng-invalidate session.
+
+3. Arsitektur MVC Laravel (jawab cepat kalau ditanya):
+   - routes/web.php      : daftar URL + controller mana yang menangani
+   - Controller          : logika bisnis (validasi, simpan data, redirect)
+   - Model (Eloquent)    : representasi tabel + relasi (User, Tenant, Member...)
+   - Migration           : "blueprint" pembuatan tabel
+   - Seeder              : pengisi data contoh/demo (DatabaseSeeder.php)
+   - View (Blade)        : tampilan HTML
+   Jadi alurnya: URL -> route -> controller -> model -> database, lalu
+   controller kirim data ke view -> tampil ke browser.
+
+4. RBAC = Role-Based Access Control: pembatasan menu berdasarkan peran.
+   Di project ini role ditentukan lewat helper di model User
+   (isAdmin(), isManager(), dst) dan dipakai untuk: redirect setelah login,
+   menampilkan/menyembunyikan tombol di tampilan (misal Owner tidak melihat
+   tombol Tambah/Hapus karena read-only), dan isi sidebar.
+
+--------------------------------------------------------------------------------
+D. AKUN DEMO (password SEMUA = 1234) — data sudah ada lewat seeder
+--------------------------------------------------------------------------------
+Login sebagai Superadmin (penyedia platform):
+  email: test@example.com
+
+Login sebagai tim "FitLife Studio" (contoh tenant gym aktif):
+  Owner        : owner@fitlife.com        (Budi Pratama)
+  Admin        : admin@fitlife.com
+  Manager      : manager@fitlife.com      (Joko, bagian Operasional & Keuangan)
+  Resepsionis  : resepsionis@fitlife.com  (Rina)
+  Trainer      : alex@fitlife.com         (Coach Alex)
+  Member       : member@fitlife.com       (portal member)
+
+Data pendukung FitLife (muncul di layar, hafal ini biar kelihatan ngerti):
+  - Member: Budi Santoso (PIN 881234), Siti Rahayu (PIN 885678, segera
+    kedaluwarsa — sengaja dibuat 4 hari lagi), Agus Pratama (PIN 889900)
+  - Loker #01-#12; #03 terpakai, #10 rusak, sisanya tersedia
+  - Kelas: "Zumba Morning Energizer" (Senin 08:00), "Yoga Flow" (Rabu 17:00)
+  - Produk kasir: Whey Shake 35rb, Air Mineral 5rb, Handuk 75rb
+  - Promo "FITAGUSTUS" diskon 15%, komplain loker kamar mandi "open",
+    vendor "CV Sejahtera Abadi", treadmill perlu servis bulan depan,
+    dumbbell set berstatus "perlu_servis"
+  - Invoice #INV-2026-001 FitLife: 1,2 jt, status pending
+
+--------------------------------------------------------------------------------
+E. SKENARIO DEMO 15–20 MENIT (urut, jangan lompat-lompat)
+--------------------------------------------------------------------------------
+Cara menyiapkan: `php artisan migrate:fresh --seed`, lalu `php artisan serve`
+(buka http://127.0.0.1:8000). Kalau sudah pernah, cukup `php artisan
+migrate:fresh --seed` sekali sebelum demo.
+
+[1] SUPERADMIN — "peran penjual platform" (1–2 menit)
+    Login test@example.com / 1234.
+    Tunjukkan: menu Kelola Penyewa (daftar 10 tenant: FitLife, Powerhouse,
+    Barbell dll — ada yang aktif, ada yang suspended), Paket Sewa
+    (Basic 500rb / Pro 1,2jt / Enterprise 2,5jt), Keuangan & Tagihan
+    (konfirmasi pembayaran invoice), dan Log aktivitas sistem.
+    Poin yang mau disampaikan: "Peran ini yang menjalankan BISNISnya
+    software-nya — mendaftarkan gym, menentukan paket, mengaktifkan /
+    menonaktifkan tenant."
+
+[2] OWNER — "pemilik gym, mode pantau" (1–2 menit)
+    Logout, login owner@fitlife.com / 1234.
+    Tunjukkan dashboard owner: statistik bisnis. Lalu jelaskan: halaman
+    Transaksi/Member/Kelas/Inventori/Staf hanya untuk MEMBACA (read-only),
+    tombol tambah-ubah-hapus disembunyikan untuk role owner.
+    Poin: "Owner cukup memantau performa gym tanpa bisa mengubah data —
+    ini mencegah pemilik mengotori data operasional."
+
+[3] ADMIN — "otak operasional harian" (3–4 menit) — BAGIAN TERBESAR
+    Login admin@fitlife.com / 1234.
+    Jalan cepat ke fitur yang paling kuat:
+    a. Menu Member: daftar member; perhatikan kolom status & masa aktif.
+       Buat member baru (atau buka history member).
+    b. Menu Check-In: tunjukkan proses check-in pakai PIN member
+       (contoh 889900). Jelaskan: member masuk gym = front desk input PIN.
+    c. Menu POS / Kasir: buka halaman kasir, tambahkan produk ke keranjang,
+       checkout sampai muncul struk/invoice. Lalu jelaskan alur VOID:
+       transaksi bisa diminta void (batal) dan butuh persetujuan Manager —
+       ini contoh pemisahan peran & aturan 4 mata.
+    d. Menu Staf (RBAC): di sinilah role lain DIBUAT. Tunjukkan form
+       tambah staf dengan pilihan role manager/receptionist/trainer.
+       JELASKAN: saat akun dibuat, sistem otomatis membuat baris profil
+       sesuai role (tabel managers / receptionists / trainers) — sinkron
+       satu langkah. Ini nilai plus teknis yang bagus.
+    e. Menu Kelas & Trainer: kelola jadwal kelas & data trainer.
+    (Menu Loker & Laporan bisa disebut saja, tidak perlu didemokan.)
+
+[4] MANAGER — "kepala operasional & pintu approval" (2–3 menit)
+    Login manager@fitlife.com / 1234.
+    Tunjukkan satu halaman fitur manajerial dengan beberapa bagian:
+    - Equipment & Maintenance: daftar alat gym; buka alat berstatus
+      "perlu_servis" dan catat maintenance log (harga servis 350rb di
+      treadmill). Jelaskan: selesai servis, status alat di-reset.
+    - Shift & Cuti: ada permintaan cuti resepsionis status pending —
+      setujui/tolak di sini.
+    - Approval void: kalau tadi di step [3] sempat minta void, ini dia
+      muncul sebagai transaksi yang menunggu persetujuan — approve.
+    - Promo, Komplain, Master Kelas, Vendor: sebutkan sepintas.
+    Poin: "Manager TIDAK mengelola member/kasir harian — fokusnya approval
+    dan data pendukung operasional. Void butuh persetujuan manager, bukan
+    bisa dibatalkan sembarangan oleh kasir."
+
+[5] RESEPSIONIS — "wajah pertama gym / front desk" (2 menit)
+    Login resepsionis@fitlife.com / 1234.
+    Tunjukkan: Shift (mulai shift "Pagi" / clock-in — keluar-masuk kerja
+    staf dicatat), Buku Tamu (catat tamu baru, lalu konversi tamu jadi
+    member), Loker (sewa/kembalikan loker), Lost & Found (barang hilang
+    ditemukan → klaim), Keluhan (terima komplain member, status open
+    sampai manager tindak lanjut), Check-in sesi PT.
+    Poin: "Resepsionis melayani langsung di depan; semua yang dia lakukan
+    tercatat dan yang butuh keputusan dilempar ke manager."
+
+[6] MEMBER — "self-service lewat portal sendiri" (3–4 menit) — NILAI PLUS
+    Login member@fitlife.com / 1234.
+    a. Dashboard member: ringkasan (sewa loker aktif, kuota PT, RSVP kelas,
+       total pengeluaran bulan ini).
+    b. Loker: grid visual 12 loker berwarna (tersedia/terpakai/rusak).
+       Sewa loker tersedia → sistem kasih PIN akses 6 digit → loker berubah
+       status "terpakai". Jelaskan ANTI DOUBLE-BOOKING: loker yang sudah
+       terpakai tidak bisa disewa orang lain & satu member hanya boleh punya
+       1 sewa aktif.
+    c. Kelas: daftar jadwal → RSVP kelas. Kalau kelas penuh, member masuk
+       WAITLIST otomatis; kalau ada yang batal, urutan pertama waitlist
+       otomatis naik. Jelaskan sistem PENALTI: member yang no-show (tidak
+       hadir tanpa batal) kena block sementara dari booking.
+    d. PT: beli paket kuota sesi personal training (5/10/20 sesi) → booking
+       jadwal. Jelaskan CONFLICT-FREE BOOKING: sistem menolak kalau trainer
+       sudah dibooking di jam yang sama.
+    e. Tagihan: riwayat transaksi (sewa loker, upgrade membership, beli
+       kuota PT) muncul sebagai invoice.
+    (Catatan jujur: pembayaran di portal ini MASIH SIMULASI — langsung
+     dianggap lunas tanpa payment gateway beneran. Lihat bagian kelemahan.)
+
+[7] TRAINER — "pelatih; lihat jadwalnya" (opsional, 1 menit)
+    Login alex@fitlife.com / 1234.
+    Tampilkan dashboard trainer: kelas yang diajar, booking sesi PT dari
+    member, dan daftar RSVP member untuk kelasnya.
+    Kalau di step [6] member sempat booking PT, di sini booking itu muncul.
+    PENTING (jujur): role trainer masih tahap awal — baru dashboard
+    read-only, belum ada menu aksi khusus trainer (belum bisa kelola
+    jadwal sendiri / konfirmasi kehadiran). Sampaikan ini sebagai bagian
+    rencana progres berikutnya, jangan ditutup-tutupi (lihat bagian I).
+
+[8] PENUTUP DEMO (30 detik)
+    "Kesimpulan: satu aplikasi, banyak peran. Setiap pengguna punya
+    dashboard, menu, dan kewenangan berbeda: superadmin menjual platform,
+    owner memantau, admin & resepsionis & manager menjalankan operasional
+    dengan sistem approval, dan member mengurus kebutuhannya sendiri.
+    Progress berikutnya: menyempurnakan role trainer, menyambungkan
+    pembayaran asli, dan memperkuat keamanan antar-role (lihat kelemahan)."
+
+--------------------------------------------------------------------------------
+F. POIN "NILAI PLUS" TEKNIS (sebutkan kalau ada waktu / biar guru terkesan)
+--------------------------------------------------------------------------------
+- Arsitektur multi-tenant: satu aplikasi, data dipisah per tenant_id.
+- Pemisahan peran: tiap role punya prefix URL sendiri (superadmin/,
+  admin/, manager/, receptionist/, trainer/, member/, owner/).
+- RBAC lewat helper role (isAdmin, isManager, ...) — dipakai untuk
+  redirect login, isi menu, dan menyembunyikan tombol (owner read-only).
+- Sinkronisasi akun staf → profil role otomatis saat admin membuat akun.
+- Anti double-booking loker (status + validasi 1 sewa aktif per member).
+- Booking PT bebas konflik (cek jadwal trainer per tanggal & jam).
+- Waitlist kelas dengan auto-promote saat ada yang batal.
+- Penalti no-show member (block sementara dari RSVP kelas).
+- Audit log / system log aktivitas penting (siapa, kapan, IP).
+- Anti session-fixation: session di-regenerate setelah login.
+- Semua halaman login/logout pakai mekanisme auth standar Laravel
+  (CSRF token aktif di form, password ter-hash).
+- Seeder lengkap → data demo realistis (member mendekati kedaluwarsa,
+  alat perlu servis, komplain open) sehingga demo terasa hidup.
+
+--------------------------------------------------------------------------------
+G. PERTANYAAN KRITIS YANG MUNGKIN DITANYA GURU + ARAH JAWABAN
+--------------------------------------------------------------------------------
+1. "Apa bedanya project ini dengan CRUD biasa?"
+   -> Ada konsep multi-tenant (banyak gym dalam satu aplikasi, data
+      terpisah) dan multi-role (tiap pengguna lihat antarmuka berbeda
+      dengan kewenangan berbeda), plus alur approval (void butuh
+      persetujuan manager, cuti butuh approval).
+
+2. "Bagaimana kamu memisahkan data antar gym (tenant)?"
+   -> Kolom tenant_id di hampir semua tabel; setiap query di controller
+      selalu difilter tenant milik user yang login. Contoh nyata bisa
+      ditunjuk di kode: di MemberPortalController / TrainerController,
+      semua query diawali `where('tenant_id', ...)`.
+
+3. "Bagaimana kamu mencegah manager masuk ke halaman admin?"
+   -> Jawaban JUJUR: saat ini pembatasan utama ada di antarmuka — sidebar
+      dan tombol disesuaikan per role, dan login diarahkan ke dashboard
+      masing-masing. Belum ada middleware pembatas role di tiap grup
+      route (hanya auth). Ini kelemahan yang saya sadari dan rencana
+      perbaikannya adalah middleware role: misal `role:admin` pada grup
+      /admin (lihat bagian H — sampaikan ini sebagai rencana, jangan
+      mengaku sudah aman).
+
+4. "Apa itu middleware? Apa bedanya role dan permission?"
+   -> Middleware = penjaga di depan route (diproses sebelum masuk
+      controller), misal memastikan user sudah login. Role = jabatan
+      (admin, manager). Permission = aksi spesifik (misal 'menyetujui
+      void'). Project ini memakai role sederhana; permission per-aksi
+      adalah pengembangan lanjutan.
+
+5. "Kenapa pilih Laravel?"
+   -> Sudah menyediakan auth, ORM (Eloquent), migration, seeder, CSRF,
+      session — jadi fokus ke logika bisnis. Juga populer di industri dan
+      dokumentasinya lengkap.
+
+6. "Kenapa password semua '1234'?"
+   -> Itu hanya untuk akun demo di seeder supaya gampang dipresentasikan;
+      password tetap disimpan ter-hash di database. Di produksi harus
+      password kuat + verifikasi email + fitur lupa password (ini juga
+      masuk daftar kelemahan).
+
+7. "Pembayarannya asli gak?"
+   -> Jujur: belum. Semua transaksi langsung dianggap lunas (simulasi
+      metode 'qris'). Rencana: integrasi payment gateway. Kalau guru tanya
+      "kenapa?" jawab: fokus progress ini adalah alur dan peran pengguna,
+      bukan integrasi pihak ketiga.
+
+8. "Bagaimana kalau dua orang sewa loker yang sama bersamaan?"
+   -> Status loker dicek & diubah di database sebelum transaksi dicatat
+      (loker "tersedia" baru bisa disewa), plus aturan 1 member = 1 sewa
+      aktif. Diakui: belum pakai transaksi/locking database tingkat lanjut
+      (race condition teoritis tetap ada) — pengembangan ke depan.
+
+9. "Bagaimana kalau trainer sudah di-booking di jam yang sama?"
+   -> Sistem cek dulu: booking dengan trainer, tanggal, dan jam yang sama
+      yang masih berstatus 'scheduled' → kalau ada, booking ditolak dan
+      member diminta pilih jam lain.
+
+10. "Apa fungsi penalti no-show itu?"
+    -> Member yang mendaftar kelas tapi tidak hadir tanpa pembatalan
+      dicatat no_show_count; kalau melanggar, akunnya diblokir sementara
+      dari pemesanan kelas (penalty_blocked_until). Tujuannya: kuota kelas
+      tidak terbuang sia-sia.
+
+11. "Owner kok cuma bisa lihat? kenapa?"
+    -> Pemilik gym butuh pantauan performa, bukan operasional harian.
+      Sengaja dibuat read-only supaya tidak bisa mengubah data yang
+      dikerjakan stafnya (pemisahan tugas). Di kode: tombol ubah/hapus
+      disembunyikan saat role owner.
+
+12. "Siapa yang mengerjakan bagian mana — kamu sendiri?"
+    -> Jangan berbohong dan jangan mengaku semua sendiri kalau tidak.
+      Format jujur: "Saya yang merancang konsep, struktur database,
+      alur fitur, dan menulis logika utama. Untuk beberapa bagian teknis
+      (debugging, merapikan kode, kode berulang) saya dibantu tool AI
+      (misal untuk generate CRUD), dan saya memahami serta bisa
+      menjelaskan setiap bagian yang saya pakai." Guru lebih menghargai
+      pemahaman + kejujuran daripada klaim muluk.
+
+13. "Kenapa datanya banyak / ini data asli?"
+    -> Semua data contoh dibuat oleh seeder (DatabaseSeeder.php) supaya
+      demo realistis. Bukan data gym sungguhan.
+
+14. "Apa rencana kamu selanjutnya?"
+    -> (1) Middleware otorisasi per role, (2) lengkapi peran trainer,
+      (3) payment gateway asli, (4) fitur lupa password/verifikasi email,
+      (5) penegakan fitur paket (tenant di paket Basic tidak bisa pakai
+      fitur Pro), (6) bersihkan file-file sampah di repo.
+
+--------------------------------------------------------------------------------
+H. KELEMAHAN PROJECT (sadar diri = nilai plus di mata guru)
+--------------------------------------------------------------------------------
+Urut dari yang paling penting. Sampaikan dengan tenang:
+"Saya sudah mengidentifikasi kekurangan berikut, dan ini rencana perbaikannya."
+
+1. [PALING KRITIS] Belum ada otorisasi per role di level route.
+   Semua grup route (admin/, manager/, member/, dll) hanya dilindungi
+   middleware 'auth' — artinya user yang sudah login TAPI role-nya salah
+   masih bisa membuka URL role lain jika mengetik langsung (misal member
+   buka /admin/members). Yang baru dibatasi: menu & redirect.
+   Rencana: buat middleware role (contoh `role:admin`) dan tempelkan di
+   tiap grup route. Ini topik bagus buat ditanya & dijawab jujur.
+
+2. Pembayaran masih simulasi penuh.
+   Semua transaksi (sewa loker, upgrade membership, kuota PT, POS)
+   langsung "lunas" tanpa payment gateway, tanpa cek pembayaran.
+   Rencana: integrasi payment gateway / minimal status menunggu bayar.
+
+3. Role Personal Trainer belum selesai.
+   Baru dashboard read-only (kelas yang diajar, booking PT, RSVP). Belum
+   ada aksi trainer: mengelola ketersediaan jadwal, konfirmasi kehadiran
+   sesi, menandai no-show member, dsb. Rencana: lengkapi di progres 3.
+
+4. Fitur paket tenant belum "ditegakkan".
+   Kolom features di tenant cuma tersimpan & tampil, tapi belum dipakai
+   untuk memblokir fitur. Tenant paket Basic secara teknis masih bisa
+   mengakses menu Pro kalau tahu URL-nya. Rencana: gate menu + route
+   berdasarkan fitur paket.
+
+5. Akun & keamanan dasar belum lengkap.
+   Password demo seragam & lemah, tidak ada verifikasi email, tidak ada
+   halaman lupa password/reset, login tanpa rate-limiting (bisa dibrute
+   force). Laravel sudah menyediakan komponennya (fortify/breeze) —
+   tinggal dipasang.
+
+6. Pemeliharaan kode & kerapian repo.
+   Ada file-file di luar aplikasi yang tidak berkaitan: folder
+   zkunrtul/workout-master (template HTML utuh ter-download), file
+   make_transparent.php (berisi path absolut komputer sendiri, cuma
+   dipakai sekali bikin logo), dan grep.exe.stackdump. Sebaiknya
+   dihapus/dimasukkan .gitignore supaya repo bersih sebelum dikumpulkan.
+
+7. Belum ada pengujian otomatis (test).
+   Folder tests hanya berisi test bawaan Laravel (ExampleTest), belum ada
+   test untuk logika bisnis. Rencana: tulis feature test dasar untuk
+   alur login-per-role dan anti double-booking loker.
+
+8. Race condition tingkat lanjut belum ditangani.
+   Sewa loker & pemotongan kuota belum memakai database transaction/lock
+   (cocok untuk demo, tapi di produksi perlu diperkuat).
+
+9. Penegakan "read-only" owner hanya di tampilan.
+   Tombol disembunyikan untuk owner, tapi route admin tetap terbuka
+   (terkait poin 1). Setelah middleware role ada, ini baru benar-benar
+   aman.
+
+10. Beberapa nilai/aturan masih hardcode.
+    Contoh: harga tier membership & sesi PT ditulis langsung di kode
+    controller; tenant_id fallback `?? 1` di MemberPortalController;
+    default nomor HP member auto-dibuat. Sebaiknya dijadikan konfigurasi
+    / data di database.
+
+Catatan kecil untuk presentasi: kalau guru menanyakan poin-poin di atas,
+jawab dengan jujur "benar, ini belum sempurna, dan ini rencana saya..." —
+guru menilai proses berpikir, bukan kesempurnaan.
+
+--------------------------------------------------------------------------------
+I. FITUR YANG BELUM KELAR / RENCANA PROGRES BERIKUTNYA
+--------------------------------------------------------------------------------
+- Role trainer diperdalam (jadwal pribadi, konfirmasi kehadiran sesi PT,
+  penandaan no-show, komunikasi member).
+- Middleware otorisasi per role (prioritas keamanan #1).
+- Payment gateway asli + status invoice (pending -> lunas).
+- Fitur lupa password, verifikasi email, ganti password lebih ketat.
+- Penegakan fitur paket (Basic vs Pro vs Enterprise).
+- Pengujian otomatis (feature tests).
+- Pembersihan repo (hapus template & file sampah).
+- (Opsional, sudah ada fondasinya) halaman landing tenant sendiri
+  memakai subdomain, seperti fitlife.workout.id.
+
+--------------------------------------------------------------------------------
+J. CATATAN TEKNIS AGAR DEMO TIDAK GAGAL
+--------------------------------------------------------------------------------
+- Pastikan .env mengarah ke database yang benar, lalu jalankan sekali:
+    php artisan migrate:fresh --seed
+  (mengosongkan + mengisi ulang data demo — aman, ini database lokal).
+- Jalankan: php artisan serve -> buka http://127.0.0.1:8000
+- Landing page "/" adalah halaman publik; tombol login hanya muncul
+  kalau belum login (middleware guest). Setelah login, "/home" otomatis
+  diarahkan ke /admin/dashboard — jangan bingung kalau role lain diredirect.
+- Buka tiap akun di mode incognito/private window yang berbeda, ATAU
+  logout-login bergantian (lebih seru & menunjukkan perbedaan peran).
+- Jangan demo fitur yang belum pernah dicoba; minimal jalankan ulang
+  seluruh skenario sehari sebelum presentasi. Ada baiknya minta teman
+  mencoba dan mengklik-klik bebas untuk menemukan error yang mungkin
+  muncul (misal halaman yang belum selesai / tombol yang error).
+- Kalau muncul error tak terduga saat demo, jangan panik: bilang "ini
+  error yang belum sempat saya perbaiki, masuk daftar pengembangan saya"
+  lalu lanjut ke fitur lain.
+- Sebelum presentasi, cek sekali bahwa sidebar tiap role tidak menampilkan
+  menu yang kosong/rusak.
+
+--------------------------------------------------------------------------------
+K. ISTILAH YANG WAJIB BISA DIJELASKAN (hafalkan satu kalimat masing-masing)
+--------------------------------------------------------------------------------
+- SaaS (Software as a Service): software yang disewa, bukan dibeli sekali.
+- Multi-tenant: satu aplikasi melayani banyak pelanggan/gym.
+- Tenant: satu "penyewa" = satu gym beserta datanya.
+- RBAC: pengaturan akses berdasarkan peran pengguna.
+- Middleware: lapisan penjaga sebelum request masuk ke halaman.
+- MVC: Model (data), View (tampilan), Controller (logika) — pola Laravel.
+- Eloquent ORM: cara Laravel berbicara ke database lewat objek PHP.
+- Migration: cetak biru/perubahan struktur tabel yang bisa dijalankan ulang.
+- Seeder: pengisi data awal/demo.
+- Session: penyimpanan status login di sisi server (cookie berisi ID).
+- CSRF: perlindungan form dari serangan situs silang (default Laravel).
+- Auth: autentikasi (siapa kamu) — beda dengan otorisasi (boleh apa).
+- Invoice/void: tagihan; void = pembatalan transaksi (di sini butuh
+  persetujuan manager).
+- No-show: member tidak hadir tanpa membatalkan pendaftaran.
+- Waitlist: daftar tunggu; otomatis naik kalau ada slot kosong.
+
+--------------------------------------------------------------------------------
+L. PENUTUP: 3 PRINSIP SAAT SESI TANYA-JAWAB
+--------------------------------------------------------------------------------
+1. Paham konsep > hafal kode. Kalau lupa detail, jelaskan alurnya dengan
+   kata-kata sendiri — "route memanggil controller, controller memproses
+   dan menyimpan, view menampilkan".
+2. Jangan mengaku yang belum ada. Kalau ditanya fitur yang belum dibuat,
+   akui + sebut rencananya. Guru justru akan bertanya balik: "terus
+   gimana rencananya?" — dan bagian I & H sudah menyiapkan jawabannya.
+3. Tutup dengan masa depan project. Akhiri presentasi dengan kesimpulan
+   "progress 2 = peran setiap pengguna sudah berjalan dari superadmin
+   sampai member; sisanya (keamanan antar-role, trainer, pembayaran)
+   adalah progress berikutnya" — kesan yang ditinggalkan: kamu punya arah
+   yang jelas.
+
+Good luck! 💪
+================================================================================
