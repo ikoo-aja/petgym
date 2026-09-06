@@ -445,6 +445,11 @@
           <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan
         </a>
       </li>
+      <li>
+        <a href="{{ route('admin.landing.edit') }}" class="{{ request()->routeIs('admin.landing.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-globe"></span></span> Landing Page
+        </a>
+      </li>
       @endif
 
       @if($userRole === 'receptionist')

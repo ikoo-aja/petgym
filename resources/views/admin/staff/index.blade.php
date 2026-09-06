@@ -34,6 +34,11 @@
             <td class="font-weight-bold text-dark">{{ $st->name }}</td>
             <td style="font-size: 13.5px;" class="text-dark font-weight-semibold">
               {{ \App\Helpers\PrivacyHelper::maskEmail($st->email) }}
+              @if($st->hasVerifiedEmail())
+                <span class="badge badge-success ml-1" style="font-size: 9.5px;">Email Terverifikasi</span>
+              @else
+                <span class="badge badge-warning text-dark ml-1" style="font-size: 9.5px;">Belum Verifikasi Email</span>
+              @endif
             </td>
             <td>
               @if($st->role === 'admin')
@@ -53,6 +58,12 @@
             <td class="text-right">
               <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-staff" data-id="{{ $st->id }}" data-name="{{ $st->name }}" data-email="{{ $st->email }}" data-role="{{ $st->role }}" style="border-radius: 6px;">Edit</button>
               <button class="btn btn-sm btn-outline-warning mr-1 btn-reset" data-id="{{ $st->id }}" data-name="{{ $st->name }}" style="border-radius: 6px;">Reset Password</button>
+              @if(!$st->hasVerifiedEmail())
+                <form action="{{ route('admin.staff.send-verification', $st->id) }}" method="POST" class="d-inline">
+                  @csrf
+                  <button type="submit" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Kirim Verifikasi</button>
+                </form>
+              @endif
               @if(Auth::id() !== $st->id)
                 <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus akun staf ini?')">
                   @csrf

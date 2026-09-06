@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tenant Apex Domain
+    |--------------------------------------------------------------------------
+    |
+    | Domain utama untuk halaman landing per-tenant (subdomain). Saat demo
+    | lokal memakai "localhost" (fitlife.localhost), di produksi ganti menjadi
+    | domain asli, misal "workout.id" (fitlife.workout.id).
+    |
+    */
+
+    'tenant_apex' => env('TENANT_APEX', 'localhost'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

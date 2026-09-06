@@ -63,6 +63,10 @@ C. KONSEP KUNCI YANG HARUS LU PAHAMI (biar gak gugup ditanya)
    hampir semua tabel punya kolom tenant_id, dan tiap query di controller
    selalu difilter `->where('tenant_id', $tenantId)`. Data antar-gym
    tidak tercampur.
+   Bonus baru: tiap tenant punya halaman WEBSITE PUBLIK sendiri di
+   subdomain (contoh demo: fitlife.localhost & powerhouse.localhost).
+   Controller mencocokkan slug subdomain -> tenant, lalu menampilkan
+   konten landing milik tenant itu saja.
 
 2. Role & alur login: LoginController.login() mengecek kolom role user lalu
    me-redirect ke dashboard masing-masing, contoh:
@@ -106,6 +110,18 @@ Login sebagai tim "FitLife Studio" (contoh tenant gym aktif):
   Trainer      : alex@fitlife.com         (Coach Alex)
   Member       : member@fitlife.com       (portal member)
 
+Login sebagai tim "Powerhouse Gym" (tenant kedua, Paket Enterprise,
+SEMUA data & menu operasional juga terisi lengkap):
+  Owner        : owner@powerhouse.com        (Siti Rahma)
+  Admin        : admin@powerhouse.com        (Dian)
+  Manager      : manager@powerhouse.com      (Bayu)
+  Resepsionis  : resepsionis@powerhouse.com  (Dewi)
+  Trainer      : raka@powerhouse.com         (Coach Raka)
+  Member       : member@powerhouse.com       (portal member — data: Dodi, PIN 991234)
+  Catatan: hanya 2 tenant yang di-seed (sengaja, biar tiap tenant
+  lengkap & hidup). Tenant baru bisa ditambah dari menu superadmin
+  "Daftarkan Tenant" — otomatis dibuatkan akun Owner + Admin.
+
 Data pendukung FitLife (muncul di layar, hafal ini biar kelihatan ngerti):
   - Member: Budi Santoso (PIN 881234), Siti Rahayu (PIN 885678, segera
     kedaluwarsa — sengaja dibuat 4 hari lagi), Agus Pratama (PIN 889900)
@@ -116,6 +132,12 @@ Data pendukung FitLife (muncul di layar, hafal ini biar kelihatan ngerti):
     vendor "CV Sejahtera Abadi", treadmill perlu servis bulan depan,
     dumbbell set berstatus "perlu_servis"
   - Invoice #INV-2026-001 FitLife: 1,2 jt, status pending
+  - Untuk demo LUPA PASSWORD pakai member@fitlife.com (lihat step [8])
+
+Halaman landing publik per tenant (buka lewat http://localhost:8000):
+  - fitlife.localhost     -> FitLife Studio (Paket Pro: kustom warna + fitur)
+  - powerhouse.localhost  -> Powerhouse Gym (Paket Enterprise: + statistik angka)
+  Semua akun demo emailnya SUDAH terverifikasi (biar login langsung jalan).
 
 --------------------------------------------------------------------------------
 E. SKENARIO DEMO 15–20 MENIT (urut, jangan lompat-lompat)
@@ -123,13 +145,19 @@ E. SKENARIO DEMO 15–20 MENIT (urut, jangan lompat-lompat)
 Cara menyiapkan: `php artisan migrate:fresh --seed`, lalu `php artisan serve`
 (buka http://127.0.0.1:8000). Kalau sudah pernah, cukup `php artisan
 migrate:fresh --seed` sekali sebelum demo.
+PENTING di Windows: unset dulu variabel MAIL_* sistem sebelum menjalankan
+perintah artisan (lihat bagian J) supaya email demo masuk ke Mailpit,
+bukan ke file log.
 
 [1] SUPERADMIN — "peran penjual platform" (1–2 menit)
     Login test@example.com / 1234.
-    Tunjukkan: menu Kelola Penyewa (daftar 10 tenant: FitLife, Powerhouse,
-    Barbell dll — ada yang aktif, ada yang suspended), Paket Sewa
-    (Basic 500rb / Pro 1,2jt / Enterprise 2,5jt), Keuangan & Tagihan
-    (konfirmasi pembayaran invoice), dan Log aktivitas sistem.
+    Tunjukkan: menu Kelola Penyewa (2 tenant aktif: FitLife Studio
+    [Pro] & Powerhouse Gym [Enterprise] — masing-masing punya 6 akun
+    user), Paket Sewa (Basic 500rb / Pro 1,2jt / Enterprise 2,5jt),
+    Keuangan & Tagihan (invoice #INV-2026-001 pending & #002 lunas),
+    dan Log aktivitas sistem. Kalau mau, daftarkan tenant BARU lewat
+    form "Daftarkan Tenant" dan tunjukkan: 2 akun (Owner + Admin)
+    otomatis langsung jadi — ini bukti alur "satu klik, tenant aktif".
     Poin yang mau disampaikan: "Peran ini yang menjalankan BISNISnya
     software-nya — mendaftarkan gym, menentukan paket, mengaktifkan /
     menonaktifkan tenant."
@@ -217,7 +245,68 @@ migrate:fresh --seed` sekali sebelum demo.
     jadwal sendiri / konfirmasi kehadiran). Sampaikan ini sebagai bagian
     rencana progres berikutnya, jangan ditutup-tutupi (lihat bagian I).
 
-[8] PENUTUP DEMO (30 detik)
+[8] LUPA PASSWORD — "fitur keamanan standar industri" (BONUS, 2–3 menit)
+    Bisa didemokan kapan saja karena berlaku untuk akun mana pun.
+    Prasyarat: Mailpit jalan (lihat bagian J) & `php artisan serve`
+    dijalankan setelah unset variabel MAIL_* (lihat bagian J).
+    a. Di halaman login, klik "Lupa password?".
+    b. Masukkan member@fitlife.com, submit.
+       JELASKAN: respons sistem sama saja apakah email terdaftar atau
+       tidak ("kalau email terdaftar, link sudah dikirim") — ini ANTI
+       USER ENUMERATION, hacker tidak bisa scan email mana yang member.
+    c. Buka http://localhost:8025 (inbox Mailpit) → email reset masuk di
+       sana → klik tombol "Reset Password" di dalam email.
+       JELASKAN: token di link itu acak, sekali pakai, tersimpan TER-HASH
+       di database, dan kedaluwarsa 60 menit — database bocor pun token
+       tidak berguna.
+    d. Di halaman reset, set password baru. TUNJUKKAN tombol mata
+       (icon eye / eye-slash) di kedua field password — klik untuk
+       melihat/menyembunyikan password (fitur blind eye).
+    e. Setelah reset, sesi lama otomatis dimatikan → login pakai password
+       baru → masuk dashboard member.
+    Poin: "Admin tidak pernah tahu/menentukan password member — pemilik
+    akun membuktikan kepemilikan lewat email, persis cara SaaS profesional
+    (Google Workspace, Notion, dsb)."
+
+[9] VERIFIKASI EMAIL AKUN STAF BARU (BONUS, 2 menit) — KEAMANAN AKUN
+    Pakai alur ADMIN yang sudah jalan di step [3]:
+    a. Login admin@fitlife.com -> menu Akun Staf -> "Tambah Akun Staf Baru"
+       (role bebas, misal Resepsionis dengan email baru, mis.
+       rina2@fitlife.com).
+       JELASKAN: sistem otomatis mengirim LINK VERIFIKASI ke email staf
+       itu — admin tidak perlu melakukan apa-apa lagi.
+    b. Buka http://localhost:8025 (Mailpit) -> email "Verify Email
+       Address" masuk -> klik tombolnya.
+       JELASKAN: link-nya SIGNED URL (ditandatangani rahasia aplikasi,
+       tidak bisa dipalsukan) & kedaluwarsa 60 menit.
+    c. Coba login akun staf baru SEBELUM verifikasi: user masuk halaman
+       "Verifikasi Email Anda" (semua menu dashboard terkunci). Setelah
+       klik link di email -> login -> langsung masuk dashboard staf.
+    Poin: "Akun yang dibuat admin tidak otomatis aktif — pemilik email
+    harus membuktikan emailnya dulu. Ini mencegah akun palsu & email
+    typo. Di list staf admin juga ada badge 'Belum Verifikasi Email'
+    + tombol kirim ulang link."
+
+[10] LANDING PAGE TENANT + GATING PAKET (BONUS, 2–3 menit) — NILAI PLUS
+    a. Buka http://fitlife.localhost:8000 — tunjukkan website FitLife
+       (hero, tentang, fitur, kontak). Lalu bandingkan
+       http://powerhouse.localhost:8000 (Enterprise: + bagian statistik
+       angka besar yang tidak ada di FitLife).
+       JELASKAN: SATU aplikasi, banyak website — kontennya per tenant.
+    b. Login admin@fitlife.com -> sidebar menu "Landing Page" (icon
+       globe). Tunjukkan form kustomisasi: teks hero, warna brand
+       (picker warna), toggle bagian halaman, daftar fitur unggulan
+       yang bisa ditambah/hapus.
+    c. JELASKAN GATING PAKET: FitLife = Paket Pro, jadi warna & fitur
+       bisa diubah TAPI bagian "Statistik Angka" terkunci (eksklusif
+       Enterprise). Ubah judul hero + warna -> Simpan -> buka
+       fitlife.localhost:8000 -> website berubah.
+    Poin: "Penegakan paket dilakukan DI SERVER: kalau ada request nakal
+    mengirim field di luar paket, controller mengabaikannya — bukan
+    cuma dimatikan di tampilan. Ini jawaban nyata untuk kelemahan
+    'fitur paket belum ditegakkan' (lihat bagian H poin 4)."
+
+[11] PENUTUP DEMO (30 detik)
     "Kesimpulan: satu aplikasi, banyak peran. Setiap pengguna punya
     dashboard, menu, dan kewenangan berbeda: superadmin menjual platform,
     owner memantau, admin & resepsionis & manager menjalankan operasional
@@ -244,6 +333,39 @@ F. POIN "NILAI PLUS" TEKNIS (sebutkan kalau ada waktu / biar guru terkesan)
   (CSRF token aktif di form, password ter-hash).
 - Seeder lengkap → data demo realistis (member mendekati kedaluwarsa,
   alat perlu servis, komplain open) sehingga demo terasa hidup.
+- Login DI-RATE-LIMIT (BARU): maks 5 percobaan gagal per email+IP,
+  lalu dikunci 60 detik — anti brute-force. Hitungan otomatis bersih
+  saat login sukses.
+- Verifikasi email WAJIB untuk akun staf baru (BARU): link signed URL
+  60 menit (tidak bisa dipalsukan), user diarahkan ke halaman verifikasi,
+  kirim ulang link di-throttle, semua dashboard dijaga middleware
+  'verified'. Admin otomatis kirim link saat membuat akun + badge status
+  verifikasi di daftar staf.
+- Landing page publik per tenant lewat SUBDOMAIN (BARU):
+  {slug}.localhost → route `{slug}.{apex}` (apex bisa diganti per
+  produksi, mis. workout.id). Satu template default, konten & warna
+  mengikuti pengaturan tiap tenant.
+- GATING PAKET DI SERVER (BARU, mulai menutup kelemahan #4): level
+  kustomisasi landing ikut paket — Basic=teks, Pro=+warna/bagian/fitur,
+  Enterprise=+statistik. Field di luar paket yang dikirim lewat request
+  DIABAIKAN controller (terbukti lewat test otomatis).
+- FITUR LUPA PASSWORD ala standar industri (BARU): token acak
+  sekali-pakai tersimpan ter-hash, kedaluwarsa 60 menit, anti
+  user-enumeration (respons sama untuk email terdaftar/tidak), throttle
+  pada endpoint reset, sesi lama + cookie remember-me dimatikan setelah
+  reset. Email dikirim tanpa campur tangan admin.
+- Demo email memakai Mailpit (SMTP palsu): email reset muncul di inbox
+  browser http://localhost:8025 — realistis tanpa butuh SMTP asli.
+- Toggle lihat password (blind eye, icon eye/eye-slash icomoon) di semua
+  form password: reset-password, forgot-password, login, dan member
+  settings.
+- Pengujian otomatis SUDAH berjalan: 37 test lulus, mencakup lupa
+  password, member settings, rate-limit login, verifikasi email, landing
+  subdomain + gating paket, LOGIN-PER-ROLE (7 role → dashboard sendiri),
+  ANTI DOUBLE-BOOKING LOKER, dan WAITLIST KELAS + auto-promote. Test
+  memakai database terpisah petgym_test — aman, tidak menyentuh data
+  demo. Catatan menarik: test waitlist menemukan 1 BUG beneran (lihat
+  bagian H poin 7) yang langsung diperbaiki.
 
 --------------------------------------------------------------------------------
 G. PERTANYAAN KRITIS YANG MUNGKIN DITANYA GURU + ARAH JAWABAN
@@ -283,9 +405,10 @@ G. PERTANYAAN KRITIS YANG MUNGKIN DITANYA GURU + ARAH JAWABAN
 
 6. "Kenapa password semua '1234'?"
    -> Itu hanya untuk akun demo di seeder supaya gampang dipresentasikan;
-      password tetap disimpan ter-hash di database. Di produksi harus
-      password kuat + verifikasi email + fitur lupa password (ini juga
-      masuk daftar kelemahan).
+      password tetap disimpan ter-hash di database. Keamanan akun lain
+      SUDAH lengkap: lupa password (reset sendiri via email), verifikasi
+      email wajib untuk akun baru, dan login di-rate-limit (5x gagal =
+      kunci 60 detik). Yang tersisa: kebijakan kekuatan password / 2FA.
 
 7. "Pembayarannya asli gak?"
    -> Jujur: belum. Semua transaksi langsung dianggap lunas (simulasi
@@ -331,9 +454,43 @@ G. PERTANYAAN KRITIS YANG MUNGKIN DITANYA GURU + ARAH JAWABAN
 
 14. "Apa rencana kamu selanjutnya?"
     -> (1) Middleware otorisasi per role, (2) lengkapi peran trainer,
-      (3) payment gateway asli, (4) fitur lupa password/verifikasi email,
-      (5) penegakan fitur paket (tenant di paket Basic tidak bisa pakai
-      fitur Pro), (6) bersihkan file-file sampah di repo.
+      (3) payment gateway asli, (4) penegakan fitur paket untuk MENU &
+      route aplikasi (contoh gating landing page sudah jalan di server),
+      (5) kebijakan password kuat & 2FA opsional, (6) bersihkan
+      file-file sampah di repo, (7) perluas test otomatis.
+
+15. "Gimana cara kerja fitur lupa password kamu? aman gak?"
+    -> Alur: user masukkan email → sistem bikin token acak sekali-pakai
+      yang disimpan TER-HASH dan dikirim lewat email (link) → user buka
+      link, set password baru → token langsung dihapus & semua sesi lama
+      dimatikan. Aman karena: token tidak pernah tersimpan plaintext
+      (DB bocor pun tak berguna), kedaluwarsa 60 menit, sekali pakai,
+      respons sama untuk email terdaftar/tidak (anti user enumeration),
+      dan endpoint-nya di-throttle. Email dikirim tanpa campur tangan
+      admin — pemilik akun membuktikan kepemilikan lewat email, bukan
+      admin yang menentukan password.
+
+16. "Kok akun staf baru harus verifikasi email dulu? ribet."
+    -> Ini standar industri (Google Workspace, Notion, semua SaaS
+      serius). Fungsinya: (1) memastikan email yang didaftarkan admin
+      benar-benar milik orang itu — kalau typo, link nyasar & akun tak
+      aktif, (2) mencegah pembuatan akun palsu massal, (3) kalau nanti
+      lupa password, email itu jadi jalur pemulihan yang aman. Teknisnya:
+      link bertanda tangan (signed URL) yang kedaluwarsa 60 menit dan
+      tidak bisa dipalsukan; akun yang belum verifikasi tidak bisa
+      membuka dashboard mana pun.
+
+17. "Kenapa tiap tenant punya website sendiri? itu jalan gimana?"
+    -> Karena ini SaaS, tiap gym adalah "brand" sendiri — landing page
+      adalah wajah publiknya. Teknis: route memakai subdomain
+      ({slug}.localhost saat demo; di produksi tinggal ganti apex jadi
+      workout.id → fitlife.workout.id). Subdomain dicocokkan ke tabel
+      tenants lewat kolom slug, lalu menampilkan konten milik tenant
+      itu. Kerennya: seberapa banyak yang boleh dikustomisasi MENGIKUTI
+      PAKET — Basic hanya teks, Pro tambah warna/bagian/fitur,
+      Enterprise tambah statistik. Dan penegakannya di server: request
+      yang mengirim field di luar paket diabaikan controller (ada
+      test-nya).
 
 --------------------------------------------------------------------------------
 H. KELEMAHAN PROJECT (sadar diri = nilai plus di mata guru)
@@ -359,17 +516,23 @@ Urut dari yang paling penting. Sampaikan dengan tenang:
    ada aksi trainer: mengelola ketersediaan jadwal, konfirmasi kehadiran
    sesi, menandai no-show member, dsb. Rencana: lengkapi di progres 3.
 
-4. Fitur paket tenant belum "ditegakkan".
-   Kolom features di tenant cuma tersimpan & tampil, tapi belum dipakai
-   untuk memblokir fitur. Tenant paket Basic secara teknis masih bisa
-   mengakses menu Pro kalau tahu URL-nya. Rencana: gate menu + route
-   berdasarkan fitur paket.
+4. Penegakan fitur paket BARU SEBAGIAN (sudah terbukti di landing page).
+   SUDAH: level kustomisasi landing page ditegakkan DI SERVER — Basic
+   hanya teks, Pro +warna/bagian/fitur, Enterprise +statistik; request
+   nakal yang mengirim field di luar paket diabaikan controller (diuji
+   otomatis). BELUM: gating untuk MENU & route aplikasi lain (mis. tenant
+   Basic masih bisa membuka URL modul Pro kalau tahu alamatnya).
+   Rencana: petakan fitur paket ke modul, lalu gate menu + route-nya
+   dengan pola yang sama seperti landing page.
 
-5. Akun & keamanan dasar belum lengkap.
-   Password demo seragam & lemah, tidak ada verifikasi email, tidak ada
-   halaman lupa password/reset, login tanpa rate-limiting (bisa dibrute
-   force). Laravel sudah menyediakan komponennya (fortify/breeze) —
-   tinggal dipasang.
+5. Akun & keamanan dasar — SUDAH LENGKAP untuk kebutuhan demo.
+   SUDAH: lupa password/reset (token ter-hash, anti user-enumeration,
+   sesi lama dimatikan), verifikasi email WAJIB untuk akun staf baru
+   (signed URL 60 menit + halaman verifikasi + kirim ulang di-throttle),
+   dan login DI-RATE-LIMIT (5x gagal = kunci 60 detik, anti brute-force).
+   SISA: password demo tetap seragam '1234' (sengaja, untuk demo) dan
+   belum ada kebijakan kekuatan password / 2FA. Rencana: kebijakan
+   password & multi-faktor opsional.
 
 6. Pemeliharaan kode & kerapian repo.
    Ada file-file di luar aplikasi yang tidak berkaitan: folder
@@ -378,10 +541,19 @@ Urut dari yang paling penting. Sampaikan dengan tenang:
    dipakai sekali bikin logo), dan grep.exe.stackdump. Sebaiknya
    dihapus/dimasukkan .gitignore supaya repo bersih sebelum dikumpulkan.
 
-7. Belum ada pengujian otomatis (test).
-   Folder tests hanya berisi test bawaan Laravel (ExampleTest), belum ada
-   test untuk logika bisnis. Rencana: tulis feature test dasar untuk
-   alur login-per-role dan anti double-booking loker.
+7. Pengujian otomatis SUDAH LUAS, tapi belum semua fitur.
+   SUDAH ADA 37 test lulus: lupa password, member settings, rate-limit
+   login, verifikasi email, landing subdomain + gating paket,
+   LOGIN-PER-ROLE (7 role → dashboard sendiri), ANTI DOUBLE-BOOKING
+   LOKER (2 member rebutan loker, 1 member 2 loker, return), dan
+   WAITLIST KELAS (penuh → waitlist berurutan, batal confirmed →
+   auto-promote, duplikat ditolak).
+   BONUS: test waitlist menemukan bug beneran — saat member WAITLIST
+   membatalkan, sistem lama tetap mempromosikan orang berikutnya sehingga
+   peserta confirmed bisa MELEBIHI kapasitas kelas. Sudah diperbaiki:
+   promosi hanya terjadi jika yang batal berstatus confirmed.
+   YANG BELUM: test booking PT bebas-konflik, penalti no-show member,
+   dan alur resepsionis/manager. Rencana: perluas ke area itu.
 
 8. Race condition tingkat lanjut belum ditangani.
    Sewa loker & pemotongan kuota belum memakai database transaction/lock
@@ -409,12 +581,16 @@ I. FITUR YANG BELUM KELAR / RENCANA PROGRES BERIKUTNYA
   penandaan no-show, komunikasi member).
 - Middleware otorisasi per role (prioritas keamanan #1).
 - Payment gateway asli + status invoice (pending -> lunas).
-- Fitur lupa password, verifikasi email, ganti password lebih ketat.
-- Penegakan fitur paket (Basic vs Pro vs Enterprise).
-- Pengujian otomatis (feature tests).
+- Kebijakan kekuatan password & 2FA opsional (dasar akun sudah lengkap:
+  lupa password, verifikasi email, rate-limit login).
+- Penegakan fitur paket untuk MENU & route aplikasi (contoh gating
+  landing page sudah jalan di server).
+- Landing page: template tambahan, upload logo/foto, kustom domain
+  sendiri untuk Enterprise (fondasi tabel + controller sudah ada).
+- Perluas pengujian otomatis: booking PT bebas-konflik, penalti
+  no-show, dan alur resepsionis/manager (login-per-role, loker, dan
+  waitlist kelas sudah dites).
 - Pembersihan repo (hapus template & file sampah).
-- (Opsional, sudah ada fondasinya) halaman landing tenant sendiri
-  memakai subdomain, seperti fitlife.workout.id.
 
 --------------------------------------------------------------------------------
 J. CATATAN TEKNIS AGAR DEMO TIDAK GAGAL
@@ -422,7 +598,11 @@ J. CATATAN TEKNIS AGAR DEMO TIDAK GAGAL
 - Pastikan .env mengarah ke database yang benar, lalu jalankan sekali:
     php artisan migrate:fresh --seed
   (mengosongkan + mengisi ulang data demo — aman, ini database lokal).
-- Jalankan: php artisan serve -> buka http://127.0.0.1:8000
+- Jalankan: php artisan serve -> buka http://localhost:8000
+  PENTING: buka lewat "localhost", BUKAN 127.0.0.1 — supaya subdomain
+  landing (fitlife.localhost:8000, powerhouse.localhost:8000, dll)
+  ikut kebaca browser (RFC *.localhost selalu menunjuk ke komputer
+  sendiri, tanpa ubah file hosts).
 - Landing page "/" adalah halaman publik; tombol login hanya muncul
   kalau belum login (middleware guest). Setelah login, "/home" otomatis
   diarahkan ke /admin/dashboard — jangan bingung kalau role lain diredirect.
@@ -437,6 +617,53 @@ J. CATATAN TEKNIS AGAR DEMO TIDAK GAGAL
   lalu lanjut ke fitur lain.
 - Sebelum presentasi, cek sekali bahwa sidebar tiap role tidak menampilkan
   menu yang kosong/rusak.
+- PENTING (Windows): komputer ini punya variabel environment sistem
+  MAIL_* dan DB_* yang MENIMPA isi .env (Dotenv Laravel immutable).
+  Akibatnya: mau .env ditulis apa pun, Laravel tetap pakai nilai sistem.
+  Solusi sebelum `php artisan serve` / `db:seed` / `tinker`:
+      unset MAIL_MAILER MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_SCHEME MAIL_FROM_ADDRESS MAIL_FROM_NAME
+  (kalau mau permanen: hapus variabel MAIL_* / DB_* dari Environment
+  Variables Windows — System Properties -> Environment Variables ->
+  User & System variables -> Delete yang namanya mulai MAIL_/DB_, lalu
+  buka ulang terminal. Nilai yang benar sudah ada di .env.)
+
+--- KHUSUS DEMO LUPA PASSWORD (Mailpit = SMTP palsu) ---
+  1. Jalankan Mailpit (sudah ada di tools/mailpit):
+        tools/mailpit/mailpit.exe
+     SMTP aktif di port 1025, web inbox di http://localhost:8025
+     (atau Docker: docker run --rm -p 1025:1025 -p 8025:8025 axllent/mailpit)
+  2. Pastikan .env memakai MAIL_MAILER=smtp, MAIL_HOST=127.0.0.1,
+     MAIL_PORT=1025 (sudah di-set; jangan lupa unset MAIL_* sistem dulu —
+     lihat catatan di atas).
+  3. Buka /login -> "Lupa password?" -> masukkan email -> email reset
+     muncul di http://localhost:8025 -> klik link -> set password baru.
+  4. Kalau email TIDAK muncul di inbox Mailpit, besar kemungkinan
+     variabel MAIL_* sistem masih menimpa — unset dulu lalu ulangi.
+  (Alternatif tanpa Mailpit: MAIL_MAILER=log — email ditulis ke
+   storage/logs/laravel.log dan link bisa dibuka dari sana. Kurang seru
+   untuk presentasi, tapi tetap jalan.)
+
+--- KHUSUS DEMO VERIFIKASI EMAIL AKUN STAF BARU ---
+  1. Prasyarat sama: Mailpit jalan + unset MAIL_* sistem.
+  2. Login admin@fitlife.com -> Akun Staf -> Tambah akun (email baru,
+     mis. rina2@fitlife.com).
+  3. Email verifikasi masuk ke Mailpit (http://localhost:8025) -> klik
+     tombol "Verify Email Address".
+  4. Sebelum verifikasi, coba login akun itu -> diarahkan ke halaman
+     "Verifikasi Email Anda" (dashboard terkunci). Setelah klik link,
+     login baru bisa masuk. Di daftar staf admin ada badge statusnya.
+
+--- KHUSUS DEMO LANDING PAGE TENANT (SUBDOmain) ---
+  1. Pastikan aplikasi dibuka lewat http://localhost:8000 (bukan IP).
+  2. Buka http://fitlife.localhost:8000 (Pro) & powerhouse.localhost:8000
+     (Enterprise — ada statistik angka).
+  3. Kustomisasi: login admin@fitlife.com -> sidebar "Landing Page" ->
+     ubah judul/warna -> Simpan -> refresh halaman landing.
+  4. Menjelaskan gating: di FitLife (Pro) bagian Statistik terkunci
+     (Enterprise); Basic tidak punya picker warna sama sekali.
+  5. Domain produksi: ganti config TENANT_APEX di .env menjadi
+     workout.id agar fitlife.workout.id berfungsi (saat demo cukup
+     .localhost).
 
 --------------------------------------------------------------------------------
 K. ISTILAH YANG WAJIB BISA DIJELASKAN (hafalkan satu kalimat masing-masing)
@@ -457,6 +684,18 @@ K. ISTILAH YANG WAJIB BISA DIJELASKAN (hafalkan satu kalimat masing-masing)
   persetujuan manager).
 - No-show: member tidak hadir tanpa membatalkan pendaftaran.
 - Waitlist: daftar tunggu; otomatis naik kalau ada slot kosong.
+- Token reset: kode rahasia sekali pakai (tersimpan ter-hash) untuk
+  membuktikan pemilik akun saat ganti password lewat email.
+- SMTP: protokol pengiriman email; di demo memakai Mailpit (SMTP palsu)
+  supaya email tampil di browser tanpa kirim beneran.
+- User enumeration: teknik hacker mendeteksi email terdaftar; dicegah
+  dengan respons seragam pada form lupa password.
+- Rate limiting: pembatasan jumlah percobaan (di sini: 5x login gagal
+  = kunci 60 detik) untuk mencegah brute-force.
+- Signed URL: link bertanda tangan rahasia aplikasi yang tidak bisa
+  dipalsukan & punya masa berlaku (dipakai di link verifikasi email).
+- Slug/subdomain: nama unik tenant untuk alamat web, mis. "fitlife"
+  pada fitlife.localhost / fitlife.workout.id.
 
 --------------------------------------------------------------------------------
 L. PENUTUP: 3 PRINSIP SAAT SESI TANYA-JAWAB

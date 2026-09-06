@@ -6,17 +6,36 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use App\Models\User;
 
 class LoginController extends Controller
 {
     /**
+     * Maksimal percobaan login yang diperbolehkan sebelum dikunci sementara.
+     */
+    protected int $maxAttempts = 5;
+
+    /**
+     * Durasi penguncian (detik) setelah terlalu banyak percobaan gagal.
+     */
+    protected int $decaySeconds = 60;
+
+    /**
      * Menampilkan halaman/view login.
      */
     public function showLoginForm()
     {
-        return view('login'); // sesuaikan dengan nama file blade kamu (misal: resources/views/auth/login.blade.php)
+        return view('login');
+    }
+
+    /**
+     * Kunci throttle unik per email + IP (anti brute-force terdistribusi).
+     */
+    protected function throttleKey(Request $request): string
+    {
+        return 'login:' . Str::lower($request->input('email')) . '|' . $request->ip();
     }
 
     /**
@@ -34,16 +53,38 @@ class LoginController extends Controller
             'password.required' => 'Password wajib diisi.',
         ]);
 
+        // 2. Proteksi Brute-Force: kunci sementara jika terlalu banyak percobaan gagal
+        $throttleKey = $this->throttleKey($request);
+        if (RateLimiter::tooManyAttempts($throttleKey, $this->maxAttempts)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $menit   = (int) ceil($seconds / 60);
+
+            return back()
+                ->withErrors(['email' => "Terlalu banyak percobaan login. Akun Anda dikunci sementara, coba lagi dalam {$menit} menit."])
+                ->onlyInput('email');
+        }
+
         // Cek input "Remember Me" dari form
         $remember = $request->has('remember');
 
-        // 2. Percobaan Autentikasi
+        // 3. Percobaan Autentikasi
         if (Auth::attempt($credentials, $remember)) {
             // Regenerasi session untuk mencegah session fixation attack
             $request->session()->regenerate();
 
             /** @var \App\Models\User $user */
             $user = Auth::user();
+
+            // 3a. Wajib verifikasi email sebelum bisa masuk ke dashboard
+            // (user tetap login tapi diarahkan ke halaman verifikasi dulu)
+            if (!$user->hasVerifiedEmail()) {
+                RateLimiter::clear($throttleKey);
+
+                return redirect()->route('verification.notice');
+            }
+
+            // 3b. Login sukses -> bersihkan hitungan percobaan gagal
+            RateLimiter::clear($throttleKey);
 
             if ($user->isSuperadmin()) {
                 return redirect()->intended('/superadmin/dashboard')->with('success', 'Selamat datang Superadmin!');
@@ -76,7 +117,9 @@ class LoginController extends Controller
             return redirect()->intended('/member/dashboard')->with('success', 'Selamat datang kembali!');
         }
 
-        // 3. Jika Autentikasi Gagal
+        // 4. Jika Autentikasi Gagal -> catat percobaan gagal untuk throttle
+        RateLimiter::hit($throttleKey, $this->decaySeconds);
+
         return back()->withErrors([
             'email' => 'Email atau password yang Anda masukkan salah.',
         ])->onlyInput('email');

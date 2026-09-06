@@ -501,20 +501,28 @@ class MemberPortalController extends Controller
         $gymClassId = $rsvp->gym_class_id;
         $classDate = $rsvp->class_date;
 
+        // Hanya pembatalan dari status CONFIRMED yang membebaskan slot kelas.
+        // Pembatalan dari posisi WAITLIST tidak boleh mempromosikan siapa pun,
+        // karena jumlah confirmed tidak berkurang — kalau tetap dipromosikan,
+        // jumlah peserta confirmed bisa melebihi kapasitas kelas.
+        $freesClassSlot = $rsvp->status === 'confirmed';
+
         $rsvp->update(['status' => 'cancelled']);
 
-        // Auto-promote first waitlist if confirmed RSVP cancelled
-        $nextWaitlist = ClassRsvp::where('gym_class_id', $gymClassId)
-            ->whereDate('class_date', $classDate)
-            ->where('status', 'waitlist')
-            ->orderBy('queue_position')
-            ->first();
+        if ($freesClassSlot) {
+            // Auto-promote urutan pertama waitlist karena ada slot kosong
+            $nextWaitlist = ClassRsvp::where('gym_class_id', $gymClassId)
+                ->whereDate('class_date', $classDate)
+                ->where('status', 'waitlist')
+                ->orderBy('queue_position')
+                ->first();
 
-        if ($nextWaitlist) {
-            $nextWaitlist->update([
-                'status' => 'confirmed',
-                'queue_position' => null,
-            ]);
+            if ($nextWaitlist) {
+                $nextWaitlist->update([
+                    'status' => 'confirmed',
+                    'queue_position' => null,
+                ]);
+            }
         }
 
         return redirect()->route('member.classes')->with('success', "RSVP Kelas berhasil dibatalkan.");

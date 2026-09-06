@@ -72,7 +72,37 @@ class AdminStaffController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('admin.staff.index')->with('success', "Akun staf {$staff->name} berhasil dibuat.");
+        // Akun staf baru WAJIB verifikasi email dulu sebelum bisa login ke dashboard
+        $staff->sendEmailVerificationNotification();
+
+        return redirect()->route('admin.staff.index')->with('success', "Akun staf {$staff->name} berhasil dibuat. Link verifikasi email telah dikirim ke {$staff->email} — staf harus memverifikasi emailnya sebelum bisa login.");
+    }
+
+    /**
+     * Mengirim ulang link verifikasi email untuk akun staf yang belum verifikasi.
+     */
+    public function sendVerification(Request $request, $id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+
+        $staff = User::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if ($staff->hasVerifiedEmail()) {
+            return redirect()->route('admin.staff.index')->with('success', "Email akun {$staff->name} sudah terverifikasi.");
+        }
+
+        $staff->sendEmailVerificationNotification();
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Kirim Ulang Verifikasi Email',
+            'description' => "Mengirim ulang link verifikasi email untuk akun staf {$staff->name}",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('admin.staff.index')->with('success', "Link verifikasi email telah dikirim ulang ke {$staff->email}.");
     }
 
     public function update(Request $request, $id)
