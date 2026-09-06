@@ -44,6 +44,10 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
+    
+    // Ubah Password Wajib (untuk staf baru)
+    Route::get('/change-password', [\App\Http\Controllers\ChangePasswordController::class, 'show'])->name('password.change');
+    Route::post('/change-password', [\App\Http\Controllers\ChangePasswordController::class, 'update'])->name('password.change.update');
 });
 
 // Link verifikasi bertanda tangan (signed URL) — bisa dibuka langsung dari email tanpa login
@@ -128,8 +132,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     // 6. Akun Staf (RBAC)
     Route::get('/staff', [AdminStaffController::class, 'index'])->name('admin.staff.index');
     Route::post('/staff', [AdminStaffController::class, 'store'])->name('admin.staff.store');
-    Route::put('/staff/{id}', [AdminStaffController::class, 'update'])->name('admin.staff.update');
-    Route::post('/staff/{id}/reset-password', [AdminStaffController::class, 'resetPassword'])->name('admin.staff.reset-password');
     Route::post('/staff/{id}/send-verification', [AdminStaffController::class, 'sendVerification'])->name('admin.staff.send-verification');
     Route::delete('/staff/{id}', [AdminStaffController::class, 'destroy'])->name('admin.staff.destroy');
 

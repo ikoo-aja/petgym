@@ -86,6 +86,12 @@ class LoginController extends Controller
             // 3b. Login sukses -> bersihkan hitungan percobaan gagal
             RateLimiter::clear($throttleKey);
 
+            // 3c. Akun staf baru wajib ganti password default sebelum ke dashboard
+            if ($user->must_change_password) {
+                return redirect()->route('password.change')
+                    ->with('warning', 'Silakan ubah password default Anda sebelum melanjutkan.');
+            }
+
             if ($user->isSuperadmin()) {
                 return redirect()->intended('/superadmin/dashboard')->with('success', 'Selamat datang Superadmin!');
             }

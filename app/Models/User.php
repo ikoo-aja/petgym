@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'tenant_id',
+        'must_change_password',
     ];
 
     public function isSuperadmin(): bool
@@ -54,6 +55,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isTenantUser(): bool
     {
         return in_array($this->role, ['owner', 'admin', 'manager', 'receptionist', 'trainer']) || !is_null($this->tenant_id);
+    }
+
+    /**
+     * Nama route dashboard berdasarkan role user.
+     */
+    public function dashboardRoute(): string
+    {
+        if ($this->isSuperadmin()) return 'superadmin.dashboard';
+        if ($this->isOwner()) return 'owner.dashboard';
+        if ($this->isAdmin()) return 'admin.dashboard';
+        if ($this->isManager()) return 'manager.dashboard';
+        if ($this->isReceptionist()) return 'receptionist.dashboard';
+        if ($this->role === 'trainer') return 'trainer.dashboard';
+        return 'member.dashboard';
     }
 
     public function hasRole(string $role): bool
@@ -101,6 +116,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
         ];
     }
 }
