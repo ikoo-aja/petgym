@@ -2,7 +2,7 @@
 
 @section('title', 'Pemantauan Akun Staf (Owner) &mdash; PetGym')
 @section('page_title', 'Pemantauan Akun Staf & Otentikasi Role')
-@section('page_subtitle', 'Monitoring daftar akun karyawan gym dan hak akses Role-Based Access Control (RBAC) (Mode Pemantauan & Read-Only)')
+@section('page_subtitle', 'Monitoring daftar akun karyawan gym dan hak akses Role-Based Access Control')
 
 @section('content')
 

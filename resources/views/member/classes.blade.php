@@ -128,7 +128,7 @@
         </div>
         <div class="ml-2">
           @if(in_array($r->status, ['confirmed', 'waitlist']))
-            <form action="{{ route('member.classes.cancel', $r->id) }}" method="POST" onsubmit="return confirm('Batalkan RSVP kelas ini?')">
+            <form action="{{ route('member.classes.cancel', $r->id) }}" method="POST" data-confirm="Batalkan RSVP kelas ini?">
               @csrf
               <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold py-1 px-2" style="border-radius: 6px; font-size: 11.5px;">Batal RSVP</button>
             </form>

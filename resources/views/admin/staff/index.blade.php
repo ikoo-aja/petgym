@@ -63,7 +63,7 @@
                 </form>
               @endif
               @if(Auth::id() !== $st->id)
-                <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus akun staf ini?')">
+                <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun staf ini?">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
@@ -92,6 +92,14 @@
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
+        @if($errors->any())
+        <div class="alert alert-danger py-2 mb-3" style="font-size: 13px; border-radius: 8px;">
+          <strong><i class="icon-exclamation-circle mr-1"></i> Data tidak tersimpan:</strong>
+          <ul class="mb-0 pl-3 mt-1">
+            @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
+          </ul>
+        </div>
+        @endif
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Lengkap Staf *</label>
           <input type="text" name="name" class="form-control" placeholder="Contoh: Rina Resepsionis / Joko Manager" required>
@@ -115,14 +123,24 @@
             <label class="custom-control-label text-muted" style="font-size: 12px;" for="autoGenPw">Generate password default otomatis (staf wajib ganti saat login)</label>
           </div>
         </div>
-        <div class="form-group mb-0">
+        <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Hak Akses Staf *</label>
-          <select name="role" class="form-control" required>
+          <select name="role" id="staffRole" class="form-control" required>
             <option value="receptionist">Resepsionis / Frontdesk</option>
             <option value="manager">Manager Gym</option>
             <option value="admin">Admin / Pemilik Gym</option>
             <option value="trainer">Personal Trainer</option>
           </select>
+        </div>
+        <div class="form-group mb-0" id="staffPhoneGroup" style="display: none;">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nomor Telepon / WhatsApp Trainer</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text bg-white border-right-0"><i class="icon-phone text-muted"></i></span>
+            </div>
+            <input type="text" name="phone" id="staffPhone" class="form-control" placeholder="081234567890" maxlength="20">
+          </div>
+          <small class="text-muted">Kontak trainer ini akan tampil di halaman Kelas &amp; Trainer.</small>
         </div>
       </div>
       <div class="modal-footer">
@@ -166,5 +184,34 @@
       pw.setAttribute('required', '');
     }
   }
+
+  // Field nomor telepon hanya muncul untuk role Personal Trainer
+  $(document).ready(function() {
+    const roleSel = document.getElementById('staffRole');
+    const phoneGroup = document.getElementById('staffPhoneGroup');
+    const phoneInput = document.getElementById('staffPhone');
+
+    function syncPhoneField() {
+      if (roleSel.value === 'trainer') {
+        phoneGroup.style.display = 'block';
+      } else {
+        phoneGroup.style.display = 'none';
+        phoneInput.value = ''; // jangan ikut terkirim untuk role lain
+      }
+    }
+
+    roleSel.addEventListener('change', syncPhoneField);
+
+    // Reset form saat modal ditutup/dibuka kembali
+    $('#createStaffModal').on('shown.bs.modal', function() {
+      syncPhoneField();
+    });
+
+    // Kalau validasi gagal (mis. email dobel), buka lagi modal-nya
+    // supaya pesan errornya terlihat — bukan gagal diam-diam.
+    @if($errors->any())
+      $('#createStaffModal').modal('show');
+    @endif
+  });
 </script>
 @endsection

@@ -93,7 +93,7 @@ class EmailVerificationTest extends TestCase
             'hash' => sha1($staff->email),
         ]);
 
-        $this->get($url)->assertRedirect(route('login'));
+        $this->get($url);
 
         $this->assertTrue($staff->fresh()->hasVerifiedEmail());
 

@@ -297,7 +297,7 @@
     // Tambah baris fitur (maks 6)
     $('#btnAddFeature').on('click', function() {
       var rows = $('#featureRows .feature-row');
-      if (rows.length >= 6) { alert('Maksimal 6 fitur unggulan.'); return; }
+      if (rows.length >= 6) { showToast('Peringatan', 'Maksimal 6 fitur unggulan.', 'warning'); return; }
       $('#featureRows').append(
         '<div class="feature-row row mb-2 align-items-center">' +
           '<div class="col-md-5"><input type="text" name="features_title[]" class="form-control" placeholder="Judul fitur" style="border-radius: 8px;"></div>' +

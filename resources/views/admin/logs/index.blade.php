@@ -14,7 +14,7 @@
 
     @if(!Auth::user() || !Auth::user()->isOwner())
       @if($logs->total() > 0)
-      <form action="{{ route('admin.logs.clear') }}" method="POST" onsubmit="return confirm('Bersihkan seluruh pesan riwayat log audit?')">
+      <form action="{{ route('admin.logs.clear') }}" method="POST" data-confirm="Bersihkan seluruh pesan riwayat log audit?">
         @csrf
         @method('DELETE')
         <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 8px;">

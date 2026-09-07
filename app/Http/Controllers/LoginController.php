@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use App\Models\ReceptionistShift;
 use App\Models\User;
 
 class LoginController extends Controller
@@ -136,6 +137,23 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Resepsionis wajib menutup shift kasir yang masih terbuka sebelum logout,
+        // supaya setiap transaksi kasir tetap tercatat ke shift (audit kas tidak putus).
+        if ($user && $user->isReceptionist() && $user->tenant_id) {
+            $openShift = ReceptionistShift::where('tenant_id', $user->tenant_id)
+                ->where('user_id', $user->id)
+                ->where('status', 'open')
+                ->exists();
+
+            if ($openShift) {
+                return redirect()->route('receptionist.shifts')
+                    ->with('error', 'Shift kasir Anda masih terbuka. Tutup shift terlebih dahulu sebelum logout.');
+            }
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

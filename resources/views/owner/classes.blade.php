@@ -52,12 +52,13 @@
   <!-- Daftar Personal Trainer -->
   <div class="col-md-5">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">🏋️ Tim Personal Trainer (PT)</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Tim Personal Trainer (PT)</h6>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
             <tr>
               <th>Nama Trainer</th>
+              <th>Kontak</th>
               <th>Spesialisasi</th>
               <th>Status</th>
             </tr>
@@ -66,6 +67,7 @@
             @forelse($trainers as $t)
               <tr>
                 <td class="font-weight-bold text-dark" style="font-size: 12.5px;">{{ $t->name }}</td>
+                <td style="font-size: 12px;" class="text-muted">{{ $t->phone ? \App\Helpers\PrivacyHelper::maskPhone($t->phone) : '-' }}</td>
                 <td style="font-size: 12px;" class="text-muted">{{ $t->specialization ?? 'Fitness Coach' }}</td>
                 <td>
                   <span class="badge badge-success px-2 py-1">Aktif</span>
@@ -73,7 +75,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="3" class="text-center py-4 text-muted">Belum ada data trainer terdaftar.</td>
+                <td colspan="4" class="text-center py-4 text-muted">Belum ada data trainer terdaftar.</td>
               </tr>
             @endforelse
           </tbody>

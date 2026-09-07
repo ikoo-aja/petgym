@@ -115,7 +115,10 @@ class SuperadminController extends Controller
         $cleanSub = Str::slug(explode('.', $rawSub)[0]);
 
         // 1. Akun Owner (Pemilik Gym)
-        User::updateOrCreate(
+        // Akun dibuat oleh platform (superadmin), jadi langsung dianggap
+        // terverifikasi — kalau tidak, admin/owner tenant baru akan terkunci
+        // dari semua dashboard karena email verifikasi tidak pernah dikirim.
+        $owner = User::updateOrCreate(
             ['email' => $request->owner_email],
             [
                 'name' => $ownerName,
@@ -124,10 +127,13 @@ class SuperadminController extends Controller
                 'tenant_id' => $tenant->id,
             ]
         );
+        if (!$owner->hasVerifiedEmail()) {
+            $owner->markEmailAsVerified();
+        }
 
         // 2. Akun Admin (Pengelola Operasional)
         $adminEmail = "admin.{$cleanSub}@workout.id";
-        User::updateOrCreate(
+        $adminUser = User::updateOrCreate(
             ['email' => $adminEmail],
             [
                 'name' => "Admin {$tenant->name}",
@@ -136,6 +142,9 @@ class SuperadminController extends Controller
                 'tenant_id' => $tenant->id,
             ]
         );
+        if (!$adminUser->hasVerifiedEmail()) {
+            $adminUser->markEmailAsVerified();
+        }
 
         SystemLog::create([
             'user_id' => Auth::id(),

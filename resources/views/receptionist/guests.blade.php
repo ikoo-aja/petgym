@@ -56,7 +56,7 @@
               </td>
               <td class="text-right">
                 @if(!$g->converted_to_member_id)
-                  <form action="{{ route('receptionist.guests.convert', $g->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Konversi tamu ini menjadi member aktif?')">
+                  <form action="{{ route('receptionist.guests.convert', $g->id) }}" method="POST" style="display:inline;" data-confirm="Konversi tamu ini menjadi member aktif?">
                     @csrf
                     <button type="submit" class="btn btn-xs btn-outline-success font-weight-bold" style="border-radius:6px;">Jadikan Member</button>
                   </form>

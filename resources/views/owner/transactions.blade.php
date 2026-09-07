@@ -2,7 +2,7 @@
 
 @section('title', 'Pemantauan Transaksi Kasir (Owner) &mdash; PetGym')
 @section('page_title', 'Pemantauan Transaksi POS & Kasir')
-@section('page_subtitle', 'Rekapitulasi seluruh riwayat transaksi penjualan kasir dan perpanjangan member (Mode Pemantauan & Read-Only)')
+@section('page_subtitle', 'Rekapitulasi seluruh riwayat transaksi penjualan kasir dan perpanjangan member')
 
 @section('content')
 

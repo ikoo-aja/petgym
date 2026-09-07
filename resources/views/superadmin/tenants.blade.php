@@ -406,26 +406,29 @@
       const tenantId = $(this).data('id');
       const tenantName = $(this).data('name');
 
-      if (!confirm(`Apakah Anda yakin ingin menghapus tenant "${tenantName}" dari database?`)) {
-        return;
-      }
-
-      fetch("{{ url('/superadmin/tenants') }}/" + tenantId, {
-        method: 'DELETE',
-        headers: {
-          'X-CSRF-TOKEN': '{{ csrf_token() }}',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 'success') {
-          window.location.reload();
-        }
-      })
-      .catch(err => {
-        showToast('Error', 'Gagal menghapus tenant dari database.', 'error');
+      window.showConfirm({
+        title: 'Hapus Tenant',
+        message: `Apakah Anda yakin ingin menghapus tenant "${tenantName}" dari database?`,
+        variant: 'danger',
+        confirmText: 'Ya, Hapus'
+      }, function() {
+        fetch("{{ url('/superadmin/tenants') }}/" + tenantId, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            window.location.reload();
+          }
+        })
+        .catch(err => {
+          showToast('Error', 'Gagal menghapus tenant dari database.', 'error');
+        });
       });
     });
   });

@@ -558,15 +558,18 @@
     </div>
 
     <div class="admin-content">
-      @include('partials.flash-toast')
+       @include('partials.flash-toast')
 
-      @yield('content')
-    </div>
+       @yield('content')
+     </div>
   </main>
 </div>
 
 <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
 <script src="{{ asset('js/bootstrap.min.js') }}"></script>
+@include('partials.confirm-modal')
+@include('partials.toast-helper')
+
 @yield('scripts')
 
 </body>

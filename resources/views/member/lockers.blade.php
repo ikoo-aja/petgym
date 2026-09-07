@@ -20,7 +20,7 @@
       <div class="d-inline-block bg-light text-dark font-weight-bold px-3 py-2 rounded border shadow-sm" style="font-size: 22px; letter-spacing: 4px;">
         {{ $activeRental->pin_code ?? '849201' }}
       </div>
-      <form action="{{ route('member.lockers.return', $activeRental->id) }}" method="POST" class="mt-2" onsubmit="return confirm('Selesaikan sewa loker ini sekarang?')">
+      <form action="{{ route('member.lockers.return', $activeRental->id) }}" method="POST" class="mt-2" data-confirm="Selesaikan sewa loker ini sekarang?">
         @csrf
         <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold">Kembalikan Loker</button>
       </form>

@@ -97,7 +97,7 @@
                   data-status="{{ $m->status }}"
                   data-expired_at="{{ $m->expired_at ? $m->expired_at->format('Y-m-d') : '' }}"
                   style="border-radius: 6px;">Edit</button>
-                <form action="{{ route('admin.members.destroy', $m->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus data member ini?')">
+                <form action="{{ route('admin.members.destroy', $m->id) }}" method="POST" class="d-inline" data-confirm="Hapus data member ini?">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>

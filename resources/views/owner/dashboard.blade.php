@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Dashboard Pemilik (Owner) &mdash; PetGym')
-@section('page_title', 'Dashboard Eksekutif Pemilik Gym (Owner)')
-@section('page_subtitle', 'Pusat pemantauan omset harian, statistik keanggotaan, okupansi loker, dan kesehatan bisnis gym Anda (Mode Pemantauan & Read-Only)')
+@section('page_title', 'Dashboard Eksekutif Pemilik Gym')
+@section('page_subtitle', 'Pusat pemantauan omset harian, statistik keanggotaan, okupansi loker, dan kesehatan bisnis gym Anda')
 
 @section('content')
 <!-- Key Performance Indicators (KPI Grid) -->

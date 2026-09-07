@@ -64,7 +64,7 @@
                     data-day="{{ $mc->day }}"
                     data-start_time="{{ substr($mc->start_time, 0, 5) }}"
                     data-duration_minutes="{{ $mc->duration_minutes ?? 60 }}">Edit</button>
-                  <form action="{{ route('manager.classes.destroy', $mc->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus master kelas ini?')">
+                  <form action="{{ route('manager.classes.destroy', $mc->id) }}" method="POST" class="d-inline" data-confirm="Hapus master kelas ini?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
@@ -129,7 +129,7 @@
                         data-purchase_date="{{ $eq->purchase_date ? $eq->purchase_date->format('Y-m-d') : '' }}"
                         data-next_service_date="{{ $eq->next_service_date ? $eq->next_service_date->format('Y-m-d') : '' }}"
                         data-notes="{{ $eq->notes }}">Edit</button>
-                      <form action="{{ route('manager.equipment.destroy', $eq->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus alat ini?')">
+                      <form action="{{ route('manager.equipment.destroy', $eq->id) }}" method="POST" class="d-inline" data-confirm="Hapus alat ini?">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
@@ -243,7 +243,7 @@
                         data-start_time="{{ substr($sh->start_time, 0, 5) }}"
                         data-end_time="{{ substr($sh->end_time, 0, 5) }}"
                         data-notes="{{ $sh->notes }}">Edit</button>
-                      <form action="{{ route('manager.shifts.destroy', $sh->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus shift ini?')">
+                      <form action="{{ route('manager.shifts.destroy', $sh->id) }}" method="POST" class="d-inline" data-confirm="Hapus shift ini?">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
@@ -342,15 +342,15 @@
                 <td class="text-center">
                   @if($vt->void_status === 'pending')
                     <div class="d-flex justify-content-center">
-                      <form action="{{ route('manager.leave.reject', $vt->id) }}" method="POST" class="mr-1" onsubmit="return confirm('Tolak permohonan void ini?')">
+                      <form action="{{ route('manager.leave.reject', $vt->id) }}" method="POST" class="mr-1" data-confirm="Tolak permohonan void ini?">
                         @csrf
                         <!-- We will define manager.void.reject route soon -->
                       </form>
-                      <form action="/manager/void/{{ $vt->id }}/approve" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui pembatalan transaksi ini?')">
+                      <form action="/manager/void/{{ $vt->id }}/approve" method="POST" class="d-inline mr-1" data-confirm="Setujui pembatalan transaksi ini?">
                         @csrf
                         <button type="submit" class="btn btn-xs btn-success font-weight-bold px-2 py-1">Setujui</button>
                       </form>
-                      <form action="/manager/void/{{ $vt->id }}/reject" method="POST" class="d-inline" onsubmit="return confirm('Tolak pembatalan transaksi ini?')">
+                      <form action="/manager/void/{{ $vt->id }}/reject" method="POST" class="d-inline" data-confirm="Tolak pembatalan transaksi ini?">
                         @csrf
                         <button type="submit" class="btn btn-xs btn-danger font-weight-bold px-2 py-1">Tolak</button>
                       </form>
@@ -424,7 +424,7 @@
                     data-valid_from="{{ $promo->valid_from->format('Y-m-d') }}"
                     data-valid_until="{{ $promo->valid_until->format('Y-m-d') }}"
                     data-is_active="{{ $promo->is_active ? 1 : 0 }}">Edit</button>
-                  <form action="{{ route('manager.promo.destroy', $promo->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus voucher promo ini?')">
+                  <form action="{{ route('manager.promo.destroy', $promo->id) }}" method="POST" class="d-inline" data-confirm="Hapus voucher promo ini?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
@@ -699,7 +699,7 @@
                     data-category="{{ $ven->category }}"
                     data-address="{{ $ven->address }}"
                     data-notes="{{ $ven->notes }}">Edit</button>
-                  <form action="{{ route('manager.vendors.destroy', $ven->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus kontak vendor ini?')">
+                  <form action="{{ route('manager.vendors.destroy', $ven->id) }}" method="POST" class="d-inline" data-confirm="Hapus kontak vendor ini?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>

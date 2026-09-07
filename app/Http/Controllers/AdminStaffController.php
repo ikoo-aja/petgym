@@ -13,6 +13,23 @@ use App\Models\StaffLog;
 
 class AdminStaffController extends Controller
 {
+    /**
+     * Kirim email verifikasi dengan aman: kalau server email (SMTP) sedang
+     * tidak terhubung, alur pembuatan akun TIDAK boleh gagal (500).
+     * Kegagalan dicatat ke log dan dikembalikan sebagai false supaya
+     * controller bisa memberi tahu admin untuk kirim ulang nanti.
+     */
+    private function sendVerificationEmailSafely(User $staff): bool
+    {
+        try {
+            $staff->sendEmailVerificationNotification();
+            return true;
+        } catch (\Throwable $e) {
+            report($e);
+            return false;
+        }
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -36,6 +53,14 @@ class AdminStaffController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'nullable|string|min:4',
             'role' => 'required|string',
+            'phone' => 'nullable|string|max:20',
+        ], [
+            'name.required'  => 'Nama staf wajib diisi.',
+            'email.required' => 'Email login wajib diisi.',
+            'email.email'    => 'Format email tidak valid.',
+            'email.unique'   => 'Email ini sudah terdaftar, gunakan email lain.',
+            'password.min'   => 'Password minimal 4 karakter.',
+            'role.required'  => 'Role / jabatan wajib dipilih.',
         ]);
 
         // Jika password kosong → generate password default otomatis
@@ -70,7 +95,7 @@ class AdminStaffController extends Controller
         } elseif ($staff->role === 'trainer') {
             Trainer::updateOrCreate(
                 ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
-                ['name' => $staff->name, 'email' => $staff->email, 'specialization' => 'Fitness & Conditioning', 'status' => 'active']
+                ['name' => $staff->name, 'email' => $staff->email, 'phone' => $request->phone, 'specialization' => 'Fitness & Conditioning', 'status' => 'active']
             );
         }
 
@@ -82,8 +107,14 @@ class AdminStaffController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        // Akun staf baru WAJIB verifikasi email dulu sebelum bisa login ke dashboard
-        $staff->sendEmailVerificationNotification();
+        // Akun staf baru WAJIB verifikasi email dulu sebelum bisa login ke dashboard.
+        // Kalau server email sedang mati, akun TETAP tersimpan — admin tinggal
+        // pakai tombol "Kirim Verifikasi" nanti (email gagal TIDAK menggagalkan akun).
+        $emailSent = $this->sendVerificationEmailSafely($staff);
+
+        if (!$emailSent) {
+            return redirect()->route('admin.staff.index')->with('warning', "Akun staf {$staff->name} berhasil dibuat, TETAPI email verifikasi gagal terkirim (server email tidak terhubung). Gunakan tombol 'Kirim Verifikasi' di daftar staf setelah server email aktif.");
+        }
 
         return redirect()->route('admin.staff.index')->with('success', "Akun staf {$staff->name} berhasil dibuat. Link verifikasi email telah dikirim ke {$staff->email} — staf harus memverifikasi emailnya sebelum bisa login.");
     }
@@ -102,7 +133,7 @@ class AdminStaffController extends Controller
             return redirect()->route('admin.staff.index')->with('success', "Email akun {$staff->name} sudah terverifikasi.");
         }
 
-        $staff->sendEmailVerificationNotification();
+        $emailSent = $this->sendVerificationEmailSafely($staff);
 
         StaffLog::create([
             'tenant_id' => $tenant->id,
@@ -111,6 +142,10 @@ class AdminStaffController extends Controller
             'description' => "Mengirim ulang link verifikasi email untuk akun staf {$staff->name}",
             'ip_address' => $request->ip(),
         ]);
+
+        if (!$emailSent) {
+            return redirect()->route('admin.staff.index')->with('error', "Link verifikasi email GAGAL dikirim ke {$staff->email} (server email tidak terhubung). Coba lagi setelah server email aktif.");
+        }
 
         return redirect()->route('admin.staff.index')->with('success', "Link verifikasi email telah dikirim ulang ke {$staff->email}.");
     }

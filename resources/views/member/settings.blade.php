@@ -140,7 +140,7 @@
           <small class="text-white-50">Bagikan kode referral Anda ke teman & keluarga.</small>
         </div>
       </div>
-      <button type="button" class="btn btn-sm btn-light font-weight-bold ml-2 text-primary" style="border-radius: 8px; font-size: 12px;" onclick="alert('Kode Referral Anda: REFF-{{ strtoupper(substr(md5($user->id), 0, 6)) }}')">
+      <button type="button" class="btn btn-sm btn-light font-weight-bold ml-2 text-primary" style="border-radius: 8px; font-size: 12px;" onclick="showToast('Kode Referral Anda', 'REFF-{{ strtoupper(substr(md5($user->id), 0, 6)) }} — bagikan ke teman Anda.', 'info')">
         Undang Teman
       </button>
     </div>
@@ -205,7 +205,7 @@
       <div class="text-center py-3 mb-3 border rounded bg-light">
         <p class="text-muted mb-0 small">Tidak ada Reformer Pilates Access yang aktif</p>
       </div>
-      <button type="button" class="btn btn-outline-info btn-block py-2 font-weight-bold" style="border-radius: 10px;" onclick="alert('Layanan Reformer Pilates dapat dibeli melalui kasir resepsionis gym PetGym.')">
+      <button type="button" class="btn btn-outline-info btn-block py-2 font-weight-bold" style="border-radius: 10px;" onclick="showToast('Info', 'Layanan Reformer Pilates dapat dibeli melalui kasir resepsionis gym PetGym.', 'info')">
         Lihat Cara Beli Reformer Pilates
       </button>
     </div>
@@ -486,7 +486,7 @@
         <h6 class="font-weight-bold text-dark mb-3">Bagaimana Pengalaman Anda Menggunakan PetGym?</h6>
         <div class="mb-3" style="font-size: 28px;">⭐⭐⭐⭐⭐</div>
         <textarea class="form-control mb-3" rows="3" placeholder="Tuliskan masukan atau kritik saran Anda..." style="border-radius: 8px;"></textarea>
-        <button type="button" class="btn btn-primary btn-block font-weight-bold" onclick="alert('Terima kasih atas feedback yang Anda berikan!'); $('#feedbackModal').modal('hide');">Kirim Feedback</button>
+        <button type="button" class="btn btn-primary btn-block font-weight-bold" onclick="showToast('Terima Kasih', 'Feedback Anda telah kami terima. Terima kasih sudah meluangkan waktu!', 'success'); $('#feedbackModal').modal('hide');">Kirim Feedback</button>
       </div>
     </div>
   </div>

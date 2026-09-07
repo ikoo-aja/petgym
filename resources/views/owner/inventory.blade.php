@@ -2,7 +2,7 @@
 
 @section('title', 'Pemantauan Inventaris & Loker (Owner) &mdash; PetGym')
 @section('page_title', 'Pemantauan Inventaris Ritel & Loker Gym')
-@section('page_subtitle', 'Monitoring stok produk suplemen/merchandise dan okupansi loker gym (Mode Pemantauan & Read-Only)')
+@section('page_subtitle', 'Monitoring stok produk suplemen/merchandise dan okupansi loker gym')
 
 @section('content')
 

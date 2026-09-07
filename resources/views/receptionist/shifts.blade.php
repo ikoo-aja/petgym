@@ -35,7 +35,7 @@
           <br>Kas Awal: <strong>Rp {{ number_format($openShift->start_cash, 0, ',', '.') }}</strong>
         </div>
 
-        <form action="{{ route('receptionist.shifts.end', $openShift->id) }}" method="POST">
+        <form action="{{ route('receptionist.shifts.end', $openShift->id) }}" method="POST" data-confirm="Yakin ingin menutup shift kasir? Pastikan nominal kas laci sudah benar.">
           @csrf
           <div class="form-group mb-3">
             <label class="font-weight-bold mb-1" style="font-size:13px;">Nominal Kas Laci Akhir Shift (Fisik) *</label>
@@ -47,7 +47,7 @@
             </div>
             <small class="text-muted">Hitung secara manual uang fisik yang ada di laci kasir saat ini.</small>
           </div>
-          <button type="submit" class="btn btn-danger btn-block font-weight-bold" onclick="return confirm('Yakin ingin menutup shift kasir? Pastikan nominal kas laci sudah benar.')">
+          <button type="submit" class="btn btn-danger btn-block font-weight-bold">
             Tutup Shift & Setor Kas
           </button>
         </form>

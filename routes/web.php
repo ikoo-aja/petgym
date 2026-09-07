@@ -20,7 +20,9 @@ Route::get('/', function () {
 Route::post('/checkout', [\App\Http\Controllers\SuperadminController::class, 'publicCheckout'])->name('public.checkout');
 
 Route::get('/home', function () {
-    return redirect('/admin/dashboard');
+    // Arahkan ke dashboard sesuai role user (bukan hardcode /admin)
+    $user = auth()->user();
+    return redirect()->route($user ? $user->dashboardRoute() : 'admin.dashboard');
 });
 
 
@@ -66,7 +68,7 @@ use App\Http\Controllers\AdminLogController;
 use App\Http\Controllers\AdminReportController;
 
 // Group Superadmin (Hanya bisa diakses jika sudah login)
-Route::middleware(['auth', 'verified'])->prefix('superadmin')->group(function () {
+Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')->group(function () {
     Route::get('/dashboard', [SuperadminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::get('/tenants', [SuperadminController::class, 'tenants'])->name('superadmin.tenants');
     Route::post('/tenants', [SuperadminController::class, 'storeTenant'])->name('superadmin.tenants.store');
@@ -88,7 +90,7 @@ Route::middleware(['auth', 'verified'])->prefix('superadmin')->group(function ()
 });
 
 // Group Admin Tenant (Hanya bisa diakses jika sudah login)
-Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin,manager,receptionist,trainer'])->prefix('admin')->group(function () {
     // 1. Dashboard Admin
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
@@ -159,7 +161,7 @@ use App\Http\Controllers\ReceptionistController;
 use App\Http\Controllers\TrainerController;
 
 // Group Manager Gym
-Route::middleware(['auth', 'verified'])->prefix('manager')->group(function () {
+Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->group(function () {
     Route::get('/dashboard', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
     Route::get('/features', [ManagerController::class, 'features'])->name('manager.features');
 
@@ -200,7 +202,7 @@ Route::middleware(['auth', 'verified'])->prefix('manager')->group(function () {
 });
 
 // Group Resepsionis / Frontdesk
-Route::middleware(['auth', 'verified'])->prefix('receptionist')->group(function () {
+Route::middleware(['auth', 'verified', 'role:receptionist'])->prefix('receptionist')->group(function () {
     Route::get('/dashboard', [ReceptionistController::class, 'dashboard'])->name('receptionist.dashboard');
 
     // 7. Loker & Peminjaman
@@ -226,7 +228,7 @@ Route::middleware(['auth', 'verified'])->prefix('receptionist')->group(function 
 });
 
 // Group Personal Trainer
-Route::middleware(['auth', 'verified'])->prefix('trainer')->group(function () {
+Route::middleware(['auth', 'verified', 'role:trainer'])->prefix('trainer')->group(function () {
     Route::get('/dashboard', [TrainerController::class, 'dashboard'])->name('trainer.dashboard');
 });
 
@@ -234,7 +236,7 @@ use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\MemberPortalController;
 
 // Group Pemilik Gym (Owner) - Mode Pemantauan Eksekutif (Read-Only)
-Route::middleware(['auth', 'verified'])->prefix('owner')->group(function () {
+Route::middleware(['auth', 'verified', 'role:owner'])->prefix('owner')->group(function () {
     Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('owner.dashboard');
     Route::get('/transactions', [OwnerController::class, 'transactions'])->name('owner.transactions');
     Route::get('/members', [OwnerController::class, 'members'])->name('owner.members');
@@ -247,7 +249,7 @@ Route::middleware(['auth', 'verified'])->prefix('owner')->group(function () {
 });
 
 // Group User / Member Gym Portal
-Route::middleware(['auth', 'verified'])->prefix('member')->group(function () {
+Route::middleware(['auth', 'verified', 'role:member'])->prefix('member')->group(function () {
     Route::get('/dashboard', [MemberPortalController::class, 'dashboard'])->name('member.dashboard');
 
     // Loker & Sewa Visual Grid
