@@ -15,11 +15,6 @@ class PrivacyHelper
             return '-';
         }
 
-        $user = Auth::user();
-        if (!$user || !$user->isOwner()) {
-            return $email;
-        }
-
         $parts = explode('@', $email);
         if (count($parts) !== 2) {
             return '***';
@@ -45,11 +40,6 @@ class PrivacyHelper
     {
         if (empty($phone)) {
             return '-';
-        }
-
-        $user = Auth::user();
-        if (!$user || !$user->isOwner()) {
-            return $phone;
         }
 
         $len = strlen($phone);

@@ -28,9 +28,8 @@
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
         <tr>
-          <th>Kode PIN Akses</th>
           <th>Nama Member</th>
-          <th>Kontak (Masked for Owner)</th>
+          <th>Kontak</th>
           <th>Gender</th>
           <th>Status</th>
           <th>Masa Aktif</th>
@@ -40,11 +39,6 @@
       <tbody>
         @forelse($members as $m)
           <tr>
-            <td>
-              <span class="badge badge-dark px-3 py-2" style="font-size: 13px; letter-spacing: 1.5px; border-radius: 6px;">
-                {{ \App\Helpers\PrivacyHelper::maskCode($m->access_code) }}
-              </span>
-            </td>
             <td>
               <div class="font-weight-bold text-dark">{{ $m->name }}</div>
               <small class="text-muted">{{ $m->email ? \App\Helpers\PrivacyHelper::maskEmail($m->email) : 'No email' }}</small>
