@@ -86,7 +86,7 @@
             </div>
 
             <!-- Delete Form -->
-            <form action="{{ route('superadmin.plans.destroy', $plan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus paket ini dari database?');">
+            <form action="{{ route('superadmin.plans.destroy', $plan->id) }}" method="POST" data-confirm="Apakah Anda yakin ingin menghapus paket ini dari database?">
               @csrf
               @method('DELETE')
               <button type="submit" class="btn btn-link text-danger p-0" style="font-size: 12px; font-weight: bold; text-decoration: none;">

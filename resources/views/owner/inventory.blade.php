@@ -2,7 +2,7 @@
 
 @section('title', 'Pemantauan Inventaris & Loker (Owner) &mdash; PetGym')
 @section('page_title', 'Pemantauan Inventaris Ritel & Loker Gym')
-@section('page_subtitle', 'Monitoring stok produk suplemen/merchandise dan okupansi loker gym (Mode Pemantauan & Read-Only)')
+@section('page_subtitle', 'Monitoring stok produk suplemen/merchandise dan okupansi loker gym')
 
 @section('content')
 
@@ -36,7 +36,7 @@
   <!-- Stok Produk Ritel Kasir -->
   <div class="col-md-7">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Stok Produk</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Inventaris Stok Produk Ritel Kasir</h6>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
@@ -79,7 +79,7 @@
   <!-- Master Loker Gym -->
   <div class="col-md-5">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Loker Gym</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Master Loker Gym</h6>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">

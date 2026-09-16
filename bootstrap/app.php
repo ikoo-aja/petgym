@@ -25,6 +25,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 return '/admin/dashboard';
             }
         );
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsurePasswordChanged::class,
+        ]);
+
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureUserRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

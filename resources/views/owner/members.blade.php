@@ -2,7 +2,7 @@
 
 @section('title', 'Pemantauan Data Member (Owner) &mdash; PetGym')
 @section('page_title', 'Pemantauan Data Member Gym')
-@section('page_subtitle', 'Monitoring daftar anggota keanggotaan gym, tanggal kadaluarsa, dan status aktif (Mode Pemantauan & Read-Only)')
+@section('page_subtitle', 'Monitoring daftar anggota keanggotaan gym, tanggal kadaluarsa, dan status aktif')
 
 @section('content')
 <!-- Banner Mode Pemantauan Eksekutif -->

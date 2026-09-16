@@ -112,7 +112,7 @@
             @endif
           </td>
           <td class="text-right">
-            <form action="{{ route('receptionist.lockers.return', $r->locker_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Konfirmasi pengembalian kunci loker ini?')">
+            <form action="{{ route('receptionist.lockers.return', $r->locker_id) }}" method="POST" style="display:inline;" data-confirm="Konfirmasi pengembalian kunci loker ini?">
               @csrf
               <button type="submit" class="btn btn-sm btn-outline-success font-weight-bold" style="border-radius: 8px;">
                 Kembalikan Loker

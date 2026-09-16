@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Dashboard Pemilik (Owner) &mdash; PetGym')
-@section('page_title', 'Dashboard Eksekutif Pemilik Gym (Owner)')
-@section('page_subtitle', 'Pusat pemantauan omset harian, statistik keanggotaan, okupansi loker, dan kesehatan bisnis gym Anda (Mode Pemantauan & Read-Only)')
+@section('page_title', 'Dashboard Eksekutif Pemilik Gym')
+@section('page_subtitle', 'Pusat pemantauan omset harian, statistik keanggotaan, okupansi loker, dan kesehatan bisnis gym Anda')
 
 @section('content')
 <!-- Key Performance Indicators (KPI Grid) -->
@@ -58,7 +58,7 @@
   <div class="col-md-5">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Pemakaian Loker Gym</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Pemantauan Okupansi Loker Gym</h6>
         <a href="{{ route('owner.inventory') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Loker &rarr;</a>
       </div>
 
@@ -102,7 +102,7 @@
   <div class="col-md-7">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Kunjungan Member</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Pemantauan Kunjungan Member Terbaru (Presensi Masked)</h6>
         <a href="{{ route('owner.members') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Data Member &rarr;</a>
       </div>
 
@@ -144,8 +144,8 @@
   <div class="col-md-6">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Jadwal Kelas & Trainer</h6>
-        <a href="{{ route('owner.classes') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Jadwal &rarr;</a>
+        <h6 class="font-weight-bold text-dark mb-0">Pemantauan Jadwal Kelas & Trainer</h6>
+        <a href="{{ route('owner.classes') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Jadwal Kelas &rarr;</a>
       </div>
 
       <div class="table-responsive">
@@ -183,6 +183,13 @@
     </div>
   </div>
 
+  <!-- Audit Trail Aktivitas Staf -->
+  <div class="col-md-6">
+    <div class="card-custom">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="font-weight-bold text-dark mb-0">Audit Log Aktivitas Staf</h6>
+        <a href="{{ route('owner.logs') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Log &rarr;</a>
+      </div>
 
 </div>
 @endsection

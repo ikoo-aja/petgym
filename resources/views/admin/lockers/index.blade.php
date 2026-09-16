@@ -93,7 +93,7 @@
               @if(!Auth::user() || !Auth::user()->isOwner())
               <td class="text-right">
                 @if($l->status === 'tersedia')
-                  <form action="{{ route('admin.lockers.update', $l->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Blokir loker ini? Status akan menjadi Rusak dan tidak bisa dipakai Resepsionis.')">
+                  <form action="{{ route('admin.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Blokir loker ini? Status akan menjadi Rusak dan tidak bisa dipakai Resepsionis.">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">
@@ -101,7 +101,7 @@
                     <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius:6px;">Blokir (Rusak)</button>
                   </form>
                 @elseif($l->status === 'rusak')
-                  <form action="{{ route('admin.lockers.update', $l->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Aktifkan kembali loker ini?')">
+                  <form action="{{ route('admin.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Aktifkan kembali loker ini?">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">
@@ -113,7 +113,7 @@
                 @endif
 
                 @if($l->status !== 'terpakai')
-                <form action="{{ route('admin.lockers.destroy', $l->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus loker ini dari database secara permanen?')">
+                <form action="{{ route('admin.lockers.destroy', $l->id) }}" method="POST" style="display:inline;" data-confirm="Hapus loker ini dari database secara permanen?">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-xs btn-outline-dark font-weight-bold ml-1" style="border-radius:6px;">Hapus</button>
@@ -143,47 +143,57 @@ $(document).ready(function() {
     var end = parseInt($('#bulkEnd').val());
 
     if (isNaN(start) || isNaN(end) || start > end) {
-      alert('Nomor awal harus lebih kecil dari nomor akhir.');
+      showToast('Validasi Gagal', 'Nomor awal harus lebih kecil dari nomor akhir.', 'warning');
       return;
     }
 
     if ((end - start + 1) > 100) {
-      alert('Maksimal 100 loker per batch.');
+      showToast('Validasi Gagal', 'Maksimal 100 loker per batch.', 'warning');
       return;
     }
 
-    if (!confirm('Tambahkan loker nomor ' + start + ' sampai ' + end + '?')) return;
-
     var btn = $(this);
-    btn.prop('disabled', true).text('Menambahkan...');
-    var token = '{{ csrf_token() }}';
-    var successCount = 0;
-    var errors = [];
+    window.showConfirm({
+      title: 'Konfirmasi Bulk Tambah Loker',
+      message: 'Tambahkan loker nomor ' + start + ' sampai ' + end + '?',
+      variant: 'primary',
+      confirmText: 'Ya, Tambahkan',
+      cancelText: 'Batal'
+    }, async function() {
+      btn.prop('disabled', true).text('Menambahkan...');
+      var token = '{{ csrf_token() }}';
+      var successCount = 0;
+      var errors = [];
 
-    for (var i = start; i <= end; i++) {
-      try {
-        var numStr = String(i).padStart(2, '0');
-        var res = await fetch('{{ route("admin.lockers.store") }}', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ locker_number: numStr, status: 'tersedia' })
-        });
-        if (res.ok || res.status === 302) {
-          successCount++;
-        } else {
-          errors.push('Loker ' + numStr + ': gagal');
+      for (var i = start; i <= end; i++) {
+        try {
+          var numStr = String(i).padStart(2, '0');
+          var res = await fetch('{{ route("admin.lockers.store") }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': token,
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ locker_number: numStr, status: 'tersedia' })
+          });
+          if (res.ok || res.status === 302) {
+            successCount++;
+          } else {
+            errors.push('Loker ' + numStr + ': gagal');
+          }
+        } catch(e) {
+          errors.push('Loker ' + i + ': error');
         }
-      } catch(e) {
-        errors.push('Loker ' + i + ': error');
       }
-    }
 
-    alert('Selesai! ' + successCount + ' loker berhasil ditambahkan.' + (errors.length > 0 ? '\nGagal: ' + errors.join(', ') : ''));
-    location.reload();
+      if (errors.length > 0) {
+        showToast('Sebagian Gagal', successCount + ' loker berhasil, namun ' + errors.length + ' gagal: ' + errors.join(', '), 'warning');
+      } else {
+        showToast('Selesai', successCount + ' loker berhasil ditambahkan.', 'success');
+      }
+      setTimeout(function() { location.reload(); }, 1500);
+    });
   });
 });
 </script>

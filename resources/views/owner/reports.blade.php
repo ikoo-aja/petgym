@@ -2,7 +2,7 @@
 
 @section('title', 'Laporan Eksekutif (Owner) &mdash; PetGym')
 @section('page_title', 'Pusat Laporan & Omset Eksekutif')
-@section('page_subtitle', 'Analisis keuangan, pertumbuhan member, rekapitulasi penjualan kasir, dan kesehatan finansial gym (Mode Pemantauan & Read-Only)')
+@section('page_subtitle', 'Analisis keuangan, pertumbuhan member, rekapitulasi penjualan kasir, dan kesehatan finansial gym')
 
 @section('content')
 <!-- Banner Mode Pemantauan Eksekutif -->
@@ -41,7 +41,7 @@
 </div>
 
 <div class="card-custom">
-  <h6 class="font-weight-bold text-dark mb-3">Riwayata Transaksi Penjualan</h6>
+  <h6 class="font-weight-bold text-dark mb-3">Stream Transaksi Penjualan Terbaru</h6>
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">

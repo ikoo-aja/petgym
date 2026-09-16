@@ -2,6 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\TenantLandingController;
+
+// Landing Page Publik per-Tenant lewat subdomain (demo: fitlife.localhost, powerhouse.localhost, dll)
+// WAJIB didaftarkan sebelum route '/' utama supaya request subdomain tidak jatuh ke welcome page.
+Route::domain('{slug}.' . config('app.tenant_apex'))->group(function () {
+    Route::get('/', [TenantLandingController::class, 'show'])->name('tenant.landing');
+});
 
 Route::get('/', function () {
     return view('welcome');
@@ -10,7 +20,9 @@ Route::get('/', function () {
 Route::post('/checkout', [\App\Http\Controllers\SuperadminController::class, 'publicCheckout'])->name('public.checkout');
 
 Route::get('/home', function () {
-    return redirect('/admin/dashboard');
+    // Arahkan ke dashboard sesuai role user (bukan hardcode /admin)
+    $user = auth()->user();
+    return redirect()->route($user ? $user->dashboardRoute() : 'admin.dashboard');
 });
 
 
@@ -19,12 +31,34 @@ Route::get('/home', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+<<<<<<< HEAD
     Route::get('/register', [LoginController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [LoginController::class, 'register']);
+=======
+
+    // Lupa Password (self-service reset, tanpa campur tangan admin)
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+>>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
 });
 
 // Route Logout (Hanya bisa diakses jika sudah login)
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Verifikasi Email (user yang baru login tapi emailnya belum diverifikasi diarahkan ke sini)
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
+    
+    // Ubah Password Wajib (untuk staf baru)
+    Route::get('/change-password', [\App\Http\Controllers\ChangePasswordController::class, 'show'])->name('password.change');
+    Route::post('/change-password', [\App\Http\Controllers\ChangePasswordController::class, 'update'])->name('password.change.update');
+});
+
+// Link verifikasi bertanda tangan (signed URL) — bisa dibuka langsung dari email tanpa login
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
 
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\AdminController;
@@ -39,7 +73,7 @@ use App\Http\Controllers\AdminLogController;
 use App\Http\Controllers\AdminReportController;
 
 // Group Superadmin (Hanya bisa diakses jika sudah login)
-Route::middleware('auth')->prefix('superadmin')->group(function () {
+Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')->group(function () {
     Route::get('/dashboard', [SuperadminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::get('/tenants', [SuperadminController::class, 'tenants'])->name('superadmin.tenants');
     Route::post('/tenants', [SuperadminController::class, 'storeTenant'])->name('superadmin.tenants.store');
@@ -61,7 +95,7 @@ Route::middleware('auth')->prefix('superadmin')->group(function () {
 });
 
 // Group Admin Tenant (Hanya bisa diakses jika sudah login)
-Route::middleware('auth')->prefix('admin')->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin,manager,receptionist,trainer'])->prefix('admin')->group(function () {
     // 1. Dashboard Admin
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
@@ -105,8 +139,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     // 6. Akun Staf (RBAC)
     Route::get('/staff', [AdminStaffController::class, 'index'])->name('admin.staff.index');
     Route::post('/staff', [AdminStaffController::class, 'store'])->name('admin.staff.store');
-    Route::put('/staff/{id}', [AdminStaffController::class, 'update'])->name('admin.staff.update');
-    Route::post('/staff/{id}/reset-password', [AdminStaffController::class, 'resetPassword'])->name('admin.staff.reset-password');
+    Route::post('/staff/{id}/send-verification', [AdminStaffController::class, 'sendVerification'])->name('admin.staff.send-verification');
     Route::delete('/staff/{id}', [AdminStaffController::class, 'destroy'])->name('admin.staff.destroy');
 
     // 7. Pengaturan Gym
@@ -122,6 +155,10 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/reports/export-members', [AdminReportController::class, 'exportMembers'])->name('admin.reports.export-members');
     Route::get('/reports/export-checkins', [AdminReportController::class, 'exportCheckIns'])->name('admin.reports.export-checkins');
     Route::get('/reports/export-transactions', [AdminReportController::class, 'exportTransactions'])->name('admin.reports.export-transactions');
+
+    // 10. Landing Page Publik Tenant (kustomisasi sesuai paket langganan)
+    Route::get('/landing', [TenantLandingController::class, 'edit'])->name('admin.landing.edit');
+    Route::post('/landing', [TenantLandingController::class, 'update'])->name('admin.landing.update');
 });
 
 use App\Http\Controllers\ManagerController;
@@ -129,7 +166,7 @@ use App\Http\Controllers\ReceptionistController;
 use App\Http\Controllers\TrainerController;
 
 // Group Manager Gym
-Route::middleware('auth')->prefix('manager')->group(function () {
+Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->group(function () {
     Route::get('/dashboard', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
     Route::get('/features', [ManagerController::class, 'features'])->name('manager.features');
 
@@ -173,7 +210,7 @@ Route::middleware('auth')->prefix('manager')->group(function () {
 });
 
 // Group Resepsionis / Frontdesk
-Route::middleware('auth')->prefix('receptionist')->group(function () {
+Route::middleware(['auth', 'verified', 'role:receptionist'])->prefix('receptionist')->group(function () {
     Route::get('/dashboard', [ReceptionistController::class, 'dashboard'])->name('receptionist.dashboard');
 
     // 7. Loker & Peminjaman
@@ -199,7 +236,7 @@ Route::middleware('auth')->prefix('receptionist')->group(function () {
 });
 
 // Group Personal Trainer
-Route::middleware('auth')->prefix('trainer')->group(function () {
+Route::middleware(['auth', 'verified', 'role:trainer'])->prefix('trainer')->group(function () {
     Route::get('/dashboard', [TrainerController::class, 'dashboard'])->name('trainer.dashboard');
 });
 
@@ -207,7 +244,7 @@ use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\MemberPortalController;
 
 // Group Pemilik Gym (Owner) - Mode Pemantauan Eksekutif (Read-Only)
-Route::middleware('auth')->prefix('owner')->group(function () {
+Route::middleware(['auth', 'verified', 'role:owner'])->prefix('owner')->group(function () {
     Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('owner.dashboard');
     Route::get('/transactions', [OwnerController::class, 'transactions'])->name('owner.transactions');
     Route::get('/members', [OwnerController::class, 'members'])->name('owner.members');
@@ -220,7 +257,7 @@ Route::middleware('auth')->prefix('owner')->group(function () {
 });
 
 // Group User / Member Gym Portal
-Route::middleware('auth')->prefix('member')->group(function () {
+Route::middleware(['auth', 'verified', 'role:member'])->prefix('member')->group(function () {
     Route::get('/dashboard', [MemberPortalController::class, 'dashboard'])->name('member.dashboard');
 
     // Loker & Sewa Visual Grid

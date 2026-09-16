@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Manajemen Staf (RBAC) &mdash; PetGym')
-@section('page_title', 'Manajemen Akun Staf & Hak Akses (RBAC)')
-@section('page_subtitle', 'Pendaftaran akun Resepsionis, Manager, Trainer, serta reset password staf')
+@section('page_title', 'Manajemen Akun Staf & Hak Akses')
+@section('page_subtitle', 'Pendaftaran akun Resepsionis, Manager, serta Personal Trainer')
 
 @section('content')
 <div class="card-custom">
@@ -34,6 +34,11 @@
             <td class="font-weight-bold text-dark">{{ $st->name }}</td>
             <td style="font-size: 13.5px;" class="text-dark font-weight-semibold">
               {{ \App\Helpers\PrivacyHelper::maskEmail($st->email) }}
+              @if($st->hasVerifiedEmail())
+                <span class="badge badge-success ml-1" style="font-size: 9.5px;">Email Terverifikasi</span>
+              @else
+                <span class="badge badge-warning text-dark ml-1" style="font-size: 9.5px;">Belum Verifikasi Email</span>
+              @endif
             </td>
             <td>
               @if($st->role === 'admin')
@@ -51,10 +56,14 @@
             <td style="font-size: 13px;" class="text-dark">{{ $st->created_at ? $st->created_at->format('d M Y H:i') : '-' }}</td>
             @if(!Auth::user() || !Auth::user()->isOwner())
             <td class="text-right">
-              <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-staff" data-id="{{ $st->id }}" data-name="{{ $st->name }}" data-email="{{ $st->email }}" data-role="{{ $st->role }}" style="border-radius: 6px;">Edit</button>
-              <button class="btn btn-sm btn-outline-warning mr-1 btn-reset" data-id="{{ $st->id }}" data-name="{{ $st->name }}" style="border-radius: 6px;">Reset Password</button>
+              @if(!$st->hasVerifiedEmail())
+                <form action="{{ route('admin.staff.send-verification', $st->id) }}" method="POST" class="d-inline">
+                  @csrf
+                  <button type="submit" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Kirim Verifikasi</button>
+                </form>
+              @endif
               @if(Auth::id() !== $st->id)
-                <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus akun staf ini?')">
+                <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun staf ini?">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
@@ -83,6 +92,14 @@
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
+        @if($errors->any())
+        <div class="alert alert-danger py-2 mb-3" style="font-size: 13px; border-radius: 8px;">
+          <strong><i class="icon-exclamation-circle mr-1"></i> Data tidak tersimpan:</strong>
+          <ul class="mb-0 pl-3 mt-1">
+            @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
+          </ul>
+        </div>
+        @endif
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Lengkap Staf *</label>
           <input type="text" name="name" class="form-control" placeholder="Contoh: Rina Resepsionis / Joko Manager" required>
@@ -93,18 +110,46 @@
         </div>
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Password *</label>
-          <input type="password" name="password" class="form-control" required minlength="4">
+          <div class="input-group">
+            <input type="password" name="password" id="staffPassword" class="form-control" required minlength="4">
+            <div class="input-group-append">
+              <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="toggleStaffPw(this)">
+                <i class="icon-eye text-muted"></i>
+              </span>
+            </div>
+          </div>
+          <div class="custom-control custom-checkbox mt-2">
+            <input type="checkbox" class="custom-control-input" id="autoGenPw" onchange="toggleAutoGen(this)">
+            <label class="custom-control-label text-muted" style="font-size: 12px;" for="autoGenPw">Generate password default otomatis (staf wajib ganti saat login)</label>
+          </div>
         </div>
+<<<<<<< HEAD
         <div class="alert alert-info border-0 p-3 mb-3 rounded" style="background-color: #e0f2fe; color: #0369a1; font-size: 12.5px;">
           <i class="icon-info mr-1"></i> <strong>Akses Admin:</strong> Admin menginput akun peran tingkat tinggi (Manager & Owner). Akun operasional seperti Personal Trainer (PT) dan Resepsionis/Kasir diinput oleh <strong>Manager Gym</strong>.
         </div>
         <div class="form-group mb-0">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Peran Akun *</label>
           <select name="role" class="form-control" required>
+=======
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Hak Akses Staf *</label>
+          <select name="role" id="staffRole" class="form-control" required>
+            <option value="receptionist">Resepsionis / Frontdesk</option>
+>>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
             <option value="manager">Manager Gym</option>
             <option value="owner">Pemilik Gym (Owner)</option>
             <option value="member">Member Gym</option>
           </select>
+        </div>
+        <div class="form-group mb-0" id="staffPhoneGroup" style="display: none;">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nomor Telepon / WhatsApp Trainer</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text bg-white border-right-0"><i class="icon-phone text-muted"></i></span>
+            </div>
+            <input type="text" name="phone" id="staffPhone" class="form-control" placeholder="081234567890" maxlength="20">
+          </div>
+          <small class="text-muted">Kontak trainer ini akan tampil di halaman Kelas &amp; Trainer.</small>
         </div>
       </div>
       <div class="modal-footer">
@@ -115,94 +160,67 @@
   </div>
 </div>
 
-<!-- Modal Edit Staf -->
-<div class="modal fade" id="editStaffModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="editStaffForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      @method('PUT')
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Edit Data Akun Staf</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Lengkap Staf *</label>
-          <input type="text" name="name" id="editStaffName" class="form-control" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Email Login *</label>
-          <input type="email" name="email" id="editStaffEmail" class="form-control" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Hak Akses Staf *</label>
-          <select name="role" id="editStaffRole" class="form-control" required>
-            <option value="receptionist">Resepsionis / Frontdesk</option>
-            <option value="manager">Manager Gym</option>
-            <option value="admin">Admin / Pemilik Gym</option>
-            <option value="trainer">Personal Trainer</option>
-          </select>
-        </div>
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Password Baru (Opsional, kosongkan jika tidak diubah)</label>
-          <input type="password" name="password" class="form-control" minlength="4">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Data Staf</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Reset Password -->
-<div class="modal fade" id="resetPasswordModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="resetPasswordForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold" id="resetStaffTitle">Reset Password Staf</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Password Baru Sementara *</label>
-          <input type="password" name="new_password" class="form-control" placeholder="Masukkan password baru..." required minlength="4">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-warning font-weight-bold text-dark">Simpan Password Baru</button>
-      </div>
-    </form>
-  </div>
-</div>
 @endsection
 
 @section('scripts')
 <script>
+  function toggleStaffPw(btn) {
+    const input = btn.closest('.input-group').querySelector('input[type="password"]');
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('icon-eye');
+      icon.classList.add('icon-eye-slash');
+      icon.classList.remove('text-muted');
+      icon.classList.add('text-primary');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('icon-eye-slash');
+      icon.classList.add('icon-eye');
+      icon.classList.remove('text-primary');
+      icon.classList.add('text-muted');
+    }
+  }
+
+  function toggleAutoGen(cb) {
+    const pw = document.getElementById('staffPassword');
+    if (cb.checked) {
+      pw.value = '';
+      pw.disabled = true;
+      pw.removeAttribute('required');
+    } else {
+      pw.disabled = false;
+      pw.setAttribute('required', '');
+    }
+  }
+
+  // Field nomor telepon hanya muncul untuk role Personal Trainer
   $(document).ready(function() {
-    $('.btn-edit-staff').on('click', function() {
-      var id = $(this).data('id');
-      var name = $(this).data('name');
-      var email = $(this).data('email');
-      var role = $(this).data('role');
+    const roleSel = document.getElementById('staffRole');
+    const phoneGroup = document.getElementById('staffPhoneGroup');
+    const phoneInput = document.getElementById('staffPhone');
 
-      $('#editStaffName').val(name);
-      $('#editStaffEmail').val(email);
-      $('#editStaffRole').val(role);
-      $('#editStaffForm').attr('action', '/admin/staff/' + id);
-      $('#editStaffModal').modal('show');
+    function syncPhoneField() {
+      if (roleSel.value === 'trainer') {
+        phoneGroup.style.display = 'block';
+      } else {
+        phoneGroup.style.display = 'none';
+        phoneInput.value = ''; // jangan ikut terkirim untuk role lain
+      }
+    }
+
+    roleSel.addEventListener('change', syncPhoneField);
+
+    // Reset form saat modal ditutup/dibuka kembali
+    $('#createStaffModal').on('shown.bs.modal', function() {
+      syncPhoneField();
     });
 
-    $('.btn-reset').on('click', function() {
-      var staffId = $(this).data('id');
-      var staffName = $(this).data('name');
-      $('#resetStaffTitle').text('Reset Password: ' + staffName);
-      $('#resetPasswordForm').attr('action', '/admin/staff/' + staffId + '/reset-password');
-      $('#resetPasswordModal').modal('show');
-    });
+    // Kalau validasi gagal (mis. email dobel), buka lagi modal-nya
+    // supaya pesan errornya terlihat — bukan gagal diam-diam.
+    @if($errors->any())
+      $('#createStaffModal').modal('show');
+    @endif
   });
 </script>
 @endsection

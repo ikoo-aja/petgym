@@ -2,7 +2,7 @@
 
 @section('title', 'Audit Trail Log (Owner) &mdash; PetGym')
 @section('page_title', 'Audit Trail & Stream Aktivitas Staf')
-@section('page_subtitle', 'Pemantauan jejak audit operasional staf, transaksi kasir, perubahan data, dan otorisasi secara *real-time* (Mode Pemantauan & Read-Only)')
+@section('page_subtitle', 'Pemantauan jejak audit operasional staf, transaksi kasir, perubahan data, dan otorisasi secara *real-time*')
 
 @section('content')
 <!-- Banner Mode Pemantauan Eksekutif -->

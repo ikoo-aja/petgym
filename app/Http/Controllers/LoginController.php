@@ -6,17 +6,37 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use App\Models\ReceptionistShift;
 use App\Models\User;
 
 class LoginController extends Controller
 {
     /**
+     * Maksimal percobaan login yang diperbolehkan sebelum dikunci sementara.
+     */
+    protected int $maxAttempts = 5;
+
+    /**
+     * Durasi penguncian (detik) setelah terlalu banyak percobaan gagal.
+     */
+    protected int $decaySeconds = 60;
+
+    /**
      * Menampilkan halaman/view login.
      */
     public function showLoginForm()
     {
-        return view('login'); // sesuaikan dengan nama file blade kamu (misal: resources/views/auth/login.blade.php)
+        return view('login');
+    }
+
+    /**
+     * Kunci throttle unik per email + IP (anti brute-force terdistribusi).
+     */
+    protected function throttleKey(Request $request): string
+    {
+        return 'login:' . Str::lower($request->input('email')) . '|' . $request->ip();
     }
 
     /**
@@ -34,16 +54,44 @@ class LoginController extends Controller
             'password.required' => 'Password wajib diisi.',
         ]);
 
+        // 2. Proteksi Brute-Force: kunci sementara jika terlalu banyak percobaan gagal
+        $throttleKey = $this->throttleKey($request);
+        if (RateLimiter::tooManyAttempts($throttleKey, $this->maxAttempts)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $menit   = (int) ceil($seconds / 60);
+
+            return back()
+                ->withErrors(['email' => "Terlalu banyak percobaan login. Akun Anda dikunci sementara, coba lagi dalam {$menit} menit."])
+                ->onlyInput('email');
+        }
+
         // Cek input "Remember Me" dari form
         $remember = $request->has('remember');
 
-        // 2. Percobaan Autentikasi
+        // 3. Percobaan Autentikasi
         if (Auth::attempt($credentials, $remember)) {
             // Regenerasi session untuk mencegah session fixation attack
             $request->session()->regenerate();
 
             /** @var \App\Models\User $user */
             $user = Auth::user();
+
+            // 3a. Wajib verifikasi email sebelum bisa masuk ke dashboard
+            // (user tetap login tapi diarahkan ke halaman verifikasi dulu)
+            if (!$user->hasVerifiedEmail()) {
+                RateLimiter::clear($throttleKey);
+
+                return redirect()->route('verification.notice');
+            }
+
+            // 3b. Login sukses -> bersihkan hitungan percobaan gagal
+            RateLimiter::clear($throttleKey);
+
+            // 3c. Akun staf baru wajib ganti password default sebelum ke dashboard
+            if ($user->must_change_password) {
+                return redirect()->route('password.change')
+                    ->with('warning', 'Silakan ubah password default Anda sebelum melanjutkan.');
+            }
 
             if ($user->isSuperadmin()) {
                 return redirect()->intended('/superadmin/dashboard')->with('success', 'Selamat datang Superadmin!');
@@ -76,7 +124,9 @@ class LoginController extends Controller
             return redirect()->intended('/member/dashboard')->with('success', 'Selamat datang kembali!');
         }
 
-        // 3. Jika Autentikasi Gagal
+        // 4. Jika Autentikasi Gagal -> catat percobaan gagal untuk throttle
+        RateLimiter::hit($throttleKey, $this->decaySeconds);
+
         return back()->withErrors([
             'email' => 'Email atau password yang Anda masukkan salah.',
         ])->onlyInput('email');
@@ -87,6 +137,23 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Resepsionis wajib menutup shift kasir yang masih terbuka sebelum logout,
+        // supaya setiap transaksi kasir tetap tercatat ke shift (audit kas tidak putus).
+        if ($user && $user->isReceptionist() && $user->tenant_id) {
+            $openShift = ReceptionistShift::where('tenant_id', $user->tenant_id)
+                ->where('user_id', $user->id)
+                ->where('status', 'open')
+                ->exists();
+
+            if ($openShift) {
+                return redirect()->route('receptionist.shifts')
+                    ->with('error', 'Shift kasir Anda masih terbuka. Tutup shift terlebih dahulu sebelum logout.');
+            }
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

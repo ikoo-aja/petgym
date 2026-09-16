@@ -2,13 +2,13 @@
 
 @section('title', 'Pemantauan Akun Staf (Owner) &mdash; PetGym')
 @section('page_title', 'Pemantauan Akun Staf & Otentikasi Role')
-@section('page_subtitle', 'Monitoring daftar akun karyawan gym dan hak akses Role-Based Access Control (RBAC) (Mode Pemantauan & Read-Only)')
+@section('page_subtitle', 'Monitoring daftar akun karyawan gym dan hak akses Role-Based Access Control')
 
 @section('content')
 
 
 <div class="card-custom">
-  <h6 class="font-weight-bold text-dark mb-3">Daftar Akun Staf</h6>
+  <h6 class="font-weight-bold text-dark mb-3">Daftar Akun Karyawan Gym & RBAC</h6>
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">

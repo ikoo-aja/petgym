@@ -105,7 +105,7 @@
                 </td>
                 <td class="text-right">
                   @if(!Auth::user() || !Auth::user()->isOwner())
-                  <form action="{{ route('admin.checkin.destroy', $ci->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Batalkan presensi kunjungan ini?')">
+                  <form action="{{ route('admin.checkin.destroy', $ci->id) }}" method="POST" class="d-inline" data-confirm="Batalkan presensi kunjungan ini?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Batalkan</button>

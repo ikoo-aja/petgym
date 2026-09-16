@@ -10,7 +10,7 @@
 <section id="billing" class="mb-5">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="font-weight-bold text-black mb-0">Keuangan & Invoice Tagihan</h4>
-    <button class="btn btn-outline-primary btn-sm" onclick="showToast('Invoice Manual', 'Modul pembuatan invoice tagihan manual berhasil dibuka.', 'info');">+ Buat Invoice Manual</button>
+    {{-- <button class="btn btn-outline-primary btn-sm" onclick="showToast('Invoice Manual', 'Modul pembuatan invoice tagihan manual berhasil dibuka.', 'info');">+ Buat Invoice Manual</button> --}}
   </div>
 
   @if(session('success'))

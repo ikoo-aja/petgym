@@ -118,7 +118,7 @@
                     data-phone="{{ $t->phone }}"
                     data-specialization="{{ $t->specialization }}"
                     style="border-radius: 6px;">Edit</button>
-                  <form action="{{ route('admin.classes.destroy-trainer', $t->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus trainer ini?')">
+                  <form action="{{ route('admin.classes.destroy-trainer', $t->id) }}" method="POST" class="d-inline" data-confirm="Hapus trainer ini?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>

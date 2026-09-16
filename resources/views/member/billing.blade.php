@@ -1,77 +1,83 @@
 @extends('layouts.member')
 
-@section('title', 'Riwayat Tagihan Member - PetGym')
-@section('page_title', 'Riwayat Tagihan & Invoice')
-@section('page_subtitle', 'Rekapitulasi bukti pembayaran paket keanggotaan, penyewaan loker digital, dan kuota sesi Personal Trainer.')
+@section('title', 'Riwayat Tagihan - PetGym')
+@section('page_title', 'Riwayat Tagihan')
+@section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
 
 @section('content')
-<!-- Filter Navigation -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="btn-group" role="group">
-    <a href="{{ route('member.billing') }}" class="btn btn-sm {{ !request()->has('type') ? 'btn-primary' : 'btn-outline-primary' }}">Semua Tagihan</a>
-    <a href="{{ route('member.billing', ['type' => 'membership']) }}" class="btn btn-sm {{ request('type') == 'membership' ? 'btn-primary' : 'btn-outline-primary' }}">Keanggotaan & PT</a>
-    <a href="{{ route('member.billing', ['type' => 'inventory']) }}" class="btn btn-sm {{ request('type') == 'inventory' ? 'btn-primary' : 'btn-outline-primary' }}">Loker & Ritel</a>
+<!-- Filter Navigation (Separated Buttons & Spacing) -->
+<div class="mb-4 pt-2">
+  <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+    <a href="{{ route('member.billing') }}" class="btn font-weight-bold px-2 py-1 {{ !request()->has('type') ? 'btn-primary' : 'btn-outline-primary' }}" style="border-radius: 10px; font-size: 13px;">
+      Semua
+    </a>
+    <a href="{{ route('member.billing', ['type' => 'membership']) }}" class="btn font-weight-bold px-2 py-1 {{ request('type') == 'membership' ? 'btn-primary' : 'btn-outline-primary' }}" style="border-radius: 10px; font-size: 13px;">
+      Keanggotaan & PT
+    </a>
+    <a href="{{ route('member.billing', ['type' => 'inventory']) }}" class="btn font-weight-bold px-2 py-1 {{ request('type') == 'inventory' ? 'btn-primary' : 'btn-outline-primary' }}" style="border-radius: 10px; font-size: 13px;">
+      Loker & Ritel
+    </a>
   </div>
-  <div class="text-muted small">Total: <strong>{{ count($transactions) }} Transaksi</strong></div>
+
+  <div class="mt-3 pt-2">
+    <span class="badge badge-light border px-3 py-2 text-muted" style="font-size: 12px; border-radius: 8px;">
+      Total: <strong class="text-dark">{{ count($transactions) }} Transaksi</strong>
+    </span>
+  </div>
 </div>
 
+<!-- Transactions Card List -->
 <div class="card-custom">
-  <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
-      <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-        <tr>
-          <th>No. Invoice</th>
-          <th>Tanggal & Jam</th>
-          <th>Kategori</th>
-          <th>Metode Bayar</th>
-          <th>Total Nominal</th>
-          <th>Status</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($transactions as $t)
-          <tr>
-            <td class="font-weight-bold text-dark">{{ $t->invoice_number }}</td>
-            <td class="text-muted" style="font-size: 12.5px;">{{ $t->created_at ? $t->created_at->format('d M Y H:i') : '-' }}</td>
-            <td>
-              <span class="badge badge-secondary text-uppercase">{{ $t->type ?? 'membership' }}</span>
-            </td>
-            <td>
-              <span class="badge badge-light border text-uppercase" style="font-size: 10px;">{{ $t->payment_method ?? 'QRIS' }}</span>
-            </td>
-            <td class="font-weight-bold text-primary">
-              @if($t->total_amount == 0)
-                <span class="text-success">GRATIS (Bundling Premium)</span>
-              @else
-                Rp {{ number_format($t->total_amount, 0, ',', '.') }}
-              @endif
-            </td>
-            <td>
-              <span class="badge badge-success">Lunas</span>
-            </td>
-            <td>
-              <button type="button" class="btn btn-sm btn-outline-primary py-1 btn-receipt" 
-                      data-invoice="{{ $t->invoice_number }}"
-                      data-date="{{ $t->created_at ? $t->created_at->format('d M Y H:i') : '-' }}"
-                      data-method="{{ strtoupper($t->payment_method ?? 'QRIS') }}"
-                      data-amount="{{ $t->total_amount == 0 ? 'GRATIS (Bundling Premium)' : 'Rp ' . number_format($t->total_amount, 0, ',', '.') }}"
-                      data-type="{{ strtoupper($t->type ?? 'MEMBERSHIP') }}"
-                      data-toggle="modal" 
-                      data-target="#receiptModal">
-                Detail Struk
-              </button>
-            </td>
-          </tr>
-        @empty
-          <tr>
-            <td colspan="7" class="text-center py-4 text-muted">Belum ada riwayat transaksi tagihan tercatat.</td>
-          </tr>
-        @endforelse
-      </tbody>
-    </table>
+  <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+    <h6 class="font-weight-bold text-dark mb-0">Daftar Transaksi</h6>
+    <span class="badge badge-primary font-weight-bold">{{ count($transactions) }} Transaksi</span>
   </div>
+
+  @forelse($transactions as $t)
+    <div class="border rounded p-3 mb-3 bg-light" style="border-radius: 12px !important;">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <strong class="text-dark d-block" style="font-size: 14px;">{{ $t->invoice_number }}</strong>
+          <small class="text-muted">{{ $t->created_at ? $t->created_at->format('d M Y H:i') : '-' }} WIB</small>
+        </div>
+        <span class="badge badge-success px-2 py-1 font-weight-bold" style="font-size: 11px;">Lunas</span>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center py-2 border-top border-bottom my-2" style="font-size: 13px;">
+        <div>
+          <span class="badge badge-secondary text-uppercase mr-1">{{ $t->type ?? 'membership' }}</span>
+          <span class="badge badge-light border text-uppercase">{{ $t->payment_method ?? 'QRIS' }}</span>
+        </div>
+        <div class="font-weight-bold text-primary" style="font-size: 15px;">
+          @if($t->total_amount == 0)
+            <span class="text-success">GRATIS (Bundling)</span>
+          @else
+            Rp {{ number_format($t->total_amount, 0, ',', '.') }}
+          @endif
+        </div>
+      </div>
+
+      <div class="text-right">
+        <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold btn-receipt px-3 py-1"
+                style="border-radius: 8px;"
+                data-invoice="{{ $t->invoice_number }}"
+                data-date="{{ $t->created_at ? $t->created_at->format('d M Y H:i') : '-' }}"
+                data-method="{{ strtoupper($t->payment_method ?? 'QRIS') }}"
+                data-amount="{{ $t->total_amount == 0 ? 'GRATIS (Bundling Premium)' : 'Rp ' . number_format($t->total_amount, 0, ',', '.') }}"
+                data-type="{{ strtoupper($t->type ?? 'MEMBERSHIP') }}"
+                data-toggle="modal"
+                data-target="#receiptModal">
+          <span class="icon-file-text mr-1"></span> Lihat Bukti Struk
+        </button>
+      </div>
+    </div>
+  @empty
+    <div class="text-center py-4 text-muted bg-light rounded border">
+      <span class="icon-file-text d-block mb-1" style="font-size: 24px;"></span>
+      <small class="d-block font-weight-semibold">Belum ada riwayat transaksi tagihan tercatat.</small>
+    </div>
+  @endforelse
 </div>
 
 <!-- Modal Struk Pembayaran -->

@@ -1,0 +1,740 @@
+================================================================================
+PANDUAN PRESENTASI — PROGRES 2 : "PERAN SETIAP PENGGUNA"
+Sistem Manajemen Gym Multi-Tenant (Laravel)
+================================================================================
+
+Dokumen ini dibuat berdasarkan pembacaan menyeluruh terhadap kode project:
+routes/web.php, semua controller, model, migration, seeder, dan tampilan (blade).
+Gunakan sebagai "naskah contekan" latihan — bukan untuk dibaca langsung saat demo.
+
+--------------------------------------------------------------------------------
+A. PITCH PEMBUKA (hafalkan 1 kalimat ini)
+--------------------------------------------------------------------------------
+"Project ini adalah sistem manajemen gym berbasis web dengan model SaaS
+(Software as a Service). Satu aplikasi dipakai oleh banyak pemilik gym
+(tenant), dan setiap orang di dalam gym — pemilik, admin, manager,
+resepsionis, personal trainer, sampai member — punya halaman dan peran
+masing-masing yang berbeda. Pada progress 2 ini saya fokus menyelesaikan
+peran dan fitur dari setiap pengguna tersebut."
+
+Kalau guru tanya "ini pakai apa?", cukup satu kalimat:
+"Dibangun dengan framework Laravel (PHP) dan database MySQL."
+
+--------------------------------------------------------------------------------
+B. GAMBARAN BESAR (kalau guru tanya "project apa ini, siapa user-nya?")
+--------------------------------------------------------------------------------
+Masalah yang dipecahkan:
+  Pengelolaan gym biasanya berceceran: daftar member di buku, kasir manual,
+  jadwal kelas di grup chat, loker dicatat kertas. Pemilik beberapa cabang
+  gym juga butuh satu sistem terpusat.
+
+Solusi:
+  1 platform yang bisa disewa banyak gym (multi-tenant). Tiap gym punya
+  "tenant" sendiri dengan nama & domain sendiri (contoh: fitlife.workout.id).
+  Di dalam satu tenant, semua orang di gym pakai aplikasi yang sama tapi
+  melihat antarmuka sesuai perannya.
+
+Pelaku / role di sistem (ini inti presentasi progress 2):
+  1. Superadmin      -> pemilik PLATFORM (pihak penyedia software)
+  2. Owner           -> pemilik GYM / tenant (melihat bisnisnya)
+  3. Admin           -> pengelola operasional harian gym
+  4. Manager         -> kepala operasional (alat, shift, approval)
+  5. Resepsionis     -> front desk (tamu, loker, shift, keluhan)
+  6. Personal Trainer-> pelatih (jadwal kelas & sesi PT)
+  7. Member          -> anggota gym (self-service portal)
+  8. Guest           -> pengunjung yang belum daftar (buku tamu / checkout publik)
+
+Alur besar sistem (ceritakan seperti ini biar nyambung):
+  Superadmin mendaftarkan tenant + memilih paket (Basic/Pro/Enterprise)
+  -> tenant aktif -> Owner & staf gym login -> Admin bikin akun staf dengan
+  role tertentu -> Resepsionis layani tamu/member di front desk ->
+  Member akses portal sendiri (loker, kelas, PT, tagihan) -> Manager
+  menyetujui operasional (void, cuti, komplain) -> Owner pantau semuanya
+  read-only.
+
+--------------------------------------------------------------------------------
+C. KONSEP BISNIS YANG HARUS LU KUASAI (biar gak gugup ditanya)
+--------------------------------------------------------------------------------
+1. Multi-tenant = banyak "gym/perusahaan" pakai 1 aplikasi yang sama.
+   Data tiap gym TIDAK PERNAH tercampur: login sebagai FitLife, kamu
+   cuma lihat data FitLife; login sebagai Powerhouse, cuma data
+   Powerhouse. Bukti demo: dua gym hidup dalam satu aplikasi, dan tiap
+   gym punya website publik sendiri (fitlife.localhost &
+   powerhouse.localhost).
+
+2. Alur login: sistem melihat jabatan orang yang login (superadmin,
+   owner, admin, manager, receptionist, trainer, member) lalu
+   mengarahkannya ke halaman utama masing-masing. Karena itu satu
+   aplikasi bisa dipakai semua orang di gym tanpa bingung.
+
+3. Pemisahan peran (RBAC): tiap peran punya menu & kewenangan berbeda —
+   Owner hanya memantau (read-only), Manager menyetujui, Resepsionis
+   melayani front desk, Member mengurus akun sendiri. Yang tidak berhak
+   membuka halaman peran lain DITOLAK sistem (bukan cuma menu-nya
+   disembunyikan).
+
+--------------------------------------------------------------------------------
+D. AKUN DEMO (password SEMUA = 1234) — data sudah ada lewat seeder
+--------------------------------------------------------------------------------
+Login sebagai Superadmin (penyedia platform):
+  email: test@example.com
+
+Login sebagai tim "FitLife Studio" (contoh tenant gym aktif):
+  Owner        : owner@fitlife.com        (Budi Pratama)
+  Admin        : admin@fitlife.com
+  Manager      : manager@fitlife.com      (Joko, bagian Operasional & Keuangan)
+  Resepsionis  : resepsionis@fitlife.com  (Rina)
+  Trainer      : alex@fitlife.com         (Coach Alex)
+  Member       : member@fitlife.com       (portal member)
+
+Login sebagai tim "Powerhouse Gym" (tenant kedua, Paket Enterprise,
+SEMUA data & menu operasional juga terisi lengkap):
+  Owner        : owner@powerhouse.com        (Siti Rahma)
+  Admin        : admin@powerhouse.com        (Dian)
+  Manager      : manager@powerhouse.com      (Bayu)
+  Resepsionis  : resepsionis@powerhouse.com  (Dewi)
+  Trainer      : raka@powerhouse.com         (Coach Raka)
+  Member       : member@powerhouse.com       (portal member — data: Dodi, PIN 991234)
+  Catatan: hanya 2 tenant yang di-seed (sengaja, biar tiap tenant
+  lengkap & hidup). Tenant baru bisa ditambah dari menu superadmin
+  "Daftarkan Tenant" — otomatis dibuatkan akun Owner + Admin.
+
+Data pendukung FitLife (muncul di layar, hafal ini biar kelihatan ngerti):
+  - Member: Budi Santoso (PIN 881234), Siti Rahayu (PIN 885678, segera
+    kedaluwarsa — sengaja dibuat 4 hari lagi), Agus Pratama (PIN 889900)
+  - Loker #01-#12; #03 terpakai, #10 rusak, sisanya tersedia
+  - Kelas: "Zumba Morning Energizer" (Senin 08:00), "Yoga Flow" (Rabu 17:00)
+  - Produk kasir: Whey Shake 35rb, Air Mineral 5rb, Handuk 75rb
+  - Promo "FITAGUSTUS" diskon 15%, komplain loker kamar mandi "open",
+    vendor "CV Sejahtera Abadi", treadmill perlu servis bulan depan,
+    dumbbell set berstatus "perlu_servis"
+  - Invoice #INV-2026-001 FitLife: 1,2 jt, status pending
+  - Untuk demo LUPA PASSWORD pakai member@fitlife.com (lihat step [8])
+
+Halaman landing publik per tenant (buka lewat http://localhost:8000):
+  - fitlife.localhost     -> FitLife Studio (Paket Pro: kustom warna + fitur)
+  - powerhouse.localhost  -> Powerhouse Gym (Paket Enterprise: + statistik angka)
+  Semua akun demo emailnya SUDAH terverifikasi (biar login langsung jalan).
+
+--------------------------------------------------------------------------------
+E. SKENARIO DEMO 15–20 MENIT (urut, jangan lompat-lompat)
+--------------------------------------------------------------------------------
+Cara menyiapkan: `php artisan migrate:fresh --seed`, lalu `php artisan serve`
+(buka http://127.0.0.1:8000). Kalau sudah pernah, cukup `php artisan
+migrate:fresh --seed` sekali sebelum demo.
+PENTING di Windows: unset dulu variabel MAIL_* sistem sebelum menjalankan
+perintah artisan (lihat bagian J) supaya email demo masuk ke Mailpit,
+bukan ke file log.
+
+[1] SUPERADMIN — "peran penjual platform" (1–2 menit)
+    Login test@example.com / 1234.
+    Tunjukkan: menu Kelola Penyewa (2 tenant aktif: FitLife Studio
+    [Pro] & Powerhouse Gym [Enterprise] — masing-masing punya 6 akun
+    user), Paket Sewa (Basic 500rb / Pro 1,2jt / Enterprise 2,5jt),
+    Keuangan & Tagihan (invoice #INV-2026-001 pending & #002 lunas),
+    dan Log aktivitas sistem. Kalau mau, daftarkan tenant BARU lewat
+    form "Daftarkan Tenant" dan tunjukkan: 2 akun (Owner + Admin)
+    otomatis langsung jadi, LANGSUNG terverifikasi & langsung bisa
+    dipakai — ini bukti alur "satu klik, tenant aktif".
+    Poin yang mau disampaikan: "Peran ini yang menjalankan BISNISnya
+    software-nya — mendaftarkan gym, menentukan paket, mengaktifkan /
+    menonaktifkan tenant."
+
+[2] OWNER — "pemilik gym, mode pantau" (1–2 menit)
+    Logout, login owner@fitlife.com / 1234.
+    Tunjukkan dashboard owner: statistik bisnis. Lalu jelaskan: halaman
+    Transaksi/Member/Kelas/Inventori/Staf hanya untuk MEMBACA (read-only),
+    tombol tambah-ubah-hapus disembunyikan untuk role owner.
+    Poin: "Owner cukup memantau performa gym tanpa bisa mengubah data —
+    ini mencegah pemilik mengotori data operasional."
+
+[3] ADMIN — "otak operasional harian" (3–4 menit) — BAGIAN TERBESAR
+    Login admin@fitlife.com / 1234.
+    Jalan cepat ke fitur yang paling kuat:
+    a. Menu Member: daftar member; perhatikan kolom status & masa aktif.
+       Buat member baru (atau buka history member).
+    b. Menu Check-In: tunjukkan proses check-in pakai PIN member
+       (contoh 889900). Jelaskan: member masuk gym = front desk input PIN.
+    c. Menu POS / Kasir: buka halaman kasir, tambahkan produk ke keranjang,
+       checkout sampai muncul struk/invoice. Lalu jelaskan alur VOID:
+       transaksi bisa diminta void (batal) dan butuh persetujuan Manager —
+       ini contoh pemisahan peran & aturan 4 mata.
+    d. Menu Staf (RBAC): di sinilah role lain DIBUAT. Tunjukkan form
+       tambah staf dengan pilihan role manager/receptionist/trainer.
+       JELASKAN: saat akun dibuat, sistem otomatis membuat baris profil
+       sesuai role (managers / receptionists / trainers) — sinkron satu
+       langkah. Kalau pilih role Personal Trainer, muncul input nomor
+       telepon — kontaknya otomatis tampil di halaman Kelas & Trainer
+       (admin & owner).
+       JELASKAN juga: kalau emailnya sudah dipakai orang lain, sistem
+       menolak dengan pesan yang terlihat jelas di form (bukan gagal
+       diam-diam).
+    e. Menu Kelas & Trainer: kelola jadwal kelas & data trainer.
+    (Menu Loker & Laporan bisa disebut saja, tidak perlu didemokan.)
+
+[4] MANAGER — "kepala operasional & pintu approval" (2–3 menit)
+    Login manager@fitlife.com / 1234.
+    Tunjukkan satu halaman fitur manajerial dengan beberapa bagian:
+    - Equipment & Maintenance: daftar alat gym; buka alat berstatus
+      "perlu_servis" dan catat maintenance log (harga servis 350rb di
+      treadmill). Jelaskan: selesai servis, status alat di-reset.
+    - Shift & Cuti: ada permintaan cuti resepsionis status pending —
+      setujui/tolak di sini.
+    - Approval void: kalau tadi di step [3] sempat minta void, ini dia
+      muncul sebagai transaksi yang menunggu persetujuan — approve.
+    - Promo, Komplain, Master Kelas, Vendor: sebutkan sepintas.
+    Poin: "Manager TIDAK mengelola member/kasir harian — fokusnya approval
+    dan data pendukung operasional. Void butuh persetujuan manager, bukan
+    bisa dibatalkan sembarangan oleh kasir."
+
+[5] RESEPSIONIS — "wajah pertama gym / front desk" (2 menit)
+    Login resepsionis@fitlife.com / 1234.
+    Tunjukkan: Shift (mulai shift / clock-in — keluar-masuk kerja staf
+    dicatat). NILAI PLUS: coba klik Logout saat shift masih terbuka —
+    sistem MENOLAK dan menyuruh tutup shift dulu (setoran kas wajib
+    tercatat). Buku Tamu (catat tamu baru → konversi jadi member), Loker
+    (sewa/kembalikan), Lost & Found, Keluhan (status open sampai manager
+    tindak lanjut), Check-in sesi PT.
+    Poin: "Resepsionis melayani langsung di depan; semua yang dia lakukan
+    tercatat dan yang butuh keputusan dilempar ke manager."
+
+[6] MEMBER — "self-service lewat portal sendiri" (3–4 menit) — NILAI PLUS
+    Login member@fitlife.com / 1234.
+    a. Dashboard member: ringkasan (sewa loker aktif, kuota PT, RSVP kelas,
+       total pengeluaran bulan ini).
+    b. Loker: grid visual 12 loker berwarna (tersedia/terpakai/rusak).
+       Sewa loker tersedia → sistem kasih PIN akses 6 digit → loker berubah
+       status "terpakai". Jelaskan ANTI DOUBLE-BOOKING: loker yang sudah
+       terpakai tidak bisa disewa orang lain & satu member hanya boleh punya
+       1 sewa aktif.
+    c. Kelas: daftar jadwal → RSVP kelas. Kalau kelas penuh, member masuk
+       WAITLIST otomatis; kalau ada yang batal, urutan pertama waitlist
+       otomatis naik. Jelaskan sistem PENALTI: member yang no-show (tidak
+       hadir tanpa batal) kena block sementara dari booking.
+    d. PT: beli paket kuota sesi personal training (5/10/20 sesi) → booking
+       jadwal. Jelaskan CONFLICT-FREE BOOKING: sistem menolak kalau trainer
+       sudah dibooking di jam yang sama.
+    e. Tagihan: riwayat transaksi (sewa loker, upgrade membership, beli
+       kuota PT) muncul sebagai invoice.
+    (Catatan jujur: pembayaran di portal ini MASIH SIMULASI — langsung
+     dianggap lunas tanpa payment gateway beneran. Lihat bagian kelemahan.)
+
+[7] TRAINER — "pelatih; lihat jadwalnya" (opsional, 1 menit)
+    Login alex@fitlife.com / 1234.
+    Tampilkan dashboard trainer: kelas yang diajar, booking sesi PT dari
+    member, dan daftar RSVP member untuk kelasnya.
+    Kalau di step [6] member sempat booking PT, di sini booking itu muncul.
+    PENTING (jujur): role trainer masih tahap awal — baru dashboard
+    read-only, belum ada menu aksi khusus trainer (belum bisa kelola
+    jadwal sendiri / konfirmasi kehadiran). Sampaikan ini sebagai bagian
+    rencana progres berikutnya, jangan ditutup-tutupi (lihat bagian I).
+
+[8] LUPA PASSWORD — "fitur keamanan standar industri" (BONUS, 2–3 menit)
+    Bisa didemokan kapan saja karena berlaku untuk akun mana pun.
+    Prasyarat: Mailpit jalan (lihat bagian J) & `php artisan serve`
+    dijalankan setelah unset variabel MAIL_* (lihat bagian J).
+    a. Di halaman login, klik "Lupa password?".
+    b. Masukkan member@fitlife.com, submit.
+       JELASKAN: respons sistem sama saja apakah email terdaftar atau
+       tidak ("kalau email terdaftar, link sudah dikirim") — ini ANTI
+       USER ENUMERATION, hacker tidak bisa scan email mana yang member.
+    c. Buka http://localhost:8025 (inbox Mailpit) → email reset masuk di
+       sana → klik tombol "Reset Password" di dalam email.
+       JELASKAN: token di link itu acak, sekali pakai, tersimpan TER-HASH
+       di database, dan kedaluwarsa 60 menit — database bocor pun token
+       tidak berguna.
+    d. Di halaman reset, set password baru. TUNJUKKAN tombol mata
+       (icon eye / eye-slash) di kedua field password — klik untuk
+       melihat/menyembunyikan password (fitur blind eye).
+    e. Setelah reset, sesi lama otomatis dimatikan → login pakai password
+       baru → masuk dashboard member.
+    Poin: "Admin tidak pernah tahu/menentukan password member — pemilik
+    akun membuktikan kepemilikan lewat email, persis cara SaaS profesional
+    (Google Workspace, Notion, dsb)."
+
+[9] VERIFIKASI EMAIL AKUN STAF BARU (BONUS, 2 menit) — KEAMANAN AKUN
+    Pakai alur ADMIN yang sudah jalan di step [3]:
+    a. Login admin@fitlife.com -> menu Akun Staf -> "Tambah Akun Staf Baru"
+       (role bebas, misal Resepsionis dengan email baru, mis.
+       rina2@fitlife.com).
+       JELASKAN: sistem otomatis mengirim LINK VERIFIKASI ke email staf
+       itu — admin tidak perlu melakukan apa-apa lagi.
+    b. Buka http://localhost:8025 (Mailpit) -> email "Verify Email
+       Address" masuk -> klik tombolnya.
+       JELASKAN: link-nya SIGNED URL (ditandatangani rahasia aplikasi,
+       tidak bisa dipalsukan) & kedaluwarsa 60 menit.
+    c. Coba login akun staf baru SEBELUM verifikasi: user masuk halaman
+       "Verifikasi Email Anda" (semua menu dashboard terkunci). Setelah
+       klik link di email -> login -> langsung masuk dashboard staf.
+    Poin: "Akun yang dibuat admin tidak otomatis aktif — pemilik email
+    harus membuktikan emailnya dulu. Ini mencegah akun palsu & email
+    typo. Di list staf admin juga ada badge 'Belum Verifikasi Email'
+    + tombol kirim ulang link."
+
+[10] LANDING PAGE TENANT + GATING PAKET (BONUS, 2–3 menit) — NILAI PLUS
+    a. Buka http://fitlife.localhost:8000 — tunjukkan website FitLife
+       (hero, tentang, fitur, kontak). Lalu bandingkan
+       http://powerhouse.localhost:8000 (Enterprise: + bagian statistik
+       angka besar yang tidak ada di FitLife).
+       JELASKAN: SATU aplikasi, banyak website — kontennya per tenant.
+    b. Login admin@fitlife.com -> sidebar menu "Landing Page" (icon
+       globe). Tunjukkan form kustomisasi: teks hero, warna brand
+       (picker warna), toggle bagian halaman, daftar fitur unggulan
+       yang bisa ditambah/hapus.
+    c. JELASKAN GATING PAKET: FitLife = Paket Pro, jadi warna & fitur
+       bisa diubah TAPI bagian "Statistik Angka" terkunci (eksklusif
+       Enterprise). Ubah judul hero + warna -> Simpan -> buka
+       fitlife.localhost:8000 -> website berubah.
+    Poin: "Penegakan paket dilakukan DI SERVER: kalau ada request nakal
+    mengirim field di luar paket, controller mengabaikannya — bukan
+    cuma dimatikan di tampilan. Ini jawaban nyata untuk kelemahan
+    'fitur paket belum ditegakkan' (lihat bagian H poin 4)."
+
+[11] KEAMANAN AKSES — COBA TEMBUS DINDING PERAN (1 menit, BONUS) — KEAMANAN
+    Tanpa logout, langsung dari halaman member (bisa juga dari owner):
+    a. Di baris URL browser, ketik manual /admin/members lalu Enter.
+       JELASKAN: muncul halaman 403 "Anda tidak memiliki akses" — sistem
+       MENOLAK, bukan cuma menyembunyikan menu. Coba juga /owner/dashboard
+       dari akun member, atau /manager/dashboard dari akun admin — semua
+       ditolak.
+    b. Bandingkan: resepsionis tetap bisa buka /admin/pos (kasir) karena
+       itu memang menu bersama staf.
+    Poin: "Keamanan tidak hanya di tampilan — setiap URL dijaga gerbang
+    peran. Ini jawaban kelemahan 'member bisa buka halaman admin' yang
+    dulu saya akui sebagai rencana; sekarang sudah jadi + dites otomatis."
+
+[12] PENUTUP DEMO (30 detik)
+    "Kesimpulan: satu aplikasi, banyak peran. Setiap pengguna punya
+    dashboard, menu, dan kewenangan berbeda: superadmin menjual platform,
+    owner memantau, admin & resepsionis & manager menjalankan operasional
+    dengan sistem approval, dan member mengurus kebutuhannya sendiri.
+    Keamanan dijaga dari login (rate-limit, verifikasi email, lupa
+    password) sampai akses URL (gerbang peran). Progress berikutnya:
+    menyempurnakan role trainer dan menyambungkan pembayaran asli."
+
+--------------------------------------------------------------------------------
+F. NILAI PLUS YANG PERLU DITONJOLKAN (sesuai yang guru nilai: alur, keamanan, tampilan)
+--------------------------------------------------------------------------------
+ALUR (ceritakan urut supaya guru paham sistemnya utuh):
+- Satu aplikasi, banyak peran: superadmin jual platform -> tenant aktif
+  -> staf gym kerja sesuai peran -> member layani diri sendiri.
+- Alur approval: kasir minta void -> manager yang menyetujui (aturan
+  4 mata). Cuti staf juga butuh persetujuan manager.
+- Member self-service: sewa loker, RSVP kelas + waitlist otomatis,
+  beli kuota PT, lihat tagihan — semua dari portal member tanpa antre.
+- Tiap gym punya website publik sendiri; konten & warna beda per gym.
+- Guard logout resepsionis: shift kasir masih terbuka = logout ditolak
+  sampai shift ditutup (setoran kas wajib tercatat).
+
+KEAMANAN VALIDASI (nilai terbesar di mata guru):
+- Login di-rate-limit: 5x salah -> akun dikunci 60 detik (anti brute-force).
+- Lupa password ala industri: token acak sekali pakai tersimpan ter-hash,
+  kedaluwarsa 60 menit, respons sama untuk email terdaftar/tidak (anti
+  user-enumeration), sesi lama dimatikan setelah reset.
+- Verifikasi email WAJIB akun staf baru: link bertanda tangan 60 menit,
+  akun belum verifikasi tidak bisa masuk dashboard mana pun.
+- SEMUA URL dijaga gerbang peran (BARU): member/owner/superadmin yang
+  mengetik URL halaman role lain langsung ditolak 403 — bukan cuma menu
+  yang disembunyikan. "Read-only owner" kini ditegakkan beneran.
+- Validasi data di server untuk semua form + proteksi CSRF aktif.
+- Penegakan paket di server: field di luar paket diabaikan controller.
+- Ketahanan (BARU): kalau server email sedang mati, pembuatan akun staf
+  TIDAK gagal — akun tetap tersimpan + muncul peringatan "email belum
+  terkirim, bisa kirim ulang nanti", bukan halaman error 500.
+- Akun tenant baru yang dibuat superadmin LANGSUNG terverifikasi (BARU):
+  owner & admin-nya bisa langsung login & bekerja — tidak pernah
+  terkunci karena email verifikasi tidak terkirim.
+
+TAMPILAN & POPUP (yang bikin kesan "produk jadi", bukan tugas kuliah):
+- Semua notifikasi & konfirmasi pakai modal + toast CUSTOM (animasi,
+  warna sesuai jenis pesan) — TIDAK ADA lagi popup bawaan browser
+  (alert/confirm). Guru suka lihat ini.
+- Toggle lihat password (icon mata) di semua form password.
+- Struk kasir, modal void, modal konfirmasi hapus — modal rapi, bukan
+  halaman default bawaan framework.
+- Data demo realistis: member hampir kedaluwarsa, alat perlu servis,
+  komplain terbuka, promo aktif — bikin demo terasa hidup.
+
+--------------------------------------------------------------------------------
+G. PERTANYAAN KRITIS YANG MUNGKIN DITANYA GURU + ARAH JAWABAN
+--------------------------------------------------------------------------------
+1. "Apa bedanya project ini dengan CRUD biasa?"
+   -> Ada konsep multi-tenant (banyak gym dalam satu aplikasi, data
+      terpisah) dan multi-role (tiap pengguna lihat antarmuka berbeda
+      dengan kewenangan berbeda), plus alur approval (void butuh
+      persetujuan manager, cuti butuh approval).
+
+2. "Bagaimana data antar gym tidak tercampur?"
+   -> Setiap data punya tanda kepemilikan gym, dan sistem selalu
+      menyaring memakai tanda itu — jadi login sebagai FitLife hanya
+      melihat data FitLife, Powerhouse hanya data Powerhouse. Bukti
+      paling gampang: buka dashboard admin FitLife lalu Powerhouse —
+      isinya beda total meski aplikasinya sama.
+
+3. "Bagaimana kamu mencegah member/owner masuk ke halaman admin?"
+   -> Setiap grup URL dijaga "gerbang peran": kalau jabatan user tidak
+      cocok, sistem menolak dengan halaman 403. Bukan cuma menu yang
+      disembunyikan — URL-nya sendiri diamankan. (Sudah diterapkan +
+      dites otomatis. Yang belum: perizinan per-aksi, misal trainer
+      tidak boleh membuat akun staf.)
+
+4. "Gimana kamu memastikan data yang masuk valid & aman?"
+   -> Semua form divalidasi di server (bukan cuma di layar), password
+      disimpan ter-hash, tiap form dilindungi proteksi CSRF, login
+      di-rate-limit, akun baru wajib verifikasi email, dan setiap URL
+      dijaga gerbang peran. Jadi walaupun ada yang iseng mengetik URL
+      atau mengirim data aneh, sistem tetap menolak.
+
+5. "Kenapa pakai modal/toast custom, bukan popup biasa?"
+   -> Biar pengalaman pengguna terasa seperti produk profesional: notif
+      sukses/error muncul sebagai toast cantik di pojok kanan, konfirmasi
+      hapus/tutup shift muncul sebagai modal — bukan jendela popup
+      bawaan browser yang jelek dan mengganggu. Ini juga bikin aplikasi
+      konsisten dari halaman login sampai dashboard.
+
+6. "Kenapa password semua '1234'?"
+   -> Itu hanya untuk akun demo di seeder supaya gampang dipresentasikan;
+      password tetap disimpan ter-hash di database. Keamanan akun lain
+      SUDAH lengkap: lupa password (reset sendiri via email), verifikasi
+      email wajib untuk akun baru, dan login di-rate-limit (5x gagal =
+      kunci 60 detik). Yang tersisa: kebijakan kekuatan password / 2FA.
+
+7. "Pembayarannya asli gak?"
+   -> Jujur: belum. Semua transaksi langsung dianggap lunas (simulasi
+      metode 'qris'). Rencana: integrasi payment gateway. Kalau guru tanya
+      "kenapa?" jawab: fokus progress ini adalah alur dan peran pengguna,
+      bukan integrasi pihak ketiga.
+
+8. "Bagaimana kalau dua orang sewa loker yang sama bersamaan?"
+   -> Status loker dicek & diubah di database sebelum transaksi dicatat
+      (loker "tersedia" baru bisa disewa), plus aturan 1 member = 1 sewa
+      aktif. Diakui: belum pakai transaksi/locking database tingkat lanjut
+      (race condition teoritis tetap ada) — pengembangan ke depan.
+
+9. "Bagaimana kalau trainer sudah di-booking di jam yang sama?"
+   -> Sistem cek dulu: booking dengan trainer, tanggal, dan jam yang sama
+      yang masih berstatus 'scheduled' → kalau ada, booking ditolak dan
+      member diminta pilih jam lain.
+
+10. "Apa fungsi penalti no-show itu?"
+    -> Member yang mendaftar kelas tapi tidak hadir tanpa pembatalan
+      dicatat no_show_count; kalau melanggar, akunnya diblokir sementara
+      dari pemesanan kelas (penalty_blocked_until). Tujuannya: kuota kelas
+      tidak terbuang sia-sia.
+
+11. "Owner kok cuma bisa lihat? kenapa?"
+    -> Pemilik gym butuh pantauan performa, bukan operasional harian.
+      Sengaja dibuat read-only supaya tidak bisa mengubah data yang
+      dikerjakan stafnya (pemisahan tugas). Di kode: tombol ubah/hapus
+      disembunyikan saat role owner.
+
+12. "Siapa yang mengerjakan bagian mana — kamu sendiri?"
+    -> Jangan berbohong dan jangan mengaku semua sendiri kalau tidak.
+      Format jujur: "Saya yang merancang konsep, struktur database,
+      alur fitur, dan menulis logika utama. Untuk beberapa bagian teknis
+      (debugging, merapikan kode, kode berulang) saya dibantu tool AI
+      (misal untuk generate CRUD), dan saya memahami serta bisa
+      menjelaskan setiap bagian yang saya pakai." Guru lebih menghargai
+      pemahaman + kejujuran daripada klaim muluk.
+
+13. "Kenapa datanya banyak / ini data asli?"
+    -> Semua data contoh dibuat oleh seeder (DatabaseSeeder.php) supaya
+      demo realistis. Bukan data gym sungguhan.
+
+14. "Apa rencana kamu selanjutnya?"
+    -> (1) Perizinan per-aksi yang lebih detail (misal trainer tidak
+      boleh membuat akun staf), (2) lengkapi peran trainer (kelola
+      jadwal sendiri, konfirmasi kehadiran), (3) payment gateway asli /
+      status menunggu bayar, (4) penegakan fitur paket untuk menu &
+      route aplikasi (contoh gating landing page sudah jalan di server),
+      (5) kebijakan password kuat & 2FA opsional, (6) bersihkan file
+      sampah di repo, (7) perluas test otomatis.
+
+15. "Gimana cara kerja fitur lupa password kamu? aman gak?"
+    -> Alur: user masukkan email → sistem bikin token acak sekali-pakai
+      yang disimpan TER-HASH dan dikirim lewat email (link) → user buka
+      link, set password baru → token langsung dihapus & semua sesi lama
+      dimatikan. Aman karena: token tidak pernah tersimpan plaintext
+      (DB bocor pun tak berguna), kedaluwarsa 60 menit, sekali pakai,
+      respons sama untuk email terdaftar/tidak (anti user enumeration),
+      dan endpoint-nya di-throttle. Email dikirim tanpa campur tangan
+      admin — pemilik akun membuktikan kepemilikan lewat email, bukan
+      admin yang menentukan password.
+
+16. "Kok akun staf baru harus verifikasi email dulu? ribet."
+    -> Ini standar industri (Google Workspace, Notion, semua SaaS
+      serius). Fungsinya: (1) memastikan email yang didaftarkan admin
+      benar-benar milik orang itu — kalau typo, link nyasar & akun tak
+      aktif, (2) mencegah pembuatan akun palsu massal, (3) kalau nanti
+      lupa password, email itu jadi jalur pemulihan yang aman. Teknisnya:
+      link bertanda tangan (signed URL) yang kedaluwarsa 60 menit dan
+      tidak bisa dipalsukan; akun yang belum verifikasi tidak bisa
+      membuka dashboard mana pun.
+
+17. "Kenapa tiap gym punya website sendiri? kok bisa?"
+    -> Karena ini SaaS, tiap gym adalah "brand" sendiri — landing page
+      adalah wajah publiknya. Tiap gym punya alamat web sendiri
+      (fitlife.localhost & powerhouse.localhost; di produksi tinggal
+      ganti domain jadi fitlife.workout.id) dan sistem mencocokkan
+      alamat itu ke gym-nya. Kerennya: seberapa banyak yang boleh
+      dikustomisasi MENGIKUTI PAKET — Basic hanya teks, Pro tambah
+      warna/bagian/fitur, Enterprise tambah statistik — dan penegakannya
+      di server, bukan cuma di tampilan.
+
+18. "Kalau ada user nakal, apa yang bisa dia rusak?"
+    -> Sangat terbatas: URL halaman role lain ditolak (gerbang peran),
+      field paket di luar haknya diabaikan server, form divalidasi di
+      server, percobaan login dibatasi, dan akun baru harus verifikasi
+      email dulu. Yang belum sempurna: perizinan per-aksi (misal
+      trainer masih bisa membuka Data Member karena itu menu bersama
+      staf) — itu rencana berikutnya.
+
+19. "Pernah nemu bug pas bikin ini?"
+    -> Pernah, dan semuanya ketemu lewat pengujian — ini pola kerja
+      yang saya banggakan: tulis test -> test nemu bug -> perbaiki ->
+      test hijau. Contoh nyata:
+      a. Bug waitlist kelas: test otomatis menemukan bahwa saat member
+         di daftar tunggu membatalkan, sistem lama tetap mempromosikan
+         orang berikutnya sehingga peserta kelas bisa MELEBIHI
+         kapasitas. Saya perbaiki: promosi hanya terjadi jika yang
+         batal benar-benar peserta terkonfirmasi.
+      b. Bug email server mati: pas mencoba menambah akun staf saat
+         server email tidak terhubung, halaman sempat menampilkan error
+         500 padahal akunnya sebenarnya TERSIMPAN — pengalaman yang
+         membingungkan. Saya perbaiki: kegagalan kirim email tidak lagi
+         menghentikan proses; akun tetap tersimpan dan admin diberi
+         tahu "email gagal terkirim, bisa kirim ulang nanti".
+      c. Bug akun tenant baru terkunci: akun admin yang dibuat otomatis
+         saat superadmin mendaftarkan tenant baru tidak terverifikasi
+         dan tidak ada email verifikasi yang dikirim — akibatnya tidak
+         bisa membuka dashboard sama sekali. Saya perbaiki: akun hasil
+         registrasi superadmin langsung terverifikasi. Sekalian
+         menemukan masalah validasi yang gagal diam-diam (email dobel
+         tidak muncul pesannya) — sekarang pesan errornya tampil jelas
+         di form.
+
+--------------------------------------------------------------------------------
+H. KELEMAHAN PROJECT (sadar diri = nilai plus di mata guru)
+--------------------------------------------------------------------------------
+Urut dari yang paling penting. Sampaikan dengan tenang:
+"Saya sudah mengidentifikasi kekurangan berikut, dan ini rencana perbaikannya."
+
+1. [SUDAH DIPERBAIKI] Otorisasi role di level URL — SUDAH JADI.
+   Semua grup URL (admin/, manager/, member/, dst) sekarang dijaga
+   gerbang peran: jabatan yang salah ditolak 403 (misal member buka
+   /admin/members). Resepsionis tetap bisa pakai halaman kasir/check-in
+   karena itu memang menu bersama staf. Yang BELUM: perizinan per-aksi
+   (misal trainer masih bisa membuka Data Member — disengaja karena
+   menu bersama; tapi belum ada batasan seperti "trainer tidak boleh
+   membuat akun staf"). Rencana: permission per-aksi.
+
+2. Pembayaran masih simulasi penuh.
+   Semua transaksi (sewa loker, upgrade membership, kuota PT, POS)
+   langsung "lunas" tanpa payment gateway, tanpa cek pembayaran.
+   Rencana: integrasi payment gateway / minimal status menunggu bayar.
+
+3. Role Personal Trainer belum selesai.
+   Baru dashboard read-only (kelas yang diajar, booking PT, RSVP). Belum
+   ada aksi trainer: mengelola ketersediaan jadwal, konfirmasi kehadiran
+   sesi, menandai no-show member, dsb. Rencana: lengkapi di progres 3.
+
+4. Penegakan fitur paket BARU SEBAGIAN (sudah terbukti di landing page).
+   SUDAH: level kustomisasi landing page ditegakkan DI SERVER — Basic
+   hanya teks, Pro +warna/bagian/fitur, Enterprise +statistik; request
+   nakal yang mengirim field di luar paket diabaikan controller (diuji
+   otomatis). BELUM: gating untuk MENU & route aplikasi lain (mis. tenant
+   Basic masih bisa membuka URL modul Pro kalau tahu alamatnya).
+   Rencana: petakan fitur paket ke modul, lalu gate menu + route-nya
+   dengan pola yang sama seperti landing page.
+
+5. Akun & keamanan dasar — SUDAH LENGKAP untuk kebutuhan demo.
+   SUDAH: lupa password/reset (token ter-hash, anti user-enumeration,
+   sesi lama dimatikan), verifikasi email WAJIB untuk akun staf baru
+   (signed URL 60 menit + halaman verifikasi + kirim ulang di-throttle),
+   dan login DI-RATE-LIMIT (5x gagal = kunci 60 detik, anti brute-force).
+   SISA: password demo tetap seragam '1234' (sengaja, untuk demo) dan
+   belum ada kebijakan kekuatan password / 2FA. Rencana: kebijakan
+   password & multi-faktor opsional.
+
+6. Pemeliharaan kode & kerapian repo.
+   Ada file-file di luar aplikasi yang tidak berkaitan: folder
+   zkunrtul/workout-master (template HTML utuh ter-download), file
+   make_transparent.php (berisi path absolut komputer sendiri, cuma
+   dipakai sekali bikin logo), dan grep.exe.stackdump. Sebaiknya
+   dihapus/dimasukkan .gitignore supaya repo bersih sebelum dikumpulkan.
+
+7. Pengujian otomatis SUDAH LUAS, tapi belum semua fitur.
+   SUDAH ADA 58 test lulus: lupa password, member settings, rate-limit
+   login, verifikasi email, landing subdomain + gating paket,
+   LOGIN-PER-ROLE (7 role → dashboard sendiri), ANTI DOUBLE-BOOKING
+   LOKER, WAITLIST KELAS (auto-promote + bug waitlist yang ditemukan &
+   diperbaiki), GUARD LOGOUT RESEPSIONIS (shift terbuka wajib ditutup
+   dulu), OTORISASI ROLE (akses lintas-role ditolak 403), NOMOR HP
+   TRAINER tersimpan dari form staf, KETAHANAN saat email server mati
+   (akun tetap tersimpan, bukan 500), VERIFIKASI OTOMATIS tenant baru,
+   dan ERROR VALIDASI tampil jelas di form.
+   BONUS: pengujian menemukan 3 bug beneran yang sudah diperbaiki:
+   (1) waitlist — member di daftar tunggu yang batal tetap mempromosikan
+   orang berikutnya sehingga peserta confirmed MELEBIHI kapasitas kelas;
+   (2) email server mati — tambah akun staf sempat menampilkan error 500
+   padahal akun tersimpan, sekarang akun tetap tersimpan + peringatan
+   jelas; (3) akun tenant baru dari superadmin terkunci karena tidak
+   terverifikasi & tanpa email verifikasi, sekarang langsung terverifikasi.
+   YANG BELUM: test booking PT bebas-konflik, penalti no-show member,
+   dan alur resepsionis/manager. Rencana: perluas ke area itu.
+
+8. Race condition tingkat lanjut belum ditangani.
+   Sewa loker & pemotongan kuota belum memakai database transaction/lock
+   (cocok untuk demo, tapi di produksi perlu diperkuat).
+
+9. Penegakan "read-only" owner — SUDAH DIPERBAIKI.
+   Sekarang owner yang mengetik URL halaman admin langsung ditolak 403
+   (route admin dijaga gerbang peran), bukan cuma tombol yang
+   disembunyikan.
+
+10. Beberapa nilai/aturan masih hardcode.
+    Contoh: harga tier membership & sesi PT ditulis langsung di kode
+    controller; tenant_id fallback `?? 1` di MemberPortalController;
+    default nomor HP member auto-dibuat. Sebaiknya dijadikan konfigurasi
+    / data di database.
+
+Catatan kecil untuk presentasi: kalau guru menanyakan poin-poin di atas,
+jawab dengan jujur "benar, ini belum sempurna, dan ini rencana saya..." —
+guru menilai proses berpikir, bukan kesempurnaan.
+
+--------------------------------------------------------------------------------
+I. FITUR YANG BELUM KELAR / RENCANA PROGRES BERIKUTNYA
+--------------------------------------------------------------------------------
+- Role trainer diperdalam (jadwal pribadi, konfirmasi kehadiran sesi PT,
+  penandaan no-show, komunikasi member).
+- Perizinan per-aksi yang lebih detail (misal trainer tidak boleh
+  membuat akun staf) — dasar otorisasi per role SUDAH jalan.
+- Payment gateway asli + status invoice (pending -> lunas).
+- Kebijakan kekuatan password & 2FA opsional (dasar akun sudah lengkap:
+  lupa password, verifikasi email, rate-limit login).
+- Penegakan fitur paket untuk MENU & route aplikasi (contoh gating
+  landing page sudah jalan di server).
+- Landing page: template tambahan, upload logo/foto, kustom domain
+  sendiri untuk Enterprise (fondasi tabel + controller sudah ada).
+- Perluas pengujian otomatis: booking PT bebas-konflik, penalti
+  no-show, dan alur resepsionis/manager (login-per-role, loker, dan
+  waitlist kelas sudah dites).
+- Pembersihan repo (hapus template & file sampah).
+
+--------------------------------------------------------------------------------
+J. CATATAN TEKNIS AGAR DEMO TIDAK GAGAL
+--------------------------------------------------------------------------------
+- Pastikan .env mengarah ke database yang benar, lalu jalankan sekali:
+    php artisan migrate:fresh --seed
+  (mengosongkan + mengisi ulang data demo — aman, ini database lokal).
+- Jalankan: php artisan serve -> buka http://localhost:8000
+  PENTING: buka lewat "localhost", BUKAN 127.0.0.1 — supaya subdomain
+  landing (fitlife.localhost:8000, powerhouse.localhost:8000, dll)
+  ikut kebaca browser (RFC *.localhost selalu menunjuk ke komputer
+  sendiri, tanpa ubah file hosts).
+- Landing page "/" adalah halaman publik; tombol login hanya muncul
+  kalau belum login (middleware guest). Setelah login, "/home" otomatis
+  diarahkan ke /admin/dashboard — jangan bingung kalau role lain diredirect.
+- Buka tiap akun di mode incognito/private window yang berbeda, ATAU
+  logout-login bergantian (lebih seru & menunjukkan perbedaan peran).
+- Jangan demo fitur yang belum pernah dicoba; minimal jalankan ulang
+  seluruh skenario sehari sebelum presentasi. Ada baiknya minta teman
+  mencoba dan mengklik-klik bebas untuk menemukan error yang mungkin
+  muncul (misal halaman yang belum selesai / tombol yang error).
+- Kalau muncul error tak terduga saat demo, jangan panik: bilang "ini
+  error yang belum sempat saya perbaiki, masuk daftar pengembangan saya"
+  lalu lanjut ke fitur lain.
+- Sebelum presentasi, cek sekali bahwa sidebar tiap role tidak menampilkan
+  menu yang kosong/rusak.
+- PENTING (Windows): komputer ini punya variabel environment sistem
+  MAIL_* dan DB_* yang MENIMPA isi .env (Dotenv Laravel immutable).
+  Akibatnya: mau .env ditulis apa pun, Laravel tetap pakai nilai sistem.
+  Solusi sebelum `php artisan serve` / `db:seed` / `tinker`:
+      unset MAIL_MAILER MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_SCHEME MAIL_FROM_ADDRESS MAIL_FROM_NAME
+  (kalau mau permanen: hapus variabel MAIL_* / DB_* dari Environment
+  Variables Windows — System Properties -> Environment Variables ->
+  User & System variables -> Delete yang namanya mulai MAIL_/DB_, lalu
+  buka ulang terminal. Nilai yang benar sudah ada di .env.)
+
+--- KHUSUS DEMO LUPA PASSWORD (Mailpit = SMTP palsu) ---
+  1. Jalankan Mailpit (sudah ada di tools/mailpit):
+        tools/mailpit/mailpit.exe
+     SMTP aktif di port 1025, web inbox di http://localhost:8025
+     (atau Docker: docker run --rm -p 1025:1025 -p 8025:8025 axllent/mailpit)
+  2. Pastikan .env memakai MAIL_MAILER=smtp, MAIL_HOST=127.0.0.1,
+     MAIL_PORT=1025 (sudah di-set; jangan lupa unset MAIL_* sistem dulu —
+     lihat catatan di atas).
+  3. Buka /login -> "Lupa password?" -> masukkan email -> email reset
+     muncul di http://localhost:8025 -> klik link -> set password baru.
+  4. Kalau email TIDAK muncul di inbox Mailpit, besar kemungkinan
+     variabel MAIL_* sistem masih menimpa — unset dulu lalu ulangi.
+  (Alternatif tanpa Mailpit: MAIL_MAILER=log — email ditulis ke
+   storage/logs/laravel.log dan link bisa dibuka dari sana. Kurang seru
+   untuk presentasi, tapi tetap jalan.)
+
+--- KHUSUS DEMO VERIFIKASI EMAIL AKUN STAF BARU ---
+  1. Prasyarat sama: Mailpit jalan + unset MAIL_* sistem.
+  2. Login admin@fitlife.com -> Akun Staf -> Tambah akun (email baru,
+     mis. rina2@fitlife.com).
+  3. Email verifikasi masuk ke Mailpit (http://localhost:8025) -> klik
+     tombol "Verify Email Address".
+  4. Sebelum verifikasi, coba login akun itu -> diarahkan ke halaman
+     "Verifikasi Email Anda" (dashboard terkunci). Setelah klik link,
+     login baru bisa masuk. Di daftar staf admin ada badge statusnya.
+
+--- KHUSUS DEMO LANDING PAGE TENANT (SUBDOmain) ---
+  1. Pastikan aplikasi dibuka lewat http://localhost:8000 (bukan IP).
+  2. Buka http://fitlife.localhost:8000 (Pro) & powerhouse.localhost:8000
+     (Enterprise — ada statistik angka).
+  3. Kustomisasi: login admin@fitlife.com -> sidebar "Landing Page" ->
+     ubah judul/warna -> Simpan -> refresh halaman landing.
+  4. Menjelaskan gating: di FitLife (Pro) bagian Statistik terkunci
+     (Enterprise); Basic tidak punya picker warna sama sekali.
+  5. Domain produksi: ganti config TENANT_APEX di .env menjadi
+     workout.id agar fitlife.workout.id berfungsi (saat demo cukup
+     .localhost).
+
+--------------------------------------------------------------------------------
+K. ISTILAH YANG WAJIB BISA DIJELASKAN (hafalkan satu kalimat masing-masing)
+--------------------------------------------------------------------------------
+- SaaS (Software as a Service): software yang disewa, bukan dibeli sekali.
+- Multi-tenant: satu aplikasi melayani banyak pelanggan/gym.
+- Tenant: satu "penyewa" = satu gym beserta datanya.
+- RBAC: pengaturan akses berdasarkan peran pengguna.
+- Middleware / gerbang peran: penjaga halaman yang menolak role yang
+  tidak berhak (di sini: tampil 403 kalau jabatan salah).
+- CSRF: perlindungan form dari serangan situs silang (aktif default).
+- Auth: autentikasi (siapa kamu) — beda dengan otorisasi (boleh apa).
+- Invoice/void: tagihan; void = pembatalan transaksi (di sini butuh
+  persetujuan manager).
+- No-show: member tidak hadir tanpa membatalkan pendaftaran.
+- Waitlist: daftar tunggu; otomatis naik kalau ada slot kosong.
+- Token reset: kode rahasia sekali pakai (tersimpan ter-hash) untuk
+  membuktikan pemilik akun saat ganti password lewat email.
+- SMTP: protokol pengiriman email; di demo memakai Mailpit (SMTP palsu)
+  supaya email tampil di browser tanpa kirim beneran.
+- User enumeration: teknik hacker mendeteksi email terdaftar; dicegah
+  dengan respons seragam pada form lupa password.
+- Rate limiting: pembatasan jumlah percobaan (di sini: 5x login gagal
+  = kunci 60 detik) untuk mencegah brute-force.
+- Signed URL: link bertanda tangan rahasia aplikasi yang tidak bisa
+  dipalsukan & punya masa berlaku (dipakai di link verifikasi email).
+- Slug/subdomain: nama unik tenant untuk alamat web, mis. "fitlife"
+  pada fitlife.localhost / fitlife.workout.id.
+
+--------------------------------------------------------------------------------
+L. PENUTUP: 3 PRINSIP SAAT SESI TANYA-JAWAB
+--------------------------------------------------------------------------------
+1. Paham konsep > hafal kode. Kalau lupa detail, jelaskan alurnya dengan
+   kata-kata sendiri — "route memanggil controller, controller memproses
+   dan menyimpan, view menampilkan".
+2. Jangan mengaku yang belum ada. Kalau ditanya fitur yang belum dibuat,
+   akui + sebut rencananya. Guru justru akan bertanya balik: "terus
+   gimana rencananya?" — dan bagian I & H sudah menyiapkan jawabannya.
+3. Tutup dengan masa depan project. Akhiri presentasi dengan kesimpulan   "progress 2 = peran setiap pengguna sudah berjalan dari superadmin
+    sampai member, dengan keamanan login & akses URL yang lengkap;
+    sisanya (perizinan detail, trainer, pembayaran) adalah progress
+    berikutnya" — kesan yang ditinggalkan: kamu punya arah yang jelas.
+
+Good luck! 💪
+================================================================================
