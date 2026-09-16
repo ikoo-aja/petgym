@@ -64,15 +64,15 @@ class PrivacyHelper
         }
 
         $user = Auth::user();
-        if (!$user || !$user->isOwner()) {
-            return $code;
+        // Kasir / Resepsionis dan Owner tidak boleh melihat PIN utuh member untuk mencegah penyalahgunaan
+        if (!$user || $user->isOwner() || $user->isReceptionist()) {
+            $len = strlen($code);
+            if ($len <= 2) {
+                return '****';
+            }
+            return substr($code, 0, 2) . str_repeat('*', max(4, $len - 2));
         }
 
-        $len = strlen($code);
-        if ($len <= 2) {
-            return '**';
-        }
-
-        return substr($code, 0, 2) . str_repeat('*', max(4, $len - 2));
+        return $code;
     }
 }

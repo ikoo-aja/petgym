@@ -14,6 +14,7 @@ class Tenant extends Model
         'name',
         'subdomain',
         'slug',
+        'logo_url',
         'owner_name',
         'owner_email',
         'plan_id',
@@ -38,6 +39,25 @@ class Tenant extends Model
                 $tenant->slug = Str::before($tenant->subdomain, '.');
             }
         });
+    }
+
+    /**
+     * Mengembalikan URL landing page publik tenant (misal: http://memek.localhost:8000).
+     */
+    public function publicLandingUrl(): string
+    {
+        $slug = $this->slug ?: (str_contains($this->subdomain, '.') ? explode('.', $this->subdomain)[0] : $this->subdomain);
+        $scheme = request() ? request()->getScheme() : 'http';
+        $host = request() ? request()->getHttpHost() : 'localhost:8000';
+
+        // Ambil base domain & port (misal: fitlife.localhost:8000 -> localhost:8000)
+        if (substr_count($host, '.') >= 2) {
+            $baseHost = implode('.', array_slice(explode('.', $host), -2));
+        } else {
+            $baseHost = $host;
+        }
+
+        return "{$scheme}://{$slug}.{$baseHost}";
     }
 
     public function plan()

@@ -1,6 +1,6 @@
 @extends('layouts.member')
 
-@section('title', 'Dashboard Member - PetGym')
+@section('title', 'Dashboard Member')
 @section('page_title', 'Beranda')
 @section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))

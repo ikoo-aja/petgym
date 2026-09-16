@@ -42,6 +42,12 @@ class AdminMemberController extends Controller
         if ($user->isOwner()) {
             return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
         }
+        if ($user->isManager()) {
+            return redirect()->back()->with('error', 'Manager bertugas meng-approve (menyetujui) akun member, bukan menambahkan akun dari awal.');
+        }
+        if ($user->isAdmin()) {
+            return redirect()->back()->with('error', 'Admin tidak menambahkan akun member baru secara langsung. Pendaftaran member dilakukan oleh Resepsionis/Kasir atau diajukan secara mandiri.');
+        }
         $tenant = $user->tenant;
 
         $request->validate([
@@ -165,5 +171,27 @@ class AdminMemberController extends Controller
             'member' => $member,
             'transactions' => $transactions
         ]);
+    }
+
+    public function approve($id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+
+        $member = Member::where('tenant_id', $tenant->id)->findOrFail($id);
+        $member->update([
+            'status' => 'active',
+            'expired_at' => $member->expired_at && $member->expired_at->isFuture() ? $member->expired_at : Carbon::now()->addDays(30),
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Approve Member',
+            'description' => "Pengelola {$user->name} menyetujui / mengaktifkan akun member: {$member->name}",
+            'ip_address' => request()->ip(),
+        ]);
+
+        return redirect()->back()->with('success', "Akun member {$member->name} berhasil disetujui dan statusnya diubah menjadi AKTIF.");
     }
 }

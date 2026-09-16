@@ -44,60 +44,67 @@
 
         <div class="row justify-content-center text-center mb-4" data-aos="fade-up">
           <div class="col-md-8 section-heading mb-2">
-            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym Platform</span>
-            <h2 class="heading mb-2 text-dark font-weight-bold">Login To Your Account</h2>
-            <p class="text-muted">Masuk ke portal akun staf, resepsionis, manager, atau admin Gym Anda.</p>
+            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym SaaS Platform</span>
+            <h2 class="heading mb-2 text-dark font-weight-bold">Login Portal Pengelola Gym</h2>
+            <p class="text-muted">Masuk ke portal akun Pemilik Gym (Owner), Staf Operasional, Manager, atau Superadmin.</p>
           </div>
         </div>
 
         <div class="row justify-content-center">
-          <div class="col-md-5" data-aos="fade-up" data-aos-delay="100">
-            <form action="{{ route('login') }}" method="POST" class="bg-white p-5 shadow-sm rounded-lg border">
+          <div class="col-md-6 col-lg-5" data-aos="fade-up" data-aos-delay="100">
+
+            <form action="{{ route('login') }}" method="POST" class="bg-white p-4 p-md-5 shadow-sm rounded-lg border" style="border-radius: 12px;">
               @csrf
 
               <!-- Alert Error Gagal Login -->
               @if($errors->has('email'))
-                <div class="alert alert-danger py-2 mb-4" role="alert">
+                <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
                   <small class="font-weight-bold"><i class="icon-exclamation-circle mr-1"></i> {{ $errors->first('email') }}</small>
                 </div>
               @endif
 
               <div class="form-group mb-3">
-                <label for="email" class="text-dark font-weight-bold small">Email Address *</label>
-                <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control form-control-lg" placeholder="Enter your email" required autofocus style="font-size: 15px;">
+                <label for="email" class="text-dark font-weight-bold small">Alamat Email</label>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="nama@email.com" required autofocus style="height: 48px; border-radius: 8px; font-size: 14px;">
               </div>
 
               <div class="form-group mb-3">
-                <label for="password" class="text-dark font-weight-bold small">Password *</label>
-                <div class="input-group">
-                    <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Enter your password" required style="font-size: 15px;">
-                    <div class="input-group-append">
-                    <span class="input-group-text bg-white border-left-0" type="cursor: pointer;" id="togglePasswordBtn">
-                        <i class="icon-eye text-muted" id="toggleIcon"></i>
-                    </span>
-                    </div>
-                 </div>
-              </div>
-
-              <div class="form-group row align-items-center mb-4">
-                <div class="col-6">
-                  <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="rememberMe" name="remember">
-                    <label class="custom-control-label text-muted small" for="rememberMe">Ingat saya</label>
-                  </div>
-                </div>
-                <div class="col-6 text-right">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label for="password" class="text-dark font-weight-bold small mb-0">Password</label>
                   <a href="{{ route('password.request') }}" class="text-primary small font-weight-bold">Lupa password?</a>
                 </div>
+                <div class="input-group">
+                  <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password Anda" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
+                  <div class="input-group-append">
+                    <button class="btn btn-outline-secondary border-left-0 bg-white text-muted" type="button" id="togglePasswordBtn" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: #ced4da;">
+                      <i class="icon-eye" id="toggleIcon"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div class="form-group mb-3">
-                <button type="submit" class="btn btn-primary py-3 px-5 btn-block font-weight-bold shadow-sm" style="border-radius: 30px; font-size: 16px;">
-                  Login Ke Sistem
+              <div class="form-group mb-4">
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="rememberMe" name="remember">
+                  <label class="custom-control-label text-muted small" for="rememberMe">Ingat saya di perangkat ini</label>
+                </div>
+              </div>
+
+              <div class="form-group mb-4">
+                <button type="submit" class="btn btn-primary btn-block font-weight-bold shadow-sm" style="height: 48px; border-radius: 8px; font-size: 15px;">
+                  Masuk ke Akun
                 </button>
               </div>
 
-              <div class="text-center mt-4 pt-2 border-top">
+              <!-- Section Belum Memiliki Akun -->
+              <div class="pt-4 border-top text-center">
+                <p class="text-muted small mb-2">Belum memiliki akun pengelola web gym?</p>
+                <a href="{{ route('register') }}" class="btn btn-outline-primary btn-block font-weight-bold py-2" style="border-radius: 8px; font-size: 13.5px;">
+                  Daftar Akun Web Gym Baru
+                </a>
+              </div>
+
+              <div class="text-center mt-4 pt-2">
                 <a href="{{ url('/') }}" class="text-muted small">← Kembali ke Halaman Utama</a>
               </div>
             </form>

@@ -16,6 +16,7 @@ use App\Models\Member;
 use App\Models\PosTransaction;
 use App\Models\CheckIn;
 use App\Models\StaffLog;
+use App\Models\Locker;
 use App\Models\GymClass;
 use App\Models\Trainer;
 use App\Models\Product;
@@ -129,10 +130,16 @@ class ManagerController extends Controller
             ->whereDate('created_at', Carbon::today())
             ->get();
 
-        // 7. Manajemen Stok & Inventaris Ritel (Stock Opname)
-        $lowStockProducts = Product::where('tenant_id', $tenant->id)
-            ->where('stock', '<=', 10)
-            ->get();
+        // 7. Manajemen Stok & Inventaris Ritel (Stock Opname) & Loker
+        $allProducts = Product::where('tenant_id', $tenant->id)->latest()->get();
+        $lowStockProducts = $allProducts->filter(function($prod) {
+            return $prod->stock <= 10;
+        });
+
+        $lockers = Locker::where('tenant_id', $tenant->id)->get();
+        $availableLockers = $lockers->where('status', 'tersedia')->count();
+        $occupiedLockers = $lockers->where('status', 'terpakai')->count();
+        $brokenLockers = $lockers->where('status', 'rusak')->count();
 
         // 8. Manajemen Retensi Member (Complaints Ticketing)
         $complaints = Complaint::where('tenant_id', $tenant->id)->with(['member', 'reporter'])->latest()->get();
@@ -145,14 +152,16 @@ class ManagerController extends Controller
 
         // Extra data for forms
         $staffUsers = User::where('tenant_id', $tenant->id)->get();
+        $shiftStaffUsers = User::where('tenant_id', $tenant->id)->whereIn('role', ['receptionist', 'trainer'])->get();
         $members = Member::where('tenant_id', $tenant->id)->get();
         $trainers = Trainer::where('tenant_id', $tenant->id)->get();
 
         return view('manager.features', compact(
             'equipments', 'maintenanceLogs', 'staffShifts', 'leaveRequests',
             'voidTransactions', 'promoCodes', 'receptionistPerformance', 'trainerPerformance',
-            'dailyCashRecap', 'lowStockProducts', 'complaints', 'masterClasses', 'vendors',
-            'staffUsers', 'members', 'trainers', 'tenant'
+            'dailyCashRecap', 'allProducts', 'lowStockProducts', 'lockers', 'availableLockers',
+            'occupiedLockers', 'brokenLockers', 'complaints', 'masterClasses', 'vendors',
+            'staffUsers', 'shiftStaffUsers', 'members', 'trainers', 'tenant'
         ));
     }
 
@@ -239,6 +248,11 @@ class ManagerController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $targetUser = User::where('tenant_id', $tenant->id)->findOrFail($request->user_id);
+        if (!in_array($targetUser->role, ['receptionist', 'trainer'])) {
+            return redirect()->back()->with('error', 'Penjadwalan shift hanya berlaku untuk Resepsionis dan Personal Trainer (PT).');
+        }
+
         StaffShift::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
 
         return redirect()->route('manager.features')->with('success', 'Jadwal shift staf berhasil ditambahkan.');
@@ -294,6 +308,29 @@ class ManagerController extends Controller
         ]);
 
         return redirect()->route('manager.features', ['tab' => 'shift'])->with('success', 'Pengajuan cuti ditolak.');
+    }
+
+    public function storeLeave(Request $request)
+    {
+        $tenant = Auth::user()->tenant;
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'required|string',
+        ]);
+
+        LeaveRequest::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $request->user_id,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'reason' => $request->reason,
+            'status' => 'approved',
+            'approved_by' => Auth::id(),
+        ]);
+
+        return redirect()->route('manager.features', ['tab' => 'shift'])->with('success', 'Data cuti pekerja berhasil diinput dan dicatat oleh Manager.');
     }
 
     // --- VOID OTORISASI ---

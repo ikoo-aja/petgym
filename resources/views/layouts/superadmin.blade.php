@@ -224,7 +224,7 @@
           <a class="nav-link {{ request()->routeIs('superadmin.settings') ? 'active' : '' }}" href="{{ route('superadmin.settings') }}"><span class="icon-settings"></span> Pengaturan</a>
         </li>
         <li class="nav-item mt-4">
-          <a class="nav-link text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+          <a class="nav-link text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             <span class="icon-power_settings_new"></span> Logout
           </a>
           <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
@@ -252,7 +252,7 @@
               <a class="dropdown-item" href="{{ route('superadmin.profile') }}">Profil</a>
               <a class="dropdown-item" href="{{ route('superadmin.settings') }}">Settings</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
+              <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
             </div>
           </div>
         </div>

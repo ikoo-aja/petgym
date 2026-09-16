@@ -24,6 +24,29 @@ class EnsureUserRole
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
+        // Otomatis Cek Masa Aktif & Status Suspend Tenant (Khusus Non-Superadmin)
+        if (!$user->isSuperadmin() && $user->tenant) {
+            $tenant = $user->tenant;
+
+            // Jika tanggal expires_at sudah lewat -> otomatis ubah status ke suspended
+            if ($tenant->expires_at && $tenant->expires_at->isPast() && $tenant->status !== 'suspended') {
+                $tenant->update(['status' => 'suspended']);
+            }
+
+            // Jika status tenant suspended -> blokir akses ke fitur operasional
+            if ($tenant->status === 'suspended') {
+                // Kecuali halaman perpanjangan subscription & logout
+                if (!$request->routeIs('admin.subscription.*') && !$request->routeIs('logout')) {
+                    if ($user->isAdmin() || $user->isOwner()) {
+                        return redirect()->route('admin.subscription.index')
+                            ->with('error', "Masa aktif langganan website gym '{$tenant->name}' telah BERAKHIR / DITANGGUHKAN. Silakan lakukan pembayaran perpanjangan untuk mengaktifkan kembali akses dasbor.");
+                    }
+
+                    abort(403, "Akses website gym '{$tenant->name}' sedang DITANGGUHKAN (Suspended / Expired). Silakan hubungi pengelola gym Anda.");
+                }
+            }
+        }
+
         return $next($request);
     }
 }

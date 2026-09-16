@@ -9,7 +9,7 @@
   $tenantFeatures = is_array($tenant->features) ? $tenant->features : [];
   $heroTitle = $settings->hero_title ?: $tenant->name;
   $ctaText   = $settings->cta_text ?: 'Mulai Sekarang';
-  $ctaUrl    = $settings->cta_url ?: config('app.url');
+  $ctaUrl    = $settings->cta_url ?: route('tenant.login', ['slug' => $tenant->slug]);
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -189,12 +189,25 @@
   <!-- NAVBAR -->
   <nav class="site-nav">
     <div class="container">
-      <a href="{{ $ctaUrl }}" class="brand-name">{{ $tenant->name }}<span>.</span></a>
+      <a href="{{ $tenant->publicLandingUrl() }}" onclick="if(window.location.pathname === '/' || window.location.pathname === ''){ window.scrollTo({top: 0, behavior: 'smooth'}); if(history.replaceState){ history.replaceState(null, null, window.location.pathname); } return false; }" class="brand-name d-flex align-items-center gap-2">
+        @php
+          $displayMode = $settings->brand_display_mode ?? 'both';
+          $hasLogo = !empty($tenant->logo_url);
+        @endphp
+        @if(($displayMode === 'logo' || $displayMode === 'both') && $hasLogo)
+          <img src="{{ asset($tenant->logo_url) }}?v={{ time() }}" alt="{{ $tenant->name }}" style="max-height: 40px; max-width: 170px; object-fit: contain;">
+        @endif
+        @if($displayMode === 'text' || ($displayMode === 'both' && !$hasLogo) || ($displayMode === 'logo' && !$hasLogo))
+          <span>{{ $tenant->name }}<span style="color: var(--brand);">.</span></span>
+        @elseif($displayMode === 'both' && $hasLogo)
+          <span class="ml-2" style="font-size: 16px;">{{ $tenant->name }}</span>
+        @endif
+      </a>
       <div class="nav-links">
         @if(in_array('about', $sections))<a href="#tentang">Tentang</a>@endif
         @if($showStats || in_array('features', $sections))<a href="#fitur">Fasilitas</a>@endif
         @if(in_array('contact', $sections))<a href="#kontak">Kontak</a>@endif
-        <a href="{{ url('/login') }}" class="nav-login">Masuk / Daftar</a>
+        <a href="{{ route('tenant.login', ['slug' => $tenant->slug]) }}" class="nav-login">Masuk / Daftar Member</a>
       </div>
     </div>
   </nav>
@@ -329,7 +342,7 @@
   <footer>
     <span class="brand-name">{{ $tenant->name }}<span style="color: var(--brand);">.</span></span>
     <small>&copy; {{ date('Y') }} {{ $tenant->name }}. Seluruh hak cipta dilindungi.</small>
-    <div class="powered">Powered by PetGym SaaS — Platform Manajemen Gym</div>
+    <div class="powered">&copy; {{ date('Y') }} {{ $tenant->name }} — Website Resmi Gym</div>
   </footer>
 
 </body>

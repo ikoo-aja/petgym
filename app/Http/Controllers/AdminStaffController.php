@@ -63,8 +63,12 @@ class AdminStaffController extends Controller
             'role.required'  => 'Role / jabatan wajib dipilih.',
         ]);
 
-        if (in_array($request->role, ['trainer', 'receptionist']) && $user->isAdmin()) {
-            return redirect()->back()->with('error', 'Admin hanya menginput akun peran tingkat tinggi (Manager & Owner). Akun PT dan Resepsionis/Kasir diinput oleh Manager Gym.');
+        if ($user->isAdmin() && !in_array($request->role, ['manager', 'owner'])) {
+            return redirect()->back()->with('error', 'Admin hanya dapat mendaftarkan akun peran tingkat tinggi (Manager Gym & Owner). Peran staf operasional diinput oleh Manager Gym.');
+        }
+
+        if ($user->isManager() && !in_array($request->role, ['receptionist', 'trainer'])) {
+            return redirect()->back()->with('error', 'Manager Gym hanya dapat mendaftarkan akun staf operasional (Resepsionis & Personal Trainer).');
         }
 
         // Jika password kosong → generate password default otomatis
@@ -133,6 +137,10 @@ class AdminStaffController extends Controller
 
         $staff = User::where('tenant_id', $tenant->id)->findOrFail($id);
 
+        if ($user->isManager() && in_array(strtolower($staff->role), ['admin', 'owner', 'superadmin', 'manager'])) {
+            return redirect()->route('admin.staff.index')->with('error', 'Manager Gym tidak memiliki hak akses untuk mengotak-atik akun Admin atau Owner.');
+        }
+
         if ($staff->hasVerifiedEmail()) {
             return redirect()->route('admin.staff.index')->with('success', "Email akun {$staff->name} sudah terverifikasi.");
         }
@@ -164,6 +172,11 @@ class AdminStaffController extends Controller
         }
 
         $staff = User::where('tenant_id', $tenant->id)->findOrFail($id);
+        
+        if ($user->isManager() && in_array(strtolower($staff->role), ['admin', 'owner', 'superadmin', 'manager'])) {
+            return redirect()->route('admin.staff.index')->with('error', 'Manager Gym tidak memiliki hak akses untuk menghapus akun Admin, Owner, atau Manager.');
+        }
+
         $staffName = $staff->name;
 
         // Clean up role profile records

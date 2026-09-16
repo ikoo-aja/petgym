@@ -260,9 +260,11 @@
           </div>
         </div>
 
-        <!-- Approval Cuti/Izin -->
         <div class="col-md-5">
-          <h6 class="font-weight-bold text-dark mb-3">Pengajuan Cuti / Izin Karyawan</h6>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="font-weight-bold text-dark mb-0">Cuti & Izin Pekerja</h6>
+            <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#addLeaveModal">+ Input Cuti Pekerja</button>
+          </div>
           <div style="max-height: 500px; overflow-y: auto;">
             @forelse($leaveRequests as $lr)
               <div class="p-3 border rounded bg-white mb-2 shadow-sm">
@@ -558,48 +560,131 @@
       </div>
     </div>
 
-    <!-- 8. MANAJEMEN STOK & INVENTARIS RITEL (STOCK OPNAME) -->
+    <!-- 8. MANAJEMEN STOK & INVENTARIS RITEL (STOCK OPNAME) & LOKER -->
     <div class="tab-pane fade" id="stock-sec" role="tabpanel">
-      <h5 class="font-weight-bold text-dark mb-2">Sistem Peringatan Stok Menipis (Alert Stock Opname)</h5>
-      <p class="text-muted" style="font-size:13.5px;">Peringatan otomatis untuk produk retail ritel (suplemen, minuman, merchandise) dengan sisa stok di bawah atau sama dengan 10 unit.</p>
+      <h5 class="font-weight-bold text-dark mb-2">Pemantauan Inventaris Ritel & Loker Gym</h5>
+      <p class="text-muted" style="font-size:13.5px;">Monitoring stok produk suplemen/merchandise dan okupansi loker gym secara real-time.</p>
 
-      @if(count($lowStockProducts) > 0)
-        <div class="alert alert-warning mb-3">
-          <strong>Peringatan Restock!</strong> Terdapat {{ count($lowStockProducts) }} barang retail yang persediaannya hampir habis. Harap segera restock ke supplier.
+      <!-- KPI Cards Loker -->
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card-custom text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
+            <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Tersedia</small>
+            <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $availableLockers }} Loker</h3>
+            <small class="text-white-50">Siap digunakan</small>
+          </div>
         </div>
-      @else
-        <div class="alert alert-success mb-3">
-          <strong>Stok Aman!</strong> Seluruh barang inventaris retail saat ini dalam kondisi stok aman (di atas 10 unit).
+        <div class="col-md-4">
+          <div class="card-custom text-white" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+            <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Sedang Terpakai</small>
+            <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $occupiedLockers }} Loker</h3>
+            <small class="text-white-50">Sedang disewa/dipakai</small>
+          </div>
         </div>
+        <div class="col-md-4">
+          <div class="card-custom text-white" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+            <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Rusak / Blokir</small>
+            <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $brokenLockers }} Loker</h3>
+            <small class="text-white-50">Perlu perbaikan</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert Stok: hanya jika ada barang (allProducts > 0) -->
+      @if(count($allProducts) > 0)
+        @if(count($lowStockProducts) > 0)
+          <div class="alert alert-warning mb-3">
+            <strong>Peringatan Restock!</strong> Terdapat {{ count($lowStockProducts) }} barang retail yang persediaannya hampir habis (stok &le; 10 unit). Harap segera restock ke supplier.
+          </div>
+        @else
+          <div class="alert alert-success mb-3">
+            <strong>Stok Aman!</strong> Seluruh barang inventaris retail saat ini dalam kondisi stok aman (di atas 10 unit).
+          </div>
+        @endif
       @endif
 
-      <div class="table-responsive">
-        <table class="table table-hover table-bordered">
-          <thead class="bg-light text-muted">
-            <tr>
-              <th>Nama Produk</th>
-              <th>Kategori</th>
-              <th>Harga Ritel</th>
-              <th class="text-center">Sisa Stok</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($lowStockProducts as $prod)
-              <tr>
-                <td class="font-weight-bold text-dark">{{ $prod->name }}</td>
-                <td>{{ ucfirst($prod->category) }}</td>
-                <td>Rp {{ number_format($prod->price, 0, ',', '.') }}</td>
-                <td class="text-center font-weight-bold text-danger" style="font-size:15px;">{{ $prod->stock }} unit</td>
-                <td><span class="badge badge-danger">Segera Restock</span></td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="5" class="text-center py-4 text-muted">Tidak ada barang inventaris ritel dengan stok menipis.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+      <div class="row">
+        <!-- Stok Produk Ritel Kasir -->
+        <div class="col-md-7">
+          <div class="card-custom">
+            <h6 class="font-weight-bold text-dark mb-3">Inventaris Stok Produk Ritel Kasir</h6>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
+                  <tr>
+                    <th>Nama Produk</th>
+                    <th>Kategori</th>
+                    <th>Harga Jual</th>
+                    <th>Sisa Stok</th>
+                    <th>Status Stok</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @forelse($allProducts as $p)
+                    <tr>
+                      <td class="font-weight-bold text-dark" style="font-size: 12.5px;">{{ $p->name }}</td>
+                      <td style="font-size: 12px;" class="text-muted">{{ $p->category ?? 'Ritel' }}</td>
+                      <td class="font-weight-bold text-success" style="font-size: 12.5px;">Rp {{ number_format($p->price, 0, ',', '.') }}</td>
+                      <td class="font-weight-bold text-dark" style="font-size: 13px;">{{ $p->stock }} {{ $p->unit ?? 'pcs' }}</td>
+                      <td>
+                        @if($p->stock <= 5)
+                          <span class="badge badge-danger px-2 py-1">Stok Kritis</span>
+                        @elseif($p->stock <= 15)
+                          <span class="badge badge-warning px-2 py-1">Menipis</span>
+                        @else
+                          <span class="badge badge-success px-2 py-1">Aman</span>
+                        @endif
+                      </td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="5" class="text-center py-4 text-muted">Belum ada data produk ritel kasir.</td>
+                    </tr>
+                  @endforelse
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Loker Gym -->
+        <div class="col-md-5">
+          <div class="card-custom">
+            <h6 class="font-weight-bold text-dark mb-3">Master Loker Gym</h6>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
+                  <tr>
+                    <th>No. Loker</th>
+                    <th>Area/Kategori</th>
+                    <th>Status Okupansi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @forelse($lockers as $l)
+                    <tr>
+                      <td class="font-weight-bold text-dark" style="font-size: 12.5px;">Loker #{{ $l->locker_number }}</td>
+                      <td style="font-size: 12px;" class="text-muted">{{ $l->gender_type ?? 'Umum' }}</td>
+                      <td>
+                        @if($l->status == 'tersedia')
+                          <span class="badge badge-success px-2 py-1">Tersedia</span>
+                        @elseif($l->status == 'terpakai')
+                          <span class="badge badge-primary px-2 py-1">Terpakai</span>
+                        @else
+                          <span class="badge badge-danger px-2 py-1">Rusak/Blokir</span>
+                        @endif
+                      </td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="3" class="text-center py-4 text-muted">Belum ada data master loker.</td>
+                    </tr>
+                  @endforelse
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -932,7 +1017,7 @@
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Karyawan / Staf *</label>
           <select name="user_id" class="form-control" required>
-            @foreach($staffUsers as $st)
+            @foreach($shiftStaffUsers as $st)
               <option value="{{ $st->id }}">{{ $st->name }} ({{ ucfirst($st->role) }})</option>
             @endforeach
           </select>
@@ -967,6 +1052,47 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
         <button type="submit" class="btn btn-primary font-weight-bold">Simpan Shift</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Input Cuti Pekerja -->
+<div class="modal fade" id="addLeaveModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form action="{{ route('manager.leave.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
+      @csrf
+      <div class="modal-header">
+        <h5 class="modal-title font-weight-bold">Input Cuti Pekerja / Staf</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Pekerja / Staf *</label>
+          <select name="user_id" class="form-control" required>
+            @foreach($staffUsers as $st)
+              <option value="{{ $st->id }}">{{ $st->name }} ({{ ucfirst($st->role) }})</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="row">
+          <div class="col-6 form-group mb-3">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Mulai *</label>
+            <input type="date" name="start_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+          </div>
+          <div class="col-6 form-group mb-3">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Selesai *</label>
+            <input type="date" name="end_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+          </div>
+        </div>
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Alasan Cuti / Keterangan *</label>
+          <textarea name="reason" class="form-control" rows="3" placeholder="Contoh: Cuti tahunan / izin sakit periksa dokter" required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-success font-weight-bold">Simpan Cuti Pekerja</button>
       </div>
     </form>
   </div>

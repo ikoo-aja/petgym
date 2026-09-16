@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
-@section('title', 'Landing Page Tenant &mdash; PetGym')
-@section('page_title', 'Landing Page Publik Tenant')
-@section('page_subtitle', 'Kustomisasi halaman website gym Anda — tingkat kustomisasi mengikuti paket langganan')
+@section('title', 'Pengaturan Gym & Landing Page')
+@section('page_title', 'Pengaturan Gym & Landing Page Publik')
+@section('page_subtitle', 'Kustomisasi profil gym, logo brand, dan tampilan website publik Anda')
 
 @section('content')
 
@@ -22,14 +22,62 @@
     </div>
     @endif
 
-    <form action="{{ route('admin.landing.update') }}" method="POST">
+    <form action="{{ route('admin.landing.update') }}" method="POST" enctype="multipart/form-data">
       @csrf
 
-      <!-- ============ HERO (semua paket) ============ -->
+      <!-- ============ PROFIL & LOGO GYM ============ -->
+      <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="font-weight-bold text-dark mb-0">🏢 Identitas Gym & Logo Brand</h6>
+        </div>
+
+        <div class="form-group mb-3 p-3 border rounded bg-light">
+          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">🎨 Logo Gym / Brand Logo</label>
+          @if($tenant->logo_url)
+            <div class="mb-2">
+              <img src="{{ asset($tenant->logo_url) }}?v={{ time() }}" alt="Current Logo" class="img-thumbnail bg-white" style="max-height: 80px; object-fit: contain;">
+            </div>
+          @endif
+          <input type="file" name="logo" class="form-control-file border p-2 rounded bg-white" accept="image/*">
+          <small class="form-text text-muted">Upload logo brand gym Anda (PNG, JPG, WEBP, SVG. Maks. 2MB). Logo akan tampil di header & sidebar.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Gaya Tampilan Brand (Header & Sidebar) *</label>
+          <select name="brand_display_mode" class="form-control" style="border-radius: 8px;">
+            <option value="both" {{ ($settings->brand_display_mode ?? 'both') === 'both' ? 'selected' : '' }}>Logo Gambar & Teks Nama Gym</option>
+            <option value="logo" {{ ($settings->brand_display_mode ?? 'both') === 'logo' ? 'selected' : '' }}>Hanya Logo Gambar</option>
+            <option value="text" {{ ($settings->brand_display_mode ?? 'both') === 'text' ? 'selected' : '' }}>Hanya Teks Nama Gym</option>
+          </select>
+          <small class="form-text text-muted">Pilih jenis tampilan identitas brand gym Anda pada sidebar admin dan website publik.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Gym / Tenant *</label>
+          <input type="text" name="name" class="form-control" value="{{ $tenant->name ?? '' }}" required style="border-radius: 8px;">
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Subdomain Sistem SaaS</label>
+          <input type="text" class="form-control bg-light" value="{{ $tenant->subdomain ?? 'subdomain.workout.id' }}" readonly style="border-radius: 8px;">
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 form-group mb-0">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Pemilik (Owner)</label>
+            <input type="text" name="owner_name" class="form-control" value="{{ $tenant->owner_name ?? '' }}" style="border-radius: 8px;">
+          </div>
+          <div class="col-md-6 form-group mb-0">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Email Pemilik (Owner)</label>
+            <input type="email" name="owner_email" class="form-control" value="{{ $tenant->owner_email ?? '' }}" style="border-radius: 8px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ HERO ============ -->
       <div class="card-custom">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">1. Bagian Hero (Pembuka)</h6>
-          <span class="badge badge-success px-2 py-1" style="font-size: 10px;">Semua Paket</span>
         </div>
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Judul Utama (Hero Title) *</label>
@@ -46,16 +94,15 @@
           </div>
           <div class="col-md-6 form-group mb-0">
             <label class="font-weight-bold text-dark" style="font-size: 13px;">Link Tombol CTA</label>
-            <input type="text" name="cta_url" class="form-control" value="{{ $settings->cta_url ?: config('app.url') }}" placeholder="https://..." style="border-radius: 8px;">
+            <input type="text" name="cta_url" class="form-control" value="{{ $settings->cta_url ?: route('tenant.login', ['slug' => $tenant->slug]) }}" placeholder="https://..." style="border-radius: 8px;">
           </div>
         </div>
       </div>
 
-      <!-- ============ TENTANG (semua paket) ============ -->
+      <!-- ============ TENTANG ============ -->
       <div class="card-custom">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">2. Tentang Gym</h6>
-          <span class="badge badge-success px-2 py-1" style="font-size: 10px;">Semua Paket</span>
         </div>
         <div class="form-group mb-0">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Deskripsi Tentang Gym</label>
@@ -63,15 +110,10 @@
         </div>
       </div>
 
-      <!-- ============ FITUR UNGGULAN (Pro+) ============ -->
+      <!-- ============ FITUR UNGGULAN ============ -->
       <div class="card-custom">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">3. Fitur Unggulan</h6>
-          @if($tenant->canLanding('features'))
-            <span class="badge badge-primary px-2 py-1" style="font-size: 10px;">Paket Pro ke atas</span>
-          @else
-            <span class="badge badge-secondary px-2 py-1" style="font-size: 10px;"><i class="icon-lock mr-1"></i>Terbuka di Paket Pro</span>
-          @endif
         </div>
 
         @if($tenant->canLanding('features'))
@@ -94,7 +136,7 @@
             <i class="icon-plus mr-1"></i>Tambah Fitur
           </button>
         @else
-          <p class="text-muted small mb-2">Daftar fitur unggulan dapat dikustomisasi di <strong>Paket Pro</strong> ke atas.</p>
+          <p class="text-muted small mb-2">Daftar fitur unggulan gym Anda.</p>
           <div>
             @foreach((array) $tenant->features as $tf)
               <span class="badge badge-light border px-3 py-2 mr-1 mb-1" style="font-size: 12px;">{{ $tf }}</span>
@@ -103,15 +145,10 @@
         @endif
       </div>
 
-      <!-- ============ WARNA BRAND (Pro+) ============ -->
+      <!-- ============ WARNA BRAND ============ -->
       <div class="card-custom">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">4. Warna Brand</h6>
-          @if($tenant->canLanding('colors'))
-            <span class="badge badge-primary px-2 py-1" style="font-size: 10px;">Paket Pro ke atas</span>
-          @else
-            <span class="badge badge-secondary px-2 py-1" style="font-size: 10px;"><i class="icon-lock mr-1"></i>Terbuka di Paket Pro</span>
-          @endif
         </div>
 
         @if($tenant->canLanding('colors'))
@@ -132,19 +169,14 @@
             </div>
           </div>
         @else
-          <p class="text-muted small mb-0">Kustomisasi warna brand tersedia di <strong>Paket Pro</strong> ke atas.</p>
+          <p class="text-muted small mb-0">Pengaturan warna brand gym.</p>
         @endif
       </div>
 
-      <!-- ============ BAGIAN HALAMAN (Pro+) ============ -->
+      <!-- ============ BAGIAN HALAMAN ============ -->
       <div class="card-custom">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">5. Bagian yang Ditampilkan</h6>
-          @if($tenant->canLanding('sections'))
-            <span class="badge badge-primary px-2 py-1" style="font-size: 10px;">Paket Pro ke atas</span>
-          @else
-            <span class="badge badge-secondary px-2 py-1" style="font-size: 10px;"><i class="icon-lock mr-1"></i>Terbuka di Paket Pro</span>
-          @endif
         </div>
 
         @if($tenant->canLanding('sections'))
@@ -161,19 +193,14 @@
           </div>
           <small class="text-muted d-block mt-2">Bagian Hero &amp; Footer selalu tampil.</small>
         @else
-          <p class="text-muted small mb-0">Pengaturan bagian halaman tersedia di <strong>Paket Pro</strong> ke atas.</p>
+          <p class="text-muted small mb-0">Pengaturan bagian halaman publik gym.</p>
         @endif
       </div>
 
-      <!-- ============ STATISTIK (Enterprise) ============ -->
+      <!-- ============ STATISTIK ============ -->
       <div class="card-custom">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">6. Statistik Angka</h6>
-          @if($tenant->canLanding('stats'))
-            <span class="badge badge-dark px-2 py-1" style="font-size: 10px;">Paket Enterprise</span>
-          @else
-            <span class="badge badge-secondary px-2 py-1" style="font-size: 10px;"><i class="icon-lock mr-1"></i>Eksklusif Paket Enterprise</span>
-          @endif
         </div>
 
         @if($tenant->canLanding('stats'))
@@ -193,21 +220,14 @@
             @endfor
           </div>
         @else
-          <p class="text-muted small mb-0">
-            <i class="icon-lock mr-1"></i>
-            Statistik angka besar (jumlah member, kelas, dsb.) adalah fitur <strong>Eksklusif Paket Enterprise</strong>.
-            @if($tenant->plan_name == 'Paket Pro')
-            <a href="#" class="text-primary font-weight-bold">Upgrade ke Enterprise</a> untuk mengaktifkannya.
-            @endif
-          </p>
+          <p class="text-muted small mb-0">Pengaturan statistik angka publik gym.</p>
         @endif
       </div>
 
-      <!-- ============ KONTAK (semua paket) ============ -->
+      <!-- ============ KONTAK ============ -->
       <div class="card-custom">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">7. Info Kontak</h6>
-          <span class="badge badge-success px-2 py-1" style="font-size: 10px;">Semua Paket</span>
         </div>
         <div class="row">
           <div class="col-md-6 form-group mb-3">
@@ -259,32 +279,6 @@
           <span class="text-muted">Alamat publik:</span>
           <span class="font-weight-bold text-dark" style="word-break: break-all;">{{ $landingUrl }}</span>
         </div>
-        <div class="text-muted small pt-2 border-top mt-2">
-          <i class="icon-exclamation-circle mr-1"></i>
-          Buka aplikasi lewat <strong>http://localhost:8000</strong> agar alamat subdomain di atas bisa diakses.
-        </div>
-      </div>
-    </div>
-
-    <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Level Kustomisasi per Paket</h6>
-      <table class="table table-sm table-borderless mb-0" style="font-size: 12.5px;">
-        <tr>
-          <td class="text-muted">Semua Paket</td>
-          <td class="font-weight-bold text-dark">Teks &amp; kontak</td>
-        </tr>
-        <tr>
-          <td class="text-muted">Paket Pro</td>
-          <td class="font-weight-bold text-dark">+ Warna, bagian, fitur</td>
-        </tr>
-        <tr>
-          <td class="text-muted">Paket Enterprise</td>
-          <td class="font-weight-bold text-dark">+ Statistik angka</td>
-        </tr>
-      </table>
-      <div class="alert alert-warning py-2 mb-0 mt-2" style="font-size: 12px;">
-        <i class="icon-exclamation-circle mr-1"></i>
-        Field terlarang <strong>tidak bisa diubah</strong> — sistem menolaknya di sisi server, bukan hanya di tampilan.
       </div>
     </div>
   </div>

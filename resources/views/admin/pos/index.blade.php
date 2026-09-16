@@ -6,6 +6,20 @@
 
 @section('content')
 <div class="row">
+  @if(Auth::user() && Auth::user()->isReceptionist() && empty($openShift))
+  <div class="col-12 mb-3">
+    <div class="alert alert-danger border-0 p-3 shadow-sm rounded-lg d-flex justify-content-between align-items-center" style="border-radius: 10px; background-color: #fee2e2; color: #991b1b;">
+      <div>
+        <h6 class="font-weight-bold mb-1"><i class="icon-alert-triangle mr-1"></i> STATUS KASIR: BELUM OPEN SHIFT KASIR</h6>
+        <p class="mb-0 small">Seluruh proses transaksi POS / Kasir diblokir karena Anda belum melakukan <strong>Open Shift Kasir</strong>. Silakan buka shift kasir terlebih dahulu.</p>
+      </div>
+      <a href="{{ route('receptionist.shifts') }}" class="btn btn-sm btn-danger font-weight-bold px-3 py-2 ml-3" style="border-radius: 8px;">
+        <i class="icon-clock-o mr-1"></i> Buka Shift Kasir
+      </a>
+    </div>
+  </div>
+  @endif
+
   @if(!Auth::user() || !Auth::user()->isOwner())
   <!-- Left Side: POS Checkout Form -->
   <div class="col-md-7">

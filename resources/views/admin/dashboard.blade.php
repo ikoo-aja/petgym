@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Admin &mdash; PetGym')
+@section('title', 'Dashboard Admin')
 @section('page_title', 'Dashboard Admin Gym')
 @section('page_subtitle', 'Pantauan harian metriks operasional dan limit kuota SaaS')
 

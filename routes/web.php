@@ -11,6 +11,10 @@ use App\Http\Controllers\TenantLandingController;
 // WAJIB didaftarkan sebelum route '/' utama supaya request subdomain tidak jatuh ke welcome page.
 Route::domain('{slug}.' . config('app.tenant_apex'))->group(function () {
     Route::get('/', [TenantLandingController::class, 'show'])->name('tenant.landing');
+    Route::get('/login', [TenantLandingController::class, 'showMemberLogin'])->name('tenant.login');
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::get('/register', [TenantLandingController::class, 'showMemberRegister'])->name('tenant.register');
+    Route::post('/register', [LoginController::class, 'registerMember'])->name('tenant.register.submit');
 });
 
 Route::get('/', function () {
@@ -29,10 +33,17 @@ Route::get('/home', function () {
 
 // Group Guest (Hanya bisa diakses jika belum login)
 Route::middleware('guest')->group(function () {
+    // 1. Alur Pembelian & Pengelolaan Web Gym SaaS (SaaS Platform)
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [LoginController::class, 'showRegisterForm'])->name('register');
-    Route::post('/register', [LoginController::class, 'register']);
+    Route::post('/register', [LoginController::class, 'registerSaas'])->name('register.saas');
+
+    // 2. Alur Portal Member Keanggotaan Gym (Member Gym)
+    Route::get('/member/login', [LoginController::class, 'showMemberLoginForm'])->name('member.login');
+    Route::post('/member/login', [LoginController::class, 'login']);
+    Route::get('/member/register', [LoginController::class, 'showMemberRegisterForm'])->name('member.register');
+    Route::post('/member/register', [LoginController::class, 'registerMember'])->name('member.register.submit');
 
     // Lupa Password (self-service reset, tanpa campur tangan admin)
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
@@ -41,8 +52,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-// Route Logout (Hanya bisa diakses jika sudah login)
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+// Route Logout (Bisa diakses via GET & POST, tanpa error 419)
+Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Verifikasi Email (user yang baru login tapi emailnya belum diverifikasi diarahkan ke sini)
 Route::middleware('auth')->group(function () {
@@ -83,6 +94,7 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::post('/plans/{id}/toggle-status', [SuperadminController::class, 'togglePlanStatus'])->name('superadmin.plans.toggle-status');
     Route::delete('/plans/{id}', [SuperadminController::class, 'destroyPlan'])->name('superadmin.plans.destroy');
     Route::get('/billing', [SuperadminController::class, 'billing'])->name('superadmin.billing');
+    Route::post('/billing/{id}/verify-dp', [SuperadminController::class, 'verifyDpPayment'])->name('superadmin.billing.verify-dp');
     Route::post('/billing/{id}/verify', [SuperadminController::class, 'verifyInvoice'])->name('superadmin.billing.verify');
     Route::get('/announcements', [SuperadminController::class, 'announcements'])->name('superadmin.announcements');
     Route::get('/logs', [SuperadminController::class, 'logs'])->name('superadmin.logs');
@@ -100,6 +112,7 @@ Route::middleware(['auth', 'verified', 'role:admin,manager,receptionist,trainer'
     Route::get('/members', [AdminMemberController::class, 'index'])->name('admin.members.index');
     Route::post('/members', [AdminMemberController::class, 'store'])->name('admin.members.store');
     Route::put('/members/{id}', [AdminMemberController::class, 'update'])->name('admin.members.update');
+    Route::post('/members/{id}/approve', [AdminMemberController::class, 'approve'])->name('admin.members.approve');
     Route::delete('/members/{id}', [AdminMemberController::class, 'destroy'])->name('admin.members.destroy');
     Route::get('/members/{id}/history', [AdminMemberController::class, 'history'])->name('admin.members.history');
 
@@ -156,6 +169,10 @@ Route::middleware(['auth', 'verified', 'role:admin,manager,receptionist,trainer'
     // 10. Landing Page Publik Tenant (kustomisasi sesuai paket langganan)
     Route::get('/landing', [TenantLandingController::class, 'edit'])->name('admin.landing.edit');
     Route::post('/landing', [TenantLandingController::class, 'update'])->name('admin.landing.update');
+
+    // 11. Pembayaran & Melanjutkan Penyewaan Web ke Superadmin
+    Route::get('/subscription', [AdminController::class, 'subscription'])->name('admin.subscription.index');
+    Route::post('/subscription/pay', [AdminController::class, 'processSubscriptionPayment'])->name('admin.subscription.pay');
 });
 
 use App\Http\Controllers\ManagerController;
@@ -177,6 +194,7 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
     Route::post('/shifts', [ManagerController::class, 'storeShift'])->name('manager.shifts.store');
     Route::put('/shifts/{id}', [ManagerController::class, 'updateShift'])->name('manager.shifts.update');
     Route::delete('/shifts/{id}', [ManagerController::class, 'destroyShift'])->name('manager.shifts.destroy');
+    Route::post('/leave', [ManagerController::class, 'storeLeave'])->name('manager.leave.store');
     Route::post('/leave/{id}/approve', [ManagerController::class, 'approveLeave'])->name('manager.leave.approve');
     Route::post('/leave/{id}/reject', [ManagerController::class, 'rejectLeave'])->name('manager.leave.reject');
 

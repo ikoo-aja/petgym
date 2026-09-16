@@ -41,6 +41,10 @@ class AdminClassController extends Controller
     public function storeClass(Request $request)
     {
         $user = Auth::user();
+        if ($user && !$user->isManager()) {
+            return redirect()->back()->with('error', 'Pengaturan jadwal kelas & trainer dikelola oleh Manager Gym.');
+        }
+
         $tenant = $this->getTenant();
 
         $request->validate([
@@ -49,6 +53,7 @@ class AdminClassController extends Controller
             'start_time' => 'required',
             'end_time' => 'required',
             'max_capacity' => 'required|integer|min:1',
+            'room' => 'nullable|string|max:255',
             'trainer_id' => 'nullable|exists:trainers,id',
         ]);
 
@@ -59,6 +64,7 @@ class AdminClassController extends Controller
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'max_capacity' => $request->max_capacity,
+            'room' => $request->room ?? 'Studio Utama',
             'trainer_id' => $request->trainer_id,
         ]);
 
@@ -70,42 +76,82 @@ class AdminClassController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('admin.classes.index')->with('success', 'Jadwal kelas berhasil ditambahkan ke database.');
+        return redirect()->route('admin.classes.index')->with('success', 'Jadwal kelas baru berhasil ditambahkan ke database.');
     }
 
     public function updateClass(Request $request, $id)
     {
         $user = Auth::user();
+        if ($user && !$user->isManager()) {
+            return redirect()->back()->with('error', 'Pengaturan jadwal kelas & trainer dikelola oleh Manager Gym.');
+        }
+
         $tenant = $this->getTenant();
 
         $gymClass = GymClass::where('tenant_id', $tenant->id)->findOrFail($id);
 
         $request->validate([
+            'name' => 'required|string|max:255',
+            'day' => 'required|string',
+            'start_time' => 'required',
+            'end_time' => 'required',
             'max_capacity' => 'required|integer|min:1',
-            'room' => 'required|string|max:255',
+            'room' => 'nullable|string|max:255',
             'trainer_id' => 'nullable|exists:trainers,id',
         ]);
 
         $gymClass->update([
+            'name' => $request->name,
+            'day' => $request->day,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
             'max_capacity' => $request->max_capacity,
-            'room' => $request->room,
+            'room' => $request->room ?? 'Studio Utama',
             'trainer_id' => $request->trainer_id,
         ]);
 
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user ? $user->id : null,
-            'action' => 'Alokasi Kelas Gym',
-            'description' => "Mengalokasikan kelas {$gymClass->name}: Ruangan {$gymClass->room}, Kuota {$gymClass->max_capacity}",
+            'action' => 'Edit Kelas Gym',
+            'description' => "Memperbarui kelas {$gymClass->name}: Hari {$gymClass->day}, Ruangan {$gymClass->room}, Kuota {$gymClass->max_capacity}",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('admin.classes.index')->with('success', 'Alokasi instruktur, ruangan, dan kuota kelas berhasil disimpan ke database.');
+        return redirect()->route('admin.classes.index')->with('success', 'Jadwal kelas berhasil diperbarui di database.');
+    }
+
+    public function destroyClass(Request $request, $id)
+    {
+        $user = Auth::user();
+        if ($user && !$user->isManager()) {
+            return redirect()->back()->with('error', 'Pengaturan jadwal kelas & trainer dikelola oleh Manager Gym.');
+        }
+
+        $tenant = $this->getTenant();
+
+        $gymClass = GymClass::where('tenant_id', $tenant->id)->findOrFail($id);
+        $className = $gymClass->name;
+        $gymClass->delete();
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user ? $user->id : null,
+            'action' => 'Hapus Kelas Gym',
+            'description' => "Menghapus kelas gym: {$className}",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('admin.classes.index')->with('success', "Jadwal kelas '{$className}' berhasil dihapus dari database.");
     }
 
     public function storeTrainer(Request $request)
     {
         $user = Auth::user();
+        if ($user && !$user->isManager()) {
+            return redirect()->back()->with('error', 'Pengaturan jadwal kelas & trainer dikelola oleh Manager Gym.');
+        }
+
         $tenant = $this->getTenant();
 
         $request->validate([
@@ -136,6 +182,10 @@ class AdminClassController extends Controller
     public function updateTrainer(Request $request, $id)
     {
         $user = Auth::user();
+        if ($user && !$user->isManager()) {
+            return redirect()->back()->with('error', 'Pengaturan jadwal kelas & trainer dikelola oleh Manager Gym.');
+        }
+
         $tenant = $this->getTenant();
 
         $trainer = Trainer::where('tenant_id', $tenant->id)->findOrFail($id);
@@ -166,6 +216,10 @@ class AdminClassController extends Controller
     public function destroyTrainer(Request $request, $id)
     {
         $user = Auth::user();
+        if ($user && !$user->isManager()) {
+            return redirect()->back()->with('error', 'Pengaturan jadwal kelas & trainer dikelola oleh Manager Gym.');
+        }
+
         $tenant = $this->getTenant();
 
         $trainer = Trainer::where('tenant_id', $tenant->id)->findOrFail($id);

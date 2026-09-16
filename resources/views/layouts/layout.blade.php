@@ -5,7 +5,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <title>@yield('title', 'Portal Tenant &mdash; PetGym SaaS')</title>
+  <title>@yield('title', ($currentUser && $currentUser->tenant ? $currentUser->tenant->name : 'Gym Portal'))</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -308,20 +308,31 @@
   } elseif ($userRole === 'member') {
       $dashUrl = route('member.dashboard');
   }
+  $tenantObj = $currentUser ? $currentUser->tenant : null;
+  $tenantLandingSettings = $tenantObj ? $tenantObj->landingSettings() : null;
+  $displayMode = $tenantLandingSettings ? ($tenantLandingSettings->brand_display_mode ?? 'both') : 'both';
+  $hasLogo = $tenantObj && $tenantObj->logo_url;
+  $tenantName = $tenantObj ? $tenantObj->name : 'Gym Portal';
+  $tenantLandingUrl = $tenantObj ? $tenantObj->publicLandingUrl() : '/';
 @endphp
 
 <div class="admin-wrapper">
   <!-- Dynamic Sidebar per Role -->
   <aside class="admin-sidebar">
-    <div class="sidebar-brand d-flex flex-column align-items-center  gap-1 p-2 ">
-      @if($currentUser && $currentUser->tenant && $currentUser->tenant->logo_url)
-        <a href="/">
-          <img src="{{ asset($currentUser->tenant->logo_url) }}" alt="Gym Logo" style="max-height: 50px; max-width: 180px; object-fit: contain; border-radius: 8px;">
-        </a>
-      @else
-        <x-brand-logo type="full" theme="dark" size="49" url="/" />
-      @endif
-      <span class="tenant-badge" style="font-size: 15px;">{{ $currentUser && $currentUser->tenant ? $currentUser->tenant->name : 'Tenant' }}</span>
+    <div class="sidebar-brand d-flex flex-column align-items-center gap-1 p-3">
+      <a href="{{ $tenantLandingUrl }}" target="_blank" class="d-block text-center w-100 mb-1 text-decoration-none" title="Buka Landing Page Gym">
+        @if(($displayMode === 'logo' || $displayMode === 'both') && $hasLogo)
+          <img src="{{ asset($tenantObj->logo_url) }}?v={{ time() }}" alt="{{ $tenantName }}" style="max-height: 55px; max-width: 190px; object-fit: contain; border-radius: 8px;">
+        @endif
+        @if($displayMode === 'text' || ($displayMode === 'both' && !$hasLogo) || ($displayMode === 'logo' && !$hasLogo))
+          <div class="font-weight-extrabold text-white text-center py-2 px-3 rounded" style="font-size: 16px; letter-spacing: 0.5px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+            <i class="icon-fitness_center text-danger mr-1"></i> {{ $tenantName }}
+          </div>
+        @elseif($displayMode === 'both' && $hasLogo)
+          <div class="font-weight-bold text-white text-center mt-2" style="font-size: 14px;">{{ $tenantName }}</div>
+        @endif
+      </a>
+      <a href="{{ $tenantLandingUrl }}" target="_blank" class="tenant-badge text-decoration-none" style="font-size: 12px;" title="Buka Landing Page Gym">{{ $tenantName }} <i class="icon-external-link ml-1" style="font-size: 10px;"></i></a>
     </div>
 
     <ul class="sidebar-menu">
@@ -332,7 +343,9 @@
         </a>
       </li>
 
+      @if($userRole !== 'manager')
       <li class="menu-header">Operasional</li>
+      @endif
 
       @if($userRole === 'member')
       <li>
@@ -406,7 +419,7 @@
       </li>
       @endif
 
-      @if(in_array($userRole, ['admin', 'manager', 'receptionist', 'trainer']))
+      @if(in_array($userRole, ['admin', 'receptionist', 'trainer']))
       <li>
         <a href="{{ route('admin.members.index') }}" class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member
@@ -416,18 +429,8 @@
 
       @if($userRole === 'admin')
       <li>
-        <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Pembayaran untuk Pengaturan Melanjutkan Web
-        </a>
-      </li>
-      <li>
-        <a href="{{ route('admin.lockers.index') }}" class="{{ request()->routeIs('admin.lockers.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Loker Gym
-        </a>
-      </li>
-      <li>
-        <a href="{{ route('admin.classes.index') }}" class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Kelas & Trainer
+        <a href="{{ route('admin.subscription.index') }}" class="{{ request()->routeIs('admin.subscription.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-credit-card"></span></span> Pembayaran untuk Pengaturan Melanjutkan Web
         </a>
       </li>
       <li>
@@ -446,13 +449,8 @@
         </a>
       </li>
       <li>
-        <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan
-        </a>
-      </li>
-      <li>
         <a href="{{ route('admin.landing.edit') }}" class="{{ request()->routeIs('admin.landing.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-globe"></span></span> Landing Page
+          <span class="icon-wrapper"><span class="icon-globe"></span></span> Pengaturan & Landing Page
         </a>
       </li>
       @endif
@@ -488,8 +486,23 @@
       @if($userRole === 'manager')
       <li class="menu-header">Operasional Manager</li>
       <li>
-        <a href="/manager/features?tab=class" class="{{ request()->query('tab', 'class') === 'class' && request()->routeIs('manager.features') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span>Kelas
+        <a href="{{ route('admin.members.index') }}" class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Data Staf
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.lockers.index') }}" class="{{ request()->routeIs('admin.lockers.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.classes.index') }}" class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Jadwal Kelas & Trainer
         </a>
       </li>
       <li>
@@ -546,7 +559,7 @@
     <div class="top-navbar">
       <div class="page-title-box">
         <h5>@yield('page_title', 'Dashboard ' . ucfirst($userRole))</h5>
-        <p>@yield('page_subtitle', 'Sistem Pengelolaan Tenant Gym PetGym')</p>
+        <p>@yield('page_subtitle', 'Sistem Pengelolaan Gym')</p>
       </div>
 
       <div class="user-profile-nav">

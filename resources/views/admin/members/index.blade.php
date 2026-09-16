@@ -17,7 +17,7 @@
       <button type="submit" class="btn btn-sm btn-primary font-weight-bold" style="border-radius: 8px;">Cari</button>
     </form>
 
-    @if(!Auth::user() || !Auth::user()->isOwner())
+    @if(Auth::user() && Auth::user()->isReceptionist())
     <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#registerMemberModal" style="border-radius: 8px;">
       + Register Member Baru
     </button>
@@ -81,6 +81,14 @@
             <td class="text-right">
               <button class="btn btn-sm btn-outline-info btn-history mr-1" data-id="{{ $m->id }}" data-name="{{ $m->name }}" style="border-radius: 6px;">Histori</button>
               @if(!Auth::user() || !Auth::user()->isOwner())
+                @if($m->status !== 'active')
+                  <form action="{{ route('admin.members.approve', $m->id) }}" method="POST" class="d-inline mr-1">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-success font-weight-bold" style="border-radius: 6px;">
+                      <i class="icon-check mr-1"></i> Approve
+                    </button>
+                  </form>
+                @endif
                 <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-member"
                   data-id="{{ $m->id }}"
                   data-name="{{ $m->name }}"

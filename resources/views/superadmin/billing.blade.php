@@ -29,8 +29,9 @@
         <label class="text-black font-weight-bold" style="font-size: 13px;">Filter Status Pembayaran</label>
         <select class="form-control form-control-sm" id="statusFilter" onchange="window.location.href = '{{ route('superadmin.billing') }}?status=' + this.value;">
           <option value="all" {{ $status == 'all' ? 'selected' : '' }}>Tampilkan Semua</option>
-          <option value="pending" {{ $status == 'pending' ? 'selected' : '' }}>Menunggu Verifikasi</option>
-          <option value="paid" {{ $status == 'paid' ? 'selected' : '' }}>Lunas</option>
+          <option value="dp_pending" {{ $status == 'dp_pending' ? 'selected' : '' }}>Menunggu Verifikasi DP 50%</option>
+          <option value="dp_paid" {{ $status == 'dp_paid' ? 'selected' : '' }}>DP 50% Disetujui (Menunggu Pelunasan)</option>
+          <option value="paid" {{ $status == 'paid' ? 'selected' : '' }}>Lunas 100%</option>
         </select>
       </div>
     </div>
@@ -41,10 +42,10 @@
           <tr>
             <th class="text-black font-weight-bold">No. Invoice</th>
             <th class="text-black font-weight-bold">Gym / Tenant</th>
-            <th class="text-black font-weight-bold">Jumlah Tagihan (DP 50%)</th>
+            <th class="text-black font-weight-bold">Nominal Tagihan</th>
             <th class="text-black font-weight-bold">Tanggal Tagihan</th>
             <th class="text-black font-weight-bold">Status Pembayaran</th>
-            <th class="text-black font-weight-bold">Aksi / Verifikasi</th>
+            <th class="text-black font-weight-bold">Aksi / Verifikasi Superadmin</th>
           </tr>
         </thead>
         <tbody>
@@ -66,10 +67,12 @@
             <td class="font-weight-bold text-success">{{ $amountFormatted }}</td>
             <td class="text-black">{{ $dueDateFormatted }}</td>
             <td>
-              @if($statusVal == 'pending')
-                <span class="badge badge-status-pending px-2 py-1 rounded">Menunggu Verifikasi</span>
+              @if($statusVal == 'dp_pending' || $statusVal == 'pending')
+                <span class="badge badge-warning px-2 py-1 text-dark font-weight-bold rounded">Menunggu Verifikasi DP 50%</span>
+              @elseif($statusVal == 'dp_paid')
+                <span class="badge badge-info px-2 py-1 font-weight-bold rounded">DP 50% Disetujui (Aktif)</span>
               @else
-                <span class="badge badge-status-active px-2 py-1 rounded">Lunas</span>
+                <span class="badge badge-success px-2 py-1 font-weight-bold rounded">Lunas 100%</span>
               @endif
             </td>
             <td>
@@ -82,21 +85,30 @@
                         data-invoice="{{ $invNo }}"
                         data-tenant="{{ $tenantName }}"
                         data-proof="{{ $proofVal }}"
-                        title="Lihat Bukti Transfer SS"
+                        title="Lihat SS Bukti Transfer"
                         style="font-size: 12px; font-weight: bold;">
                   <span class="icon-search"></span> Lihat Bukti SS
                 </button>
 
-                @if($statusVal == 'pending')
+                @if($statusVal == 'dp_pending' || $statusVal == 'pending')
+                  <button class="btn btn-sm btn-primary py-1 px-2 btn-verify-direct"
+                          data-id="{{ $invoice->id }}"
+                          data-invoice="{{ $invNo }}"
+                          data-action="verify-dp"
+                          style="font-size: 12px; font-weight: bold;">
+                    Verifikasi DP 50%
+                  </button>
+                @elseif($statusVal == 'dp_paid')
                   <button class="btn btn-sm btn-success py-1 px-2 btn-verify-direct"
                           data-id="{{ $invoice->id }}"
                           data-invoice="{{ $invNo }}"
+                          data-action="verify"
                           style="font-size: 12px; font-weight: bold;">
-                    Verifikasi Lunas
+                    Verifikasi Pelunasan 100%
                   </button>
                 @else
                   <button class="btn btn-sm btn-light py-1 px-2" disabled style="font-size: 12px; font-weight: bold;">
-                    Verified
+                    Verified (Lunas 100%)
                   </button>
                 @endif
               </div>
@@ -130,13 +142,13 @@
           <strong class="text-black h5 d-block" id="proofInvoiceNo">#INV-XXX</strong>
           <span id="proofTenantName" class="text-muted font-weight-bold">Nama Gym</span>
         </div>
-        <div class="p-2 border bg-white rounded shadow-sm d-inline-block">
+        <div class="p-2 border bg-white rounded shadow-sm d-inline-block mb-3">
           <img id="proofImage" src="" alt="Bukti Transfer SS Pembelian" class="img-fluid rounded" style="max-height: 420px; object-fit: contain;">
         </div>
       </div>
       <div class="modal-footer bg-white">
         <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
-        <button type="button" class="btn btn-success btn-sm btn-approve-direct font-weight-bold">Verifikasi Lunas Sekarang (Simpan ke DB)</button>
+        <button type="button" class="btn btn-primary btn-sm btn-approve-direct font-weight-bold">Verifikasi & Aktifkan Sekarang</button>
       </div>
     </div>
   </div>
@@ -167,7 +179,7 @@
       }
     });
 
-    // 2. Verifikasi lunas dari modal
+    // 2. Verifikasi dari modal
     $(document).on('click', '.btn-approve-direct', function() {
       if (currentVerifyButton && currentVerifyButton.length) {
         executeVerification(currentVerifyButton);
@@ -175,18 +187,18 @@
       $('#viewProofModal').modal('hide');
     });
 
-    // 3. Verifikasi lunas langsung dari tabel
+    // 3. Verifikasi langsung dari tabel
     $(document).on('click', '.btn-verify-direct', function() {
       executeVerification($(this));
     });
 
     function executeVerification(button) {
       const invoiceId = button.data('id');
-      const invoiceNo = button.data('invoice') || button.closest('tr').find('td').first().text();
+      const actionType = button.data('action') || 'verify';
 
       button.prop('disabled', true).text('Memproses...');
 
-      fetch("{{ url('/superadmin/billing') }}/" + invoiceId + "/verify", {
+      fetch("{{ url('/superadmin/billing') }}/" + invoiceId + "/" + actionType, {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -194,12 +206,12 @@
           'Content-Type': 'application/json'
         }
       })
-      .then(res => {
+      .then(res => res.json())
+      .then(data => {
         window.location.reload();
       })
       .catch(err => {
-        showToast('Error', 'Gagal memverifikasi invoice di database.', 'error');
-        button.prop('disabled', false).text('Verifikasi Lunas');
+        window.location.reload();
       });
     }
   });

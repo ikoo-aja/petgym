@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Pemilik (Owner) &mdash; PetGym')
+@section('title', 'Dashboard Pemilik (Owner)')
 @section('page_title', 'Dashboard Eksekutif Pemilik Gym')
 @section('page_subtitle', 'Pusat pemantauan omset harian, statistik keanggotaan, okupansi loker, dan kesehatan bisnis gym Anda')
 

@@ -56,18 +56,22 @@
             <td style="font-size: 13px;" class="text-dark">{{ $st->created_at ? $st->created_at->format('d M Y H:i') : '-' }}</td>
             @if(!Auth::user() || !Auth::user()->isOwner())
             <td class="text-right">
-              @if(!$st->hasVerifiedEmail())
-                <form action="{{ route('admin.staff.send-verification', $st->id) }}" method="POST" class="d-inline">
-                  @csrf
-                  <button type="submit" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Kirim Verifikasi</button>
-                </form>
-              @endif
-              @if(Auth::id() !== $st->id)
-                <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun staf ini?">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
-                </form>
+              @if(Auth::user() && Auth::user()->isManager() && in_array($st->role, ['admin', 'owner', 'superadmin', 'manager']))
+                <span class="badge badge-light text-muted px-2 py-1" style="font-size: 11px;">Akses Terbatas</span>
+              @else
+                @if(!$st->hasVerifiedEmail())
+                  <form action="{{ route('admin.staff.send-verification', $st->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Kirim Verifikasi</button>
+                  </form>
+                @endif
+                @if(Auth::id() !== $st->id)
+                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun staf ini?">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
+                  </form>
+                @endif
               @endif
             </td>
             @endif
@@ -123,6 +127,18 @@
             <label class="custom-control-label text-muted" style="font-size: 12px;" for="autoGenPw">Generate password default otomatis (staf wajib ganti saat login)</label>
           </div>
         </div>
+        @if(Auth::user() && Auth::user()->isManager())
+        <div class="alert alert-info border-0 p-3 mb-3 rounded" style="background-color: #e0f2fe; color: #0369a1; font-size: 12.5px;">
+          <i class="icon-info mr-1"></i> <strong>Akses Manager:</strong> Manager Gym menginput dan mengelola akun staf operasional (Resepsionis/Kasir dan Personal Trainer).
+        </div>
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Peran Akun *</label>
+          <select name="role" id="staffRole" class="form-control" required>
+            <option value="receptionist">Resepsionis / Kasir</option>
+            <option value="trainer">Personal Trainer (PT)</option>
+          </select>
+        </div>
+        @else
         <div class="alert alert-info border-0 p-3 mb-3 rounded" style="background-color: #e0f2fe; color: #0369a1; font-size: 12.5px;">
           <i class="icon-info mr-1"></i> <strong>Akses Admin:</strong> Admin menginput akun peran tingkat tinggi (Manager & Owner). Akun operasional seperti Personal Trainer (PT) dan Resepsionis/Kasir diinput oleh <strong>Manager Gym</strong>.
         </div>
@@ -131,9 +147,9 @@
           <select name="role" id="staffRole" class="form-control" required>
             <option value="manager">Manager Gym</option>
             <option value="owner">Pemilik Gym (Owner)</option>
-            <option value="member">Member Gym</option>
           </select>
         </div>
+        @endif
         <div class="form-group mb-0" id="staffPhoneGroup" style="display: none;">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Nomor Telepon / WhatsApp Trainer</label>
           <div class="input-group">

@@ -111,34 +111,31 @@ class SuperadminController extends Controller
             'features' => $features,
         ]);
 
-        // Otomatis Buat 2 Akun Pengguna: (1) Akun Owner Pemantau & (2) Akun Admin Eksekutor
-        $cleanSub = Str::slug(explode('.', $rawSub)[0]);
+        // Otomatis Buat Akun Admin Pengelola Gym
+        $adminUser = $this->ensureTenantAdmin($tenant, $ownerName, $request->owner_email);
 
-        // 1. Akun Owner (Pemilik Gym)
-        // Akun dibuat oleh platform (superadmin), jadi langsung dianggap
-        // terverifikasi — kalau tidak, admin/owner tenant baru akan terkunci
-        // dari semua dashboard karena email verifikasi tidak pernah dikirim.
-        $owner = User::updateOrCreate(
-            ['email' => $request->owner_email],
-            [
-                'name' => $ownerName,
-                'password' => Hash::make('1234'),
-                'role' => 'owner',
-                'tenant_id' => $tenant->id,
-            ]
-        );
-        if (!$owner->hasVerifiedEmail()) {
-            $owner->markEmailAsVerified();
-        }
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Tenant Registration',
+            'description' => "Superadmin mendaftarkan tenant baru: {$tenant->name} ({$tenant->subdomain}). Akun Admin dibuat: ({$adminUser->email}).",
+            'ip_address' => $request->ip(),
+        ]);
 
-        // 2. Akun Admin (Pengelola Operasional)
-        $adminEmail = "admin.{$cleanSub}@workout.id";
+        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar! Akun Admin ({$adminUser->email}) dibuat otomatis. Password default: 1234");
+    }
+
+    /**
+     * Memastikan Akun Admin Otomatis Terbuat & Terverifikasi untuk Tenant.
+     */
+    private function ensureTenantAdmin(Tenant $tenant, string $adminName, string $adminEmail): User
+    {
+        // Akun Admin (Pengelola Operasional Gym)
         $adminUser = User::updateOrCreate(
             ['email' => $adminEmail],
             [
-                'name' => "Admin {$tenant->name}",
-                'password' => Hash::make('1234'),
-                'role' => 'admin',
+                'name'      => $adminName,
+                'password'  => Hash::make('1234'),
+                'role'      => 'admin',
                 'tenant_id' => $tenant->id,
             ]
         );
@@ -146,14 +143,7 @@ class SuperadminController extends Controller
             $adminUser->markEmailAsVerified();
         }
 
-        SystemLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'Tenant Registration',
-            'description' => "Superadmin mendaftarkan tenant baru: {$tenant->name} ({$tenant->subdomain}). 2 Akun otomatis dibuat: Owner ({$request->owner_email}) & Admin ({$adminEmail}).",
-            'ip_address' => $request->ip(),
-        ]);
-
-        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar! 2 Akun dibuat otomatis: Owner ({$request->owner_email}) & Admin ({$adminEmail}). Password default: 1234");
+        return $adminUser;
     }
 
     /**
@@ -162,28 +152,32 @@ class SuperadminController extends Controller
     public function updateTenantFeatures(Request $request, $id)
     {
         $tenant = Tenant::findOrFail($id);
-        $features = $request->input('features', []);
+
+        $request->validate([
+            'plan_id' => 'required|exists:plans,id',
+            'features' => 'nullable|array',
+        ]);
+
+        $plan = Plan::findOrFail($request->plan_id);
 
         $tenant->update([
-            'features' => $features,
+            'plan_id' => $plan->id,
+            'plan_name' => $plan->name,
+            'features' => $request->features ?? $plan->features ?? [],
         ]);
 
         SystemLog::create([
             'user_id' => Auth::id(),
-            'action' => 'Update Fitur Tenant',
-            'description' => "Superadmin memperbarui modul fitur aktif untuk tenant {$tenant->name}.",
+            'action' => 'Update Tenant Features',
+            'description' => "Superadmin memperbarui paket & fitur tenant {$tenant->name} ke {$plan->name}.",
             'ip_address' => $request->ip(),
         ]);
 
-        if ($request->wantsJson()) {
-            return response()->json(['status' => 'success', 'features' => $features]);
-        }
-
-        return redirect()->route('superadmin.tenants')->with('success', "Modul fitur untuk tenant '{$tenant->name}' berhasil diperbarui di database!");
+        return redirect()->route('superadmin.tenants')->with('success', "Paket & Fitur tenant '{$tenant->name}' berhasil diperbarui!");
     }
 
     /**
-     * Toggle Status Tenant (Active / Suspended) di Database.
+     * Toggle Nonaktifkan / Aktifkan Akses Tenant.
      */
     public function toggleTenantStatus(Request $request, $id)
     {
@@ -194,8 +188,8 @@ class SuperadminController extends Controller
 
         SystemLog::create([
             'user_id' => Auth::id(),
-            'action' => $newStatus === 'suspended' ? 'Suspend Account' : 'Activate Account',
-            'description' => "Superadmin meng-{$newStatus} akun tenant {$tenant->name}.",
+            'action' => 'Toggle Status Tenant',
+            'description' => "Superadmin mengubah status tenant {$tenant->name} menjadi {$newStatus}.",
             'ip_address' => $request->ip(),
         ]);
 
@@ -239,97 +233,91 @@ class SuperadminController extends Controller
     }
 
     /**
-     * Simpan Paket Sewa Baru ke Database.
+     * Simpan Paket Sewa Baru.
      */
     public function storePlan(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'max_members' => 'nullable|integer|min:1',
+            'price' => 'required|numeric',
+            'period' => 'required|string',
+            'max_members' => 'required|integer',
             'features' => 'nullable|array',
         ]);
-
-        $features = $request->input('features', []);
 
         Plan::create([
             'name' => $request->name,
             'price' => $request->price,
-            'max_members' => $request->max_members ?: null,
-            'features' => $features,
+            'period' => $request->period,
+            'max_members' => $request->max_members,
+            'features' => $request->features ?? [],
             'status' => 'active',
         ]);
 
-        return redirect()->route('superadmin.plans')->with('success', "Paket '{$request->name}' berhasil ditambahkan ke database!");
+        return redirect()->route('superadmin.plans')->with('success', 'Paket sewa baru berhasil ditambahkan!');
     }
 
     /**
-     * Update Batasan & Fitur Paket Sewa di Database.
+     * Update Paket Sewa.
      */
     public function updatePlan(Request $request, $id)
     {
         $plan = Plan::findOrFail($id);
-
         $request->validate([
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'max_members' => 'nullable|integer|min:1',
+            'price' => 'required|numeric',
+            'period' => 'required|string',
+            'max_members' => 'required|integer',
             'features' => 'nullable|array',
         ]);
-
-        $features = $request->input('features', []);
 
         $plan->update([
             'name' => $request->name,
             'price' => $request->price,
-            'max_members' => $request->max_members ?: null,
-            'features' => $features,
+            'period' => $request->period,
+            'max_members' => $request->max_members,
+            'features' => $request->features ?? [],
         ]);
 
-        return redirect()->route('superadmin.plans')->with('success', "Batasan & fitur paket '{$plan->name}' berhasil diperbarui di database!");
+        return redirect()->route('superadmin.plans')->with('success', "Paket sewa '{$plan->name}' berhasil diperbarui!");
     }
 
     /**
-     * Toggle Status Paket (Active / Archived).
+     * Toggle Status Aktif Paket Sewa.
      */
-    public function togglePlanStatus(Request $request, $id)
+    public function togglePlanStatus($id)
     {
         $plan = Plan::findOrFail($id);
-        $newStatus = $plan->status === 'active' ? 'archived' : 'active';
+        $newStatus = $plan->status === 'active' ? 'inactive' : 'active';
         $plan->update(['status' => $newStatus]);
 
-        if ($request->wantsJson()) {
-            return response()->json(['status' => 'success', 'new_status' => $newStatus]);
-        }
-
-        return redirect()->route('superadmin.plans')->with('success', "Status paket '{$plan->name}' berhasil diubah menjadi {$newStatus}!");
+        return redirect()->route('superadmin.plans')->with('success', "Status paket '{$plan->name}' diubah menjadi {$newStatus}!");
     }
 
     /**
-     * Hapus Paket Sewa dari Database.
+     * Hapus Paket Sewa.
      */
     public function destroyPlan($id)
     {
         $plan = Plan::findOrFail($id);
-        $planName = $plan->name;
         $plan->delete();
 
-        return redirect()->route('superadmin.plans')->with('success', "Paket '{$planName}' telah dihapus dari database!");
+        return redirect()->route('superadmin.plans')->with('success', 'Paket sewa berhasil dihapus!');
     }
 
     /**
-     * Tampilkan Halaman Keuangan & Tagihan.
+     * Tampilkan Halaman Riwayat Billing.
      */
     public function billing(Request $request)
     {
-        $query = Invoice::with('tenant');
         $status = $request->query('status', 'all');
+        $query = Invoice::with('tenant');
 
         if ($status !== 'all') {
             $query->where('status', $status);
         }
 
-        $invoices = $query->latest('id')->get();
+        $invoices = $query->latest('id')->paginate(10)->withQueryString();
 
         return view('superadmin.billing', compact('invoices', 'status'));
     }
@@ -339,21 +327,21 @@ class SuperadminController extends Controller
      */
     public function announcements()
     {
-        $announcements = Announcement::latest('id')->get();
+        $announcements = Announcement::latest()->get();
         return view('superadmin.announcements', compact('announcements'));
     }
 
     /**
-     * Tampilkan Halaman System Logs.
+     * Tampilkan Halaman Audit Trail Log.
      */
     public function logs()
     {
-        $logs = SystemLog::latest('id')->get();
+        $logs = SystemLog::latest()->paginate(15);
         return view('superadmin.logs', compact('logs'));
     }
 
     /**
-     * Tampilkan Halaman Pengaturan.
+     * Tampilkan Halaman Pengaturan Sistem.
      */
     public function settings()
     {
@@ -361,7 +349,7 @@ class SuperadminController extends Controller
     }
 
     /**
-     * Tampilkan Halaman Profil.
+     * Tampilkan Profil Superadmin.
      */
     public function profile()
     {
@@ -369,13 +357,13 @@ class SuperadminController extends Controller
     }
 
     /**
-     * Proses Pembersihan Cache Aplikasi.
+     * Hapus Cache Aplikasi / Artisan Clear.
      */
     public function clearCache()
     {
         try {
             Artisan::call('optimize:clear');
-            $message = 'System cache & optimization cleared successfully!';
+            $message = 'Berhasil membersihkan seluruh cache aplikasi!';
         } catch (\Exception $e) {
             $message = 'Cache clear simulated/completed (with notes: ' . $e->getMessage() . ')';
         }
@@ -422,7 +410,7 @@ class SuperadminController extends Controller
         $plan = Plan::where('name', 'like', "%{$request->plan_name}%")->first();
         $features = $plan ? ($plan->features ?? []) : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'];
 
-        // Create Tenant in Database
+        // Create Tenant in Database (Pending status until verified by Superadmin)
         $tenant = Tenant::create([
             'name' => $request->gym_name,
             'subdomain' => $subdomainFormatted,
@@ -430,11 +418,14 @@ class SuperadminController extends Controller
             'owner_email' => $request->owner_email,
             'plan_id' => $plan ? $plan->id : null,
             'plan_name' => $request->plan_name,
-            'status' => 'active',
+            'status' => 'pending',
             'joined_at' => now(),
             'expires_at' => now()->addDays(30),
             'features' => $features,
         ]);
+
+        // Otomatis Buat Akun Owner & Admin
+        $this->ensureTenantUsers($tenant, $request->owner_name, $request->owner_email);
 
         // Create Invoice Record in Database
         $invoiceCount = Invoice::count() + 1;
@@ -453,15 +444,48 @@ class SuperadminController extends Controller
         SystemLog::create([
             'user_id' => null,
             'action' => 'Pembayaran DP Tenant',
-            'description' => "Pendaftaran Gym '{$tenant->name}' dengan DP 50% Rp " . number_format($request->dp_price, 0, ',', '.') . " (#{$invoice->invoice_number}).",
+            'description' => "Pendaftaran Gym '{$tenant->name}' dengan DP 50% Rp " . number_format($request->dp_price, 0, ',', '.') . " (#{$invoice->invoice_number}). Akun Owner & Admin otomatis terbuat.",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect('/#pricing-section')->with('checkout_success', "Pendaftaran & Bukti Transfer DP 50% untuk Gym '{$tenant->name}' berhasil terkirim! Tim Superadmin kami akan memverifikasi dalam 1x24 jam.");
+        return redirect('/#pricing-section')->with('checkout_success', "Pendaftaran & Bukti Transfer DP 50% untuk Gym '{$tenant->name}' berhasil terkirim! Superadmin akan mengonfirmasi via WhatsApp & memverifikasi transaksi Anda.");
     }
 
     /**
-     * Verifikasi Lunas Invoice / DP Tenant oleh Superadmin.
+     * Verifikasi Stage 1: Verifikasi Pembayaran DP 50% oleh Superadmin.
+     */
+    public function verifyDpPayment(Request $request, $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+        $invoice->update([
+            'status' => 'dp_paid',
+        ]);
+
+        if ($invoice->tenant) {
+            $invoice->tenant->update(['status' => 'active']);
+            $this->ensureTenantAdmin(
+                $invoice->tenant,
+                $invoice->tenant->owner_name ?: $invoice->tenant->name,
+                $invoice->tenant->owner_email
+            );
+        }
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Verifikasi DP 50%',
+            'description' => "Superadmin menyetujui verifikasi transfer DP 50% invoice {$invoice->invoice_number} untuk tenant " . ($invoice->tenant ? $invoice->tenant->name : 'N/A') . ". Web Gym & Akun diaktifkan.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['status' => 'success', 'message' => 'Verifikasi DP 50% disetujui!']);
+        }
+
+        return redirect()->back()->with('success', "Pembayaran DP 50% (#{$invoice->invoice_number}) berhasil diverifikasi! Akses web gym '{$invoice->tenant->name}' serta akun Owner & Admin telah DIAKTIFKAN.");
+    }
+
+    /**
+     * Verifikasi Stage 2: Verifikasi Pelunasan 100% oleh Superadmin.
      */
     public function verifyInvoice(Request $request, $id)
     {
@@ -473,15 +497,24 @@ class SuperadminController extends Controller
 
         if ($invoice->tenant) {
             $invoice->tenant->update(['status' => 'active']);
+            $this->ensureTenantAdmin(
+                $invoice->tenant,
+                $invoice->tenant->owner_name ?: $invoice->tenant->name,
+                $invoice->tenant->owner_email
+            );
         }
 
         SystemLog::create([
             'user_id' => Auth::id(),
-            'action' => 'Verifikasi Pembayaran',
-            'description' => "Superadmin menyetujui verifikasi lunas invoice {$invoice->invoice_number} untuk tenant " . ($invoice->tenant ? $invoice->tenant->name : 'N/A') . ".",
+            'action' => 'Verifikasi Pelunasan 100%',
+            'description' => "Superadmin menyetujui verifikasi pelunasan 100% invoice {$invoice->invoice_number} untuk tenant " . ($invoice->tenant ? $invoice->tenant->name : 'N/A') . ".",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->back()->with('success', "Invoice {$invoice->invoice_number} berhasil diverifikasi LUNAS!");
+        if ($request->wantsJson()) {
+            return response()->json(['status' => 'success', 'message' => 'Invoice diverifikasi LUNAS 100%!']);
+        }
+
+        return redirect()->back()->with('success', "Invoice {$invoice->invoice_number} berhasil diverifikasi LUNAS 100%!");
     }
 }

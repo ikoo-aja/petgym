@@ -1,6 +1,6 @@
 @extends('layouts.member')
 
-@section('title', 'Profil- PetGym')
+@section('title', 'Profil')
 @section('page_title', 'Profil')
 @section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
@@ -205,7 +205,7 @@
       <div class="text-center py-3 mb-3 border rounded bg-light">
         <p class="text-muted mb-0 small">Tidak ada Reformer Pilates Access yang aktif</p>
       </div>
-      <button type="button" class="btn btn-outline-info btn-block py-2 font-weight-bold" style="border-radius: 10px;" onclick="showToast('Info', 'Layanan Reformer Pilates dapat dibeli melalui kasir resepsionis gym PetGym.', 'info')">
+      <button type="button" class="btn btn-outline-info btn-block py-2 font-weight-bold" style="border-radius: 10px;" onclick="showToast('Info', 'Layanan Reformer Pilates dapat dibeli melalui kasir resepsionis gym.', 'info')">
         Lihat Cara Beli Reformer Pilates
       </button>
     </div>
@@ -245,14 +245,14 @@
         <a href="#feedbackModal" data-toggle="modal" class="setting-list-item">
           <div class="d-flex align-items-center">
             <span class="setting-icon text-warning"><span class="icon-star"></span></span>
-            <span class="font-weight-semibold" style="font-size: 14px;">Rating Aplikasi PetGym</span>
+            <span class="font-weight-semibold" style="font-size: 14px;">Rating Aplikasi {{ $tenantName }}</span>
           </div>
           <span class="text-muted">&rsaquo;</span>
         </a>
         <a href="#feedbackModal" data-toggle="modal" class="setting-list-item">
           <div class="d-flex align-items-center">
             <span class="setting-icon"><span class="icon-pencil"></span></span>
-            <span class="font-weight-semibold" style="font-size: 14px;">Beri Feedback untuk PetGym</span>
+            <span class="font-weight-semibold" style="font-size: 14px;">Beri Feedback untuk {{ $tenantName }}</span>
           </div>
           <span class="text-muted">&rsaquo;</span>
         </a>
@@ -307,6 +307,19 @@
           </div>
           <span class="text-muted">&rsaquo;</span>
         </a>
+        <div class="setting-list-item">
+          <div class="d-flex align-items-center">
+            <span class="setting-icon text-warning"><span class="icon-cog"></span></span>
+            <div>
+              <span class="font-weight-semibold d-block" style="font-size: 14px;">Opsi Mode Tampilan (Mode Gelap)</span>
+              <small class="text-muted d-block" style="font-size: 11px;" id="themeSettingStatusText">Saat ini: Mode Terang (Default)</small>
+            </div>
+          </div>
+          <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="settingsThemeSwitch" onchange="toggleMemberTheme()">
+            <label class="custom-control-label" for="settingsThemeSwitch" style="cursor: pointer;"></label>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -322,8 +335,8 @@
 
     <!-- Footer App Version (Foto 2) -->
     <div class="text-center text-muted py-2" style="font-size: 12px;">
-      <div class="font-weight-bold">PetGym Member Portal v2.1.0</div>
-      <div style="font-size: 10.5px;">&copy; {{ date('Y') }} PT. Jaya Digital Properti. All Rights Reserved</div>
+      <div class="font-weight-bold">{{ $tenantName }} Member Portal</div>
+      <div style="font-size: 10.5px;">&copy; {{ date('Y') }} {{ $tenantName }}. All Rights Reserved</div>
     </div>
   </div>
 </div>
@@ -444,7 +457,7 @@
       <div class="modal-body p-4 text-center">
         <span style="font-size: 48px;">🎫</span>
         <h5 class="font-weight-bold text-dark mt-2 mb-1">Tiket Harian Corporate Pass</h5>
-        <p class="text-muted small mb-3">Gunakan pass harian khusus perusahaan mitra PetGym untuk akses 1 hari penuh latihan.</p>
+        <p class="text-muted small mb-3">Gunakan pass harian khusus perusahaan mitra {{ $tenantName }} untuk akses 1 hari penuh latihan.</p>
         <div class="p-3 bg-light rounded border mb-3">
           <small class="text-muted d-block mb-1">Harga Pass Harian Standar</small>
           <h4 class="font-weight-bold text-primary mb-0">Rp 50.000 / Hari</h4>
@@ -468,7 +481,7 @@
           <small class="text-muted d-block">Total Presensi Kunjungan Gym</small>
           <h3 class="font-weight-bold text-primary mb-0">{{ $checkInsCount ?? 0 }} Kunjungan</h3>
         </div>
-        <p class="text-muted small mb-0">Catatan presensi otomatis tersimpan setiap kali Anda melakukan scan kode akses PIN di lokasi gym PetGym.</p>
+        <p class="text-muted small mb-0">Catatan presensi otomatis tersimpan setiap kali Anda melakukan scan kode akses PIN di lokasi {{ $tenantName }}.</p>
       </div>
     </div>
   </div>
@@ -483,7 +496,7 @@
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body p-4 text-center">
-        <h6 class="font-weight-bold text-dark mb-3">Bagaimana Pengalaman Anda Menggunakan PetGym?</h6>
+        <h6 class="font-weight-bold text-dark mb-3">Bagaimana Pengalaman Anda Menggunakan Aplikasi {{ $tenantName }}?</h6>
         <div class="mb-3" style="font-size: 28px;">⭐⭐⭐⭐⭐</div>
         <textarea class="form-control mb-3" rows="3" placeholder="Tuliskan masukan atau kritik saran Anda..." style="border-radius: 8px;"></textarea>
         <button type="button" class="btn btn-primary btn-block font-weight-bold" onclick="showToast('Terima Kasih', 'Feedback Anda telah kami terima. Terima kasih sudah meluangkan waktu!', 'success'); $('#feedbackModal').modal('hide');">Kirim Feedback</button>

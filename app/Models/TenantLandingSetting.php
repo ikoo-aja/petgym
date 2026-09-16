@@ -9,6 +9,7 @@ class TenantLandingSetting extends Model
     protected $fillable = [
         'tenant_id',
         'template',
+        'brand_display_mode',
         'hero_title',
         'hero_tagline',
         'about_text',

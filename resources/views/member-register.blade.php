@@ -8,15 +8,15 @@
   <x-dynamic-favicon />
 
   <link href="https://fonts.googleapis.com/css?family=Muli:300,400,700,900" rel="stylesheet">
-  <link rel="stylesheet" href="fonts/icomoon/style.css">
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="{{ asset('fonts/icomoon/style.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 
 <body class="bg-light">
 
   <div class="site-wrap">
-    <!-- Header Logo Sederhana -->
+    <!-- Header Logo -->
     <div class="py-3 bg-white border-bottom shadow-sm">
       <div class="container text-center">
         <div class="site-logo d-flex justify-content-center align-items-center">
@@ -39,18 +39,13 @@
 
         <div class="row justify-content-center">
           <div class="col-md-6">
-            <div class="alert alert-info border-0 p-3 mb-4 rounded shadow-sm" style="background-color: #e0f2fe; color: #0369a1; border-radius: 10px; font-size: 13px;">
-              <i class="icon-info mr-1"></i> <strong>Pendaftaran Member Gym:</strong> Formulir ini khusus untuk masyarakat / pelanggan yang ingin mendaftar keanggotaan <strong>Member Gym</strong>.
-              <hr class="my-2 border-info">
-              <span class="d-block mt-1">Apakah Anda Pemilik Gym yang ingin <strong>membeli / menyewa website PetGym</strong>? <a href="{{ url('/#pricing-section') }}" class="font-weight-bold text-primary">Lihat Paket Sewa Web di sini &rarr;</a></span>
-            </div>
 
-            <form action="{{ route('register') }}" method="POST" class="bg-white p-5 shadow-sm rounded-lg border">
+            <form action="{{ route('member.register.submit') }}" method="POST" class="bg-white p-5 shadow-sm rounded-lg border" style="border-radius: 12px;">
               @csrf
 
               <!-- Alert Errors -->
               @if($errors->any())
-                <div class="alert alert-danger py-2 mb-4" role="alert">
+                <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
                   <ul class="mb-0 pl-3">
                     @foreach($errors->all() as $err)
                       <li class="small font-weight-bold">{{ $err }}</li>
@@ -61,7 +56,7 @@
 
               <div class="form-group mb-3">
                 <label for="name" class="text-dark font-weight-bold small">Nama Lengkap Member *</label>
-                <input type="text" id="name" name="name" value="{{ old('name') }}" class="form-control form-control-lg" placeholder="Contoh: Budi Santoso" required style="font-size: 15px;">
+                <input type="text" id="name" name="name" value="{{ old('name') }}" class="form-control form-control-lg" placeholder="Contoh: Budi Santoso" required autofocus style="font-size: 15px;">
               </div>
 
               <div class="form-group mb-3">
@@ -103,8 +98,8 @@
               </div>
 
               <div class="text-center mt-4 pt-3 border-top">
-                <span class="text-muted small">Sudah memiliki akun?</span>
-                <a href="{{ route('login') }}" class="text-primary small font-weight-bold ml-1">Masuk / Login Di Sini</a>
+                <span class="text-muted small">Sudah memiliki akun member?</span>
+                <a href="{{ route('member.login') }}" class="text-primary small font-weight-bold ml-1">Masuk / Login Di Sini</a>
               </div>
             </form>
           </div>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Resepsionis &mdash; PetGym')
+@section('title', 'Dashboard Resepsionis')
 @section('page_title', 'Dashboard Resepsionis / Frontdesk')
 @section('page_subtitle', 'Antarmuka cepat layanan frontdesk, PIN check-in, registrasi member, dan POS kasir')
 

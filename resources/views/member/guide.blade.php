@@ -1,14 +1,14 @@
 @extends('layouts.member')
 
-@section('title', 'Panduan Penggunaan - PetGym Member')
-@section('page_title', 'Panduan & Langkah-Langkah Portal Member')
-@section('page_subtitle', 'Petunjuk langkah demi langkah untuk menggunakan semua fitur pada portal member PetGym.')
+@section('title', 'Panduan Penggunaan')
+@section('page_title', 'Panduan Penggunaan')
+@section('page_subtitle', 'Petunjuk langkah demi langkah untuk menggunakan semua fitur pada portal member.')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
 
 @section('content')
 <!-- Overview Header Banner -->
 <div class="card-custom border-left border-primary mb-4" style="border-left-width: 4px !important;">
-  <h5 class="font-weight-bold text-dark mb-1">Selamat Datang di Portal Member PetGym</h5>
+  <h5 class="font-weight-bold text-dark mb-1">Selamat Datang di Portal Member {{ $tenantName }}</h5>
   <p class="text-muted mb-0 small">Gunakan panduan di bawah ini untuk memahami alur kerja transaksi, booking trainer, pendaftaran kelas, dan sewa loker digital.</p>
 </div>
 

@@ -1,6 +1,6 @@
 @extends('layouts.member')
 
-@section('title', 'Riwayat Tagihan - PetGym')
+@section('title', 'Riwayat Tagihan')
 @section('page_title', 'Riwayat Tagihan')
 @section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
@@ -115,7 +115,7 @@
           </div>
         </div>
 
-        <small class="text-muted d-block text-center">Struk digital ini sah sebagai bukti pembayaran di PetGym.</small>
+        <small class="text-muted d-block text-center">Struk digital ini sah sebagai bukti pembayaran di {{ $tenantName }}.</small>
       </div>
 
       <div class="modal-footer bg-light">

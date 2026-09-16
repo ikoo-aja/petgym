@@ -31,13 +31,32 @@ class AdminPosController extends Controller
             ->take(15)
             ->get();
 
-        return view('admin.pos.index', compact('members', 'products', 'recentTransactions', 'tenant'));
+        $openShift = null;
+        if ($user->isReceptionist()) {
+            $openShift = \App\Models\ReceptionistShift::where('tenant_id', $tenant->id)
+                ->where('user_id', $user->id)
+                ->where('status', 'open')
+                ->first();
+        }
+
+        return view('admin.pos.index', compact('members', 'products', 'recentTransactions', 'tenant', 'openShift'));
     }
 
     public function checkout(Request $request)
     {
         $user = Auth::user();
         $tenant = $user->tenant;
+
+        if ($user->isReceptionist()) {
+            $openShift = \App\Models\ReceptionistShift::where('tenant_id', $tenant->id)
+                ->where('user_id', $user->id)
+                ->where('status', 'open')
+                ->first();
+
+            if (!$openShift) {
+                return redirect()->back()->with('error', 'Transaksi POS diblokir: Shift kasir Anda belum dibuka (BELUM OPEN KASIR). Silakan buka shift kasir terlebih dahulu di menu Shift & Kasir.');
+            }
+        }
 
         $request->validate([
             'member_id' => 'nullable|exists:members,id',

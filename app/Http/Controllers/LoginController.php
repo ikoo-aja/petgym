@@ -76,6 +76,23 @@ class LoginController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
+            // Proteksi: Akun member TIDAK boleh login dari portal utama PetGym.
+            // Member HANYA boleh login melalui subdomain/halaman web gym tempat mereka mendaftar.
+            $isTenantSubdomain = $request->route() && $request->route()->hasParameter('slug');
+            if ($user->role === 'member' && !$isTenantSubdomain) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                $tenant = $user->tenant;
+                $gymUrl = $tenant ? $tenant->publicLandingUrl() . '/login' : null;
+                $errorMsg = $gymUrl 
+                    ? "Akun keanggotaan member tidak dapat login dari portal PetGym utama. Silakan masuk melalui halaman login gym Anda: <a href='{$gymUrl}' class='font-weight-bold text-danger'>{$gymUrl}</a>"
+                    : "Akun keanggotaan member tidak dapat login dari portal PetGym utama. Silakan masuk melalui alamat website gym tempat Anda mendaftar.";
+
+                return back()->withErrors(['email' => $errorMsg])->onlyInput('email');
+            }
+
             // 3a. Wajib verifikasi email sebelum bisa masuk ke dashboard
             // (user tetap login tapi diarahkan ke halaman verifikasi dulu)
             if (!$user->hasVerifiedEmail()) {
@@ -156,25 +173,132 @@ class LoginController extends Controller
 
         Auth::logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return redirect('/login')->with('success', 'Anda telah berhasil keluar.');
     }
 
     /**
-     * Menampilkan halaman/view pendaftaran (Register) Member Baru.
+     * Halaman Login Member Gym.
      */
-    public function showRegisterForm()
+    public function showMemberLoginForm()
     {
-        $tenants = \App\Models\Tenant::where('status', 'active')->get();
-        return view('register', compact('tenants'));
+        return view('member-login');
     }
 
     /**
-     * Memproses pendaftaran (Register) Member Baru.
+     * Halaman Pendaftaran (Register) Akun Pembeli Web SaaS.
      */
-    public function register(Request $request)
+    public function showRegisterForm()
+    {
+        return view('register-saas');
+    }
+
+    /**
+     * Halaman Pendaftaran (Register) Member Gym Baru.
+     */
+    public function showMemberRegisterForm()
+    {
+        $tenants = \App\Models\Tenant::where('status', 'active')->get();
+        return view('member-register', compact('tenants'));
+    }
+
+    /**
+     * Memproses Pendaftaran Akun Pengelola / Pembeli Web Gym (SaaS Owner).
+     */
+    public function registerSaas(Request $request)
+    {
+        $request->validate([
+            'gym_name'   => ['required', 'string', 'max:255'],
+            'subdomain'  => ['required', 'string', 'max:100', 'unique:tenants,subdomain'],
+            'owner_name' => ['required', 'string', 'max:255'],
+            'phone'      => ['required', 'string', 'max:20'],
+            'email'      => ['required', 'email', 'unique:users,email'],
+            'password'   => ['required', 'string', 'min:4', 'confirmed'],
+            'plan_name'  => ['required', 'string'],
+            'proof_file' => ['required', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+        ], [
+            'subdomain.unique'   => 'Subdomain gym ini sudah terpakai. Silakan pilih subdomain lain.',
+            'email.unique'       => 'Email ini sudah terdaftar di sistem. Silakan login.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'proof_file.required'=> 'Wajib mengunggah foto / bukti transfer DP 50%.',
+        ]);
+
+        // Upload Proof Image File
+        $proofUrl = null;
+        if ($request->hasFile('proof_file')) {
+            $file = $request->file('proof_file');
+            $filename = 'dp_proof_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $targetDir = public_path('uploads/proofs');
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+            $file->move($targetDir, $filename);
+            $proofUrl = asset('uploads/proofs/' . $filename);
+        }
+
+        $rawSub = strtolower(trim($request->subdomain));
+        $cleanSub = Str::slug(explode('.', $rawSub)[0]);
+        $subdomainFormatted = (strpos($rawSub, '.workout.id') === false) ? $rawSub . '.workout.id' : $rawSub;
+
+        // Hitung DP 50% berdasarkan paket
+        $fullPrice = match ($request->plan_name) {
+            'Paket Enterprise' => 2500000,
+            'Paket Basic'      => 500000,
+            default            => 1200000, // Paket Pro
+        };
+        $dpPrice = $fullPrice * 0.5;
+
+        // Buat Tenant Baru (Status: pending s/d verifikasi DP 50% oleh Superadmin)
+        $tenant = \App\Models\Tenant::create([
+            'name'        => $request->gym_name,
+            'subdomain'   => $subdomainFormatted,
+            'owner_name'  => $request->owner_name,
+            'owner_email' => $request->email,
+            'plan_name'   => $request->plan_name,
+            'status'      => 'pending',
+            'joined_at'   => now(),
+            'expires_at'  => now()->addDays(30),
+            'features'    => ['members', 'pos', 'classes', 'lockers'],
+        ]);
+
+        // Buat Invoice Tagihan DP 50% (Status: dp_pending)
+        $invoiceCount = \App\Models\Invoice::count() + 1;
+        $invNumber = '#INV-' . date('Y') . '-' . str_pad($invoiceCount, 3, '0', STR_PAD_LEFT);
+
+        \App\Models\Invoice::create([
+            'invoice_number' => $invNumber,
+            'tenant_id'      => $tenant->id,
+            'amount'          => $dpPrice,
+            'due_date'        => now()->addDays(3),
+            'status'          => 'dp_pending',
+            'proof_url'       => $proofUrl,
+        ]);
+
+        // Buat Akun Admin (Pengelola Operasional Gym) — Akun Owner nanti dibuat oleh Admin di Dashboard
+        $adminUser = User::updateOrCreate(
+            ['email' => $request->email],
+            [
+                'tenant_id' => $tenant->id,
+                'name'      => $request->owner_name, // Nama Admin / Pengelola
+                'password'  => Hash::make($request->password),
+                'role'      => 'admin',
+            ]
+        );
+        if (!$adminUser->hasVerifiedEmail()) {
+            $adminUser->markEmailAsVerified();
+        }
+
+        return redirect()->route('login')->with('success', "Pendaftaran & Bukti Transfer DP 50% untuk Gym '{$tenant->name}' berhasil terkirim! Akun Admin Anda ({$request->email}) akan diaktifkan setelah tim Superadmin memverifikasi DP 50% Anda (#{$invNumber}).");
+    }
+
+    /**
+     * Memproses Pendaftaran (Register) Member Gym Baru.
+     */
+    public function registerMember(Request $request)
     {
         $request->validate([
             'name'     => ['required', 'string', 'max:255'],
@@ -187,7 +311,13 @@ class LoginController extends Controller
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
-        $tenantId = $request->tenant_id ?? 1;
+        $tenantId = $request->tenant_id;
+        if (!$tenantId && $request->route() && $request->route()->hasParameter('slug')) {
+            $slug = $request->route('slug');
+            $tenant = \App\Models\Tenant::where('subdomain', 'like', "{$slug}%")->first();
+            $tenantId = $tenant ? $tenant->id : 1;
+        }
+        $tenantId = $tenantId ?? 1;
 
         $user = User::create([
             'tenant_id' => $tenantId,
@@ -209,8 +339,15 @@ class LoginController extends Controller
             'expired_at'      => now()->addDays(30),
         ]);
 
+        // Send email verification notification (to Mailpit)
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         Auth::login($user);
 
-        return redirect()->intended('/member/dashboard')->with('success', 'Pendaftaran akun member berhasil! Selamat datang di Portal Keanggotaan Gym.');
+        return redirect()->route('verification.notice');
     }
 }

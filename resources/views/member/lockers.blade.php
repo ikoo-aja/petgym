@@ -1,6 +1,6 @@
 @extends('layouts.member')
 
-@section('title', 'Booking loker - PetGym')
+@section('title', 'Booking Loker')
 @section('page_title', 'Booking Loker')
 @section('page_subtitle', '')
 @section('member_tier_badge', 'Tier ' . strtoupper($member->membership_tier ?? 'Basic'))
@@ -116,7 +116,7 @@
       <div class="modal-header bg-light">
         <div>
           <h5 class="modal-title font-weight-bold text-dark mb-0" id="rentModalTitle">Sewa Loker #01</h5>
-          <small class="text-muted">Checkout Payment Gateway PetGym</small>
+          <small class="text-muted">Checkout Payment Gateway</small>
         </div>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>

@@ -60,19 +60,24 @@ class TenantLandingController extends Controller
         $tenant = $user->tenant;
         $settings = $tenant->landingSettings();
 
-        // 1. Aturan validasi dasar — teks bisa diedit semua paket
+        // 1. Aturan validasi dasar — profil tenant & teks landing
         $rules = [
-            'hero_title'    => 'nullable|string|max:255',
-            'hero_tagline'  => 'nullable|string|max:500',
-            'about_text'    => 'nullable|string|max:3000',
-            'address'       => 'nullable|string|max:255',
-            'phone'         => 'nullable|string|max:50',
-            'email'         => 'nullable|email|max:255',
-            'instagram'     => 'nullable|string|max:255',
-            'facebook'      => 'nullable|string|max:255',
-            'opening_hours' => 'nullable|string|max:255',
-            'cta_text'      => 'nullable|string|max:100',
-            'cta_url'       => 'nullable|string|max:500',
+            'name'                => 'nullable|string|max:255',
+            'owner_name'          => 'nullable|string|max:255',
+            'owner_email'         => 'nullable|email|max:255',
+            'logo'                => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'brand_display_mode'  => 'nullable|string|in:both,logo,text',
+            'hero_title'          => 'nullable|string|max:255',
+            'hero_tagline'        => 'nullable|string|max:500',
+            'about_text'          => 'nullable|string|max:3000',
+            'address'             => 'nullable|string|max:255',
+            'phone'               => 'nullable|string|max:50',
+            'email'               => 'nullable|email|max:255',
+            'instagram'           => 'nullable|string|max:255',
+            'facebook'            => 'nullable|string|max:255',
+            'opening_hours'       => 'nullable|string|max:255',
+            'cta_text'            => 'nullable|string|max:100',
+            'cta_url'             => 'nullable|string|max:500',
         ];
 
         // 2. Warna hanya untuk paket Pro ke atas
@@ -83,8 +88,30 @@ class TenantLandingController extends Controller
 
         $validated = $request->validate($rules);
 
+        // Update Profil Tenant & Logo jika diisi
+        $tenantUpdate = [];
+        if (!empty($validated['name'])) $tenantUpdate['name'] = $validated['name'];
+        if (!empty($validated['owner_name'])) $tenantUpdate['owner_name'] = $validated['owner_name'];
+        if (!empty($validated['owner_email'])) $tenantUpdate['owner_email'] = $validated['owner_email'];
+
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $filename = 'logo_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $uploadPath = public_path('uploads/logos');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            $file->move($uploadPath, $filename);
+            $tenantUpdate['logo_url'] = 'uploads/logos/' . $filename;
+        }
+
+        if (!empty($tenantUpdate)) {
+            $tenant->update($tenantUpdate);
+        }
+
         // 3. Susun data sesuai capability paket (field terlarang tidak ikut tersimpan)
         $data = [
+            'brand_display_mode'=> $validated['brand_display_mode'] ?? 'both',
             'hero_title'     => $validated['hero_title'] ?? null,
             'hero_tagline'   => $validated['hero_tagline'] ?? null,
             'about_text'     => $validated['about_text'] ?? null,
@@ -150,6 +177,28 @@ class TenantLandingController extends Controller
         }
 
         return $rows;
+    }
+
+    /**
+     * Halaman Login khusus Member Tenant (diakses via subdomain gym, misal: http://fitlife.localhost:8000/login).
+     */
+    public function showMemberLogin($slug)
+    {
+        $tenant = Tenant::where('slug', $slug)->firstOrFail();
+        $settings = $tenant->landingSettings();
+
+        return view('landing.member-login', compact('tenant', 'settings'));
+    }
+
+    /**
+     * Halaman Pendaftaran khusus Member Tenant (diakses via subdomain gym, misal: http://fitlife.localhost:8000/register).
+     */
+    public function showMemberRegister($slug)
+    {
+        $tenant = Tenant::where('slug', $slug)->firstOrFail();
+        $settings = $tenant->landingSettings();
+
+        return view('landing.member-register', compact('tenant', 'settings'));
     }
 
     /**

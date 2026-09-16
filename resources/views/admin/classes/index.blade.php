@@ -18,7 +18,11 @@
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">Jadwal Kelas Senam & Kebugaran</h6>
-        <span class="badge badge-warning text-dark font-weight-bold px-2 py-1" style="font-size: 11px;">Jadwal Dasar diatur oleh Manager</span>
+        @if(Auth::user() && Auth::user()->isManager())
+        <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#addClassModal" style="border-radius: 8px;">
+          + Tambah Kelas Baru
+        </button>
+        @endif
       </div>
 
       <div class="table-responsive">
@@ -30,8 +34,8 @@
               <th>Ruangan & Jam</th>
               <th>Kuota Harian</th>
               <th>Trainer</th>
-              @if(!Auth::user() || !Auth::user()->isOwner())
-              <th class="text-right">Alokasi</th>
+              @if(Auth::user() && Auth::user()->isManager())
+              <th class="text-right">Aksi</th>
               @endif
             </tr>
           </thead>
@@ -48,25 +52,29 @@
                 </td>
                 <td style="font-size: 12.5px;" class="text-dark font-weight-bold">{{ $c->max_capacity }} Peserta</td>
                 <td style="font-size: 12.5px;" class="text-dark font-weight-bold">{{ $c->trainer ? $c->trainer->name : 'Tanpa Trainer' }}</td>
-                @if(!Auth::user() || !Auth::user()->isOwner())
+                @if(Auth::user() && Auth::user()->isManager())
                 <td class="text-right">
-                  <button class="btn btn-sm btn-primary btn-edit-class"
+                  <button class="btn btn-sm btn-outline-primary btn-edit-class mr-1"
                     data-id="{{ $c->id }}"
                     data-name="{{ $c->name }}"
                     data-day="{{ $c->day }}"
-                    data-duration_minutes="{{ $c->duration_minutes ?? 60 }}"
                     data-start_time="{{ substr($c->start_time, 0, 5) }}"
                     data-end_time="{{ substr($c->end_time, 0, 5) }}"
                     data-room="{{ $c->room }}"
                     data-max_capacity="{{ $c->max_capacity }}"
                     data-trainer_id="{{ $c->trainer_id }}"
-                    style="border-radius: 6px; font-weight: bold;">Alokasikan</button>
+                    style="border-radius: 6px; font-weight: bold;">Edit</button>
+                  <form action="{{ route('admin.classes.destroy', $c->id) }}" method="POST" class="d-inline" data-confirm="Hapus kelas ini?">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
+                  </form>
                 </td>
                 @endif
               </tr>
             @empty
               <tr>
-                <td colspan="{{ Auth::user() && Auth::user()->isOwner() ? '5' : '6' }}" class="text-center py-4 text-muted">Belum ada jadwal kelas dari Manager.</td>
+                <td colspan="{{ Auth::user() && Auth::user()->isManager() ? '6' : '5' }}" class="text-center py-4 text-muted">Belum ada jadwal kelas dari Manager.</td>
               </tr>
             @endforelse
           </tbody>
@@ -80,7 +88,7 @@
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">Daftar Trainer / Pelatih</h6>
-        @if(!Auth::user() || !Auth::user()->isOwner())
+        @if(Auth::user() && Auth::user()->isManager())
         <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#addTrainerModal" style="border-radius: 8px;">
           + Tambah Trainer
         </button>
@@ -97,7 +105,7 @@
             <tr>
               <th>Nama Trainer</th>
               <th>Spesialisasi</th>
-              @if(!Auth::user() || !Auth::user()->isOwner())
+              @if(Auth::user() && Auth::user()->isManager())
               <th class="text-right">Aksi</th>
               @endif
             </tr>
@@ -110,7 +118,7 @@
                   <small class="text-muted">{{ $t->phone ? \App\Helpers\PrivacyHelper::maskPhone($t->phone) : '-' }}</small>
                 </td>
                 <td style="font-size: 13px;" class="text-dark">{{ $t->specialization ?? 'General' }}</td>
-                @if(!Auth::user() || !Auth::user()->isOwner())
+                @if(Auth::user() && Auth::user()->isManager())
                 <td class="text-right">
                   <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-trainer"
                     data-id="{{ $t->id }}"
@@ -138,42 +146,45 @@
   </div>
 </div>
 
-<!-- Modal Alokasi Kelas (Admin) -->
+<!-- Modal Edit Kelas -->
 <div class="modal fade" id="editClassModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <form id="editClassForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
       @csrf
       @method('PUT')
       <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Alokasi & Kuota Kelas</h5>
+        <h5 class="modal-title font-weight-bold">Edit Jadwal Kelas</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
-        <!-- Rencana Kelas (Read Only untuk Admin) -->
-        <div class="alert alert-light border mb-3" style="font-size: 13px;">
-          <div class="d-flex justify-content-between mb-1">
-            <span class="text-muted">Nama Kelas:</span>
-            <strong id="classPlanName" class="text-dark"></strong>
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Kelas *</label>
+          <input type="text" name="name" id="editClassName" class="form-control" required>
+        </div>
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Hari Pelaksanaan *</label>
+          <select name="day" id="editClassDay" class="form-control" required>
+            <option value="Senin">Senin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Kamis">Kamis</option>
+            <option value="Jumat">Jumat</option>
+            <option value="Sabtu">Sabtu</option>
+            <option value="Minggu">Minggu</option>
+          </select>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Mulai *</label>
+            <input type="time" name="start_time" id="editClassStartTime" class="form-control" required>
           </div>
-          <div class="d-flex justify-content-between mb-1">
-            <span class="text-muted">Hari:</span>
-            <strong id="classPlanDay" class="text-dark"></strong>
-          </div>
-          <div class="d-flex justify-content-between mb-1">
-            <span class="text-muted">Jam:</span>
-            <strong id="classPlanTime" class="text-dark"></strong>
-          </div>
-          <div class="d-flex justify-content-between">
-            <span class="text-muted">Durasi Dasar:</span>
-            <strong id="classPlanDuration" class="text-dark"></strong>
+          <div class="col-md-6">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Selesai *</label>
+            <input type="time" name="end_time" id="editClassEndTime" class="form-control" required>
           </div>
         </div>
-
-        <hr>
-
-        <!-- Input Alokasi Admin -->
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Ruangan *</label>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Ruangan / Studio *</label>
           <input type="text" name="room" id="editClassRoom" class="form-control" placeholder="Contoh: Studio Yoga / Lantai 2" required>
         </div>
         <div class="form-group mb-3">
@@ -192,7 +203,69 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Alokasi</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Update Kelas</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Tambah Kelas Baru -->
+<div class="modal fade" id="addClassModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form action="{{ route('admin.classes.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
+      @csrf
+      <div class="modal-header">
+        <h5 class="modal-title font-weight-bold text-dark">Tambah Jadwal Kelas Baru</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Kelas *</label>
+          <input type="text" name="name" class="form-control" placeholder="Contoh: Yoga Evening / Pound Fit / Zumba" required>
+        </div>
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Hari Pelaksanaan *</label>
+          <select name="day" class="form-control" required>
+            <option value="Senin">Senin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Kamis">Kamis</option>
+            <option value="Jumat">Jumat</option>
+            <option value="Sabtu">Sabtu</option>
+            <option value="Minggu">Minggu</option>
+          </select>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Mulai *</label>
+            <input type="time" name="start_time" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Selesai *</label>
+            <input type="time" name="end_time" class="form-control" required>
+          </div>
+        </div>
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Ruangan / Studio</label>
+          <input type="text" name="room" class="form-control" placeholder="Contoh: Studio Utama / Lantai 2">
+        </div>
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Kuota Maksimal Peserta *</label>
+          <input type="number" name="max_capacity" class="form-control" placeholder="Contoh: 20" required min="1" value="20">
+        </div>
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Instruktur / Trainer</label>
+          <select name="trainer_id" class="form-control">
+            <option value="">-- Tanpa Trainer / Opsional --</option>
+            @foreach($trainers as $t)
+              <option value="{{ $t->id }}">{{ $t->name }} ({{ $t->specialization }})</option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-success font-weight-bold">Simpan Kelas Baru</button>
       </div>
     </form>
   </div>
@@ -267,25 +340,13 @@
   $(document).ready(function() {
     $('.btn-edit-class').on('click', function() {
       var id = $(this).data('id');
-      var name = $(this).data('name');
-      var day = $(this).data('day');
-      var start = $(this).data('start_time');
-      var end = $(this).data('end_time');
-      var dur = $(this).data('duration_minutes');
-      var room = $(this).data('room');
-      var cap = $(this).data('max_capacity');
-      var trainer = $(this).data('trainer_id');
-
-      // Populate Read Only labels
-      $('#classPlanName').text(name);
-      $('#classPlanDay').text(day);
-      $('#classPlanTime').text(start + ' - ' + end + ' WIB');
-      $('#classPlanDuration').text(dur + ' menit');
-
-      // Populate Editable inputs
-      $('#editClassRoom').val(room);
-      $('#editClassMaxCapacity').val(cap);
-      $('#editClassTrainerId').val(trainer);
+      $('#editClassName').val($(this).data('name'));
+      $('#editClassDay').val($(this).data('day'));
+      $('#editClassStartTime').val($(this).data('start_time'));
+      $('#editClassEndTime').val($(this).data('end_time'));
+      $('#editClassRoom').val($(this).data('room'));
+      $('#editClassMaxCapacity').val($(this).data('max_capacity'));
+      $('#editClassTrainerId').val($(this).data('trainer_id'));
 
       $('#editClassForm').attr('action', '/admin/classes/' + id);
       $('#editClassModal').modal('show');

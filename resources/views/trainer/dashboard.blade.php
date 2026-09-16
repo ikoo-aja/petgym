@@ -1,6 +1,6 @@
 @extends('layouts.layout')
 
-@section('title', 'Dashboard Trainer - PetGym')
+@section('title', 'Dashboard Trainer')
 @section('page_title', 'Dashboard Personal Trainer')
 @section('page_subtitle', 'Jadwal booking sesi PT member dan daftar peserta kelas kebugaran Anda.')
 
