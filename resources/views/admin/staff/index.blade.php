@@ -123,19 +123,12 @@
             <label class="custom-control-label text-muted" style="font-size: 12px;" for="autoGenPw">Generate password default otomatis (staf wajib ganti saat login)</label>
           </div>
         </div>
-<<<<<<< HEAD
         <div class="alert alert-info border-0 p-3 mb-3 rounded" style="background-color: #e0f2fe; color: #0369a1; font-size: 12.5px;">
           <i class="icon-info mr-1"></i> <strong>Akses Admin:</strong> Admin menginput akun peran tingkat tinggi (Manager & Owner). Akun operasional seperti Personal Trainer (PT) dan Resepsionis/Kasir diinput oleh <strong>Manager Gym</strong>.
         </div>
         <div class="form-group mb-0">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Peran Akun *</label>
-          <select name="role" class="form-control" required>
-=======
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Hak Akses Staf *</label>
           <select name="role" id="staffRole" class="form-control" required>
-            <option value="receptionist">Resepsionis / Frontdesk</option>
->>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
             <option value="manager">Manager Gym</option>
             <option value="owner">Pemilik Gym (Owner)</option>
             <option value="member">Member Gym</option>

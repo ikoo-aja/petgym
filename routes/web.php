@@ -31,17 +31,14 @@ Route::get('/home', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-<<<<<<< HEAD
     Route::get('/register', [LoginController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [LoginController::class, 'register']);
-=======
 
     // Lupa Password (self-service reset, tanpa campur tangan admin)
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
->>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
 });
 
 // Route Logout (Hanya bisa diakses jika sudah login)

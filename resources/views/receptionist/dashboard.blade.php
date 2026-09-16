@@ -26,44 +26,25 @@
 <div class="row mb-4">
   <div class="col-md-3">
     <a href="{{ route('admin.checkin.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-primary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-<<<<<<< HEAD
-      <h4 class="font-weight-bold mb-1 text-white"><span class="icon-check"></span> Absensi</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Kehadiran Antarmuka</p>
-=======
       <h4 class="font-weight-bold text-white mb-1"><span class="icon-check"></span> Check-In Absensi</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Antarmuka PIN & Manual</p>
->>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('admin.members.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-success text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-<<<<<<< HEAD
-      <h4 class="font-weight-bold mb-1 text-white"><span class="icon-person"></span> Daftar Member</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Pendaftaran Member Gym</p>
-=======
       <h4 class="font-weight-bold text-white mb-1"><span class="icon-person"></span> Register Member</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Pendaftaran & Generate PIN</p>
->>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('admin.pos.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-info text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-<<<<<<< HEAD
-      <h4 class="font-weight-bold mb-1 text-white"><span class="icon-shopping-cart"></span> Kasir</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Transaksi Kasir</p>
-=======
       <h4 class="font-weight-bold text-white mb-1"><span class="icon-shopping-cart"></span> POS Kasir & Struk</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Transaksi Kasir & Produk</p>
->>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('receptionist.lockers') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-secondary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-<<<<<<< HEAD
-      <h4 class="font-weight-bold mb-1 text-white"><span class="icon-settings"></span> Manajemen Loker</h4>
-=======
-      <h4 class="font-weight-bold text-white     mb-1"><span class="icon-settings"></span> Manajemen Loker</h4>
->>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
+      <h4 class="font-weight-bold text-white mb-1"><span class="icon-settings"></span> Manajemen Loker</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Peminjaman & Pengembalian</p>
     </a>
   </div>
@@ -84,10 +65,7 @@
             <tr>
               <th>Jam</th>
               <th>Member</th>
-<<<<<<< HEAD
-=======
               <th>Metode</th>
->>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
             </tr>
           </thead>
           <tbody>
@@ -95,15 +73,11 @@
               <tr>
                 <td class="font-weight-bold text-dark" style="font-size: 13px;">{{ $ci->checked_in_at ? $ci->checked_in_at->format('H:i:s') : '-' }}</td>
                 <td class="font-weight-bold text-dark">{{ $ci->member ? $ci->member->name : 'Member' }}</td>
-<<<<<<< HEAD
-
-=======
                 <td><span class="badge badge-success">{{ $ci->check_in_method === 'code' ? 'PIN Numpad' : 'Manual' }}</span></td>
->>>>>>> f07463e2e1918c0d01d17ece8b65e978d0ed9c5a
               </tr>
             @empty
               <tr>
-                <td colspan="4" class="text-center py-4 text-muted">Belum ada kunjungan</td>
+                <td colspan="3" class="text-center py-4 text-muted">Belum ada kunjungan</td>
               </tr>
             @endforelse
           </tbody>
