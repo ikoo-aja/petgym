@@ -67,10 +67,21 @@
 
       @else
       <!-- Form Edit Pengaturan untuk Admin -->
-      <h6 class="font-weight-bold text-dark mb-4">Profil & Identitas Gym</h6>
-
-      <form action="{{ route('admin.settings.update') }}" method="POST">
+      <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
+
+        <!-- Upload Logo Gym Section -->
+        <div class="form-group mb-4 p-3 border rounded bg-light">
+          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">🎨 Logo Gym / Brand Logo</label>
+          @if($tenant->logo_url)
+            <div class="mb-2">
+              <img src="{{ asset($tenant->logo_url) }}" alt="Current Logo" class="img-thumbnail bg-white" style="max-height: 80px; object-fit: contain;">
+            </div>
+          @endif
+          <input type="file" name="logo" class="form-control-file border p-2 rounded bg-white" accept="image/*">
+          <small class="form-text text-muted">Upload logo brand gym Anda (PNG, JPG, WEBP, SVG. Maks. 2MB). Logo akan tampil otomatis di header & sidebar.</small>
+        </div>
+
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Gym / Tenant *</label>
           <input type="text" name="name" class="form-control" value="{{ $tenant->name ?? '' }}" required style="border-radius: 8px;">

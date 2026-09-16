@@ -94,4 +94,56 @@ class LoginController extends Controller
 
         return redirect('/login')->with('success', 'Anda telah berhasil keluar.');
     }
+
+    /**
+     * Menampilkan halaman/view pendaftaran (Register) Member Baru.
+     */
+    public function showRegisterForm()
+    {
+        $tenants = \App\Models\Tenant::where('status', 'active')->get();
+        return view('register', compact('tenants'));
+    }
+
+    /**
+     * Memproses pendaftaran (Register) Member Baru.
+     */
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'unique:users,email'],
+            'phone'    => ['required', 'string', 'max:20'],
+            'password' => ['required', 'string', 'min:4', 'confirmed'],
+            'tenant_id'=> ['nullable', 'exists:tenants,id'],
+        ], [
+            'email.unique'       => 'Email sudah terdaftar di sistem. Silakan gunakan menu Masuk/Login.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
+
+        $tenantId = $request->tenant_id ?? 1;
+
+        $user = User::create([
+            'tenant_id' => $tenantId,
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
+            'role'      => 'member',
+        ]);
+
+        \App\Models\Member::create([
+            'tenant_id'       => $tenantId,
+            'user_id'         => $user->id,
+            'name'            => $user->name,
+            'email'           => $user->email,
+            'phone'           => $request->phone,
+            'access_code'     => 'MBR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
+            'membership_tier' => 'basic',
+            'status'          => 'active',
+            'expired_at'      => now()->addDays(30),
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->intended('/member/dashboard')->with('success', 'Pendaftaran akun member berhasil! Selamat datang di Portal Keanggotaan Gym.');
+    }
 }

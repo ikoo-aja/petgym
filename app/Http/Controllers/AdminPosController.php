@@ -19,6 +19,10 @@ class AdminPosController extends Controller
         $user = Auth::user();
         $tenant = $user->tenant;
 
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.reports.index')->with('warning', 'Fungsi POS Kasir hanya diakses oleh Resepsionis/Kasir. Silakan gunakan menu Pembayaran untuk Pengaturan Melanjutkan Web.');
+        }
+
         $members = Member::where('tenant_id', $tenant->id)->orderBy('name')->get();
         $products = Product::where('tenant_id', $tenant->id)->orderBy('name')->get();
         $recentTransactions = PosTransaction::where('tenant_id', $tenant->id)

@@ -19,6 +19,8 @@ Route::get('/home', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+    Route::get('/register', [LoginController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [LoginController::class, 'register']);
 });
 
 // Route Logout (Hanya bisa diakses jika sudah login)
@@ -165,6 +167,9 @@ Route::middleware('auth')->prefix('manager')->group(function () {
     Route::post('/vendors', [ManagerController::class, 'storeVendor'])->name('manager.vendors.store');
     Route::put('/vendors/{id}', [ManagerController::class, 'updateVendor'])->name('manager.vendors.update');
     Route::delete('/vendors/{id}', [ManagerController::class, 'destroyVendor'])->name('manager.vendors.destroy');
+
+    // 11. Akun Operasional (PT, Resepsionis, Staf)
+    Route::post('/operational-staff', [ManagerController::class, 'storeOperationalStaff'])->name('manager.staff.store');
 });
 
 // Group Resepsionis / Frontdesk

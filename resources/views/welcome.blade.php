@@ -41,7 +41,6 @@
         <div class="d-flex align-items-center">
           <div class="site-logo">
             <x-brand-logo type="full" theme="dark" size="42" url="/" />
-          </div>
           <div class="ml-auto">
             <nav class="site-navigation position-relative text-right" role="navigation">
               <ul class="site-menu main-menu js-clone-nav mr-auto d-none d-lg-block">
@@ -50,6 +49,8 @@
                 <li><a href="#fitur-section" class="nav-link">Fitur Utama</a></li>
                 <li><a href="#pricing-section" class="nav-link">Paket Harga</a></li>
                 <li><a href="#contact-section" class="nav-link">Kontak</a></li>
+                <li class="d-inline-block ml-3"><a href="{{ route('login') }}" class="btn btn-outline-white text-white px-4 py-2 font-weight-bold" style="border-radius: 30px; border: 2px solid rgba(255,255,255,0.7);">Masuk</a></li>
+                <li class="d-inline-block ml-2"><a href="{{ route('register') }}" class="btn btn-primary text-white px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 30px;">Daftar Member</a></li>
               </ul>
             </nav>
             <a href="#" class="d-inline-block d-lg-none site-menu-toggle js-menu-toggle float-right"><span class="icon-menu h3"></span></a>

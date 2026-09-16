@@ -38,6 +38,10 @@ class AdminStaffController extends Controller
             'role' => 'required|string',
         ]);
 
+        if (in_array($request->role, ['trainer', 'receptionist']) && $user->isAdmin()) {
+            return redirect()->back()->with('error', 'Admin hanya menginput akun peran tingkat tinggi (Manager & Owner). Akun PT dan Resepsionis/Kasir diinput oleh Manager Gym.');
+        }
+
         $staff = User::create([
             'tenant_id' => $tenant->id,
             'name' => $request->name,

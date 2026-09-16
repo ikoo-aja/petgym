@@ -314,7 +314,13 @@
   <!-- Dynamic Sidebar per Role -->
   <aside class="admin-sidebar">
     <div class="sidebar-brand d-flex flex-column align-items-center  gap-1 p-2 ">
-      <x-brand-logo type="full" theme="dark" size="49" url="/" />
+      @if($currentUser && $currentUser->tenant && $currentUser->tenant->logo_url)
+        <a href="/">
+          <img src="{{ asset($currentUser->tenant->logo_url) }}" alt="Gym Logo" style="max-height: 50px; max-width: 180px; object-fit: contain; border-radius: 8px;">
+        </a>
+      @else
+        <x-brand-logo type="full" theme="dark" size="49" url="/" />
+      @endif
       <span class="tenant-badge" style="font-size: 15px;">{{ $currentUser && $currentUser->tenant ? $currentUser->tenant->name : 'Tenant' }}</span>
     </div>
 
@@ -323,7 +329,6 @@
       <li>
         <a href="{{ $dashUrl }}" class="{{ request()->routeIs('*.dashboard') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-dashboard"></span></span> Beranda {{ ucfirst($userRole) }}
-        </a>
         </a>
       </li>
 
@@ -411,13 +416,13 @@
 
       @if($userRole === 'admin')
       <li>
-        <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span>Kasir
+        <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Pembayaran untuk Pengaturan Melanjutkan Web
         </a>
       </li>
       <li>
         <a href="{{ route('admin.lockers.index') }}" class="{{ request()->routeIs('admin.lockers.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span>Loker Gym
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Loker Gym
         </a>
       </li>
       <li>

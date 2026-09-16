@@ -95,13 +95,15 @@
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Password *</label>
           <input type="password" name="password" class="form-control" required minlength="4">
         </div>
+        <div class="alert alert-info border-0 p-3 mb-3 rounded" style="background-color: #e0f2fe; color: #0369a1; font-size: 12.5px;">
+          <i class="icon-info mr-1"></i> <strong>Akses Admin:</strong> Admin menginput akun peran tingkat tinggi (Manager & Owner). Akun operasional seperti Personal Trainer (PT) dan Resepsionis/Kasir diinput oleh <strong>Manager Gym</strong>.
+        </div>
         <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Hak Akses Staf *</label>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Peran Akun *</label>
           <select name="role" class="form-control" required>
-            <option value="receptionist">Resepsionis / Frontdesk</option>
             <option value="manager">Manager Gym</option>
-            <option value="admin">Admin / Pemilik Gym</option>
-            <option value="trainer">Personal Trainer</option>
+            <option value="owner">Pemilik Gym (Owner)</option>
+            <option value="member">Member Gym</option>
           </select>
         </div>
       </div>

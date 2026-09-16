@@ -515,4 +515,38 @@ class ManagerController extends Controller
 
         return redirect()->route('manager.features')->with('success', 'Master Kelas berhasil dihapus.');
     }
+
+    // --- 11. MANAJEMEN AKUN OPERASIONAL (PT, RESEPSIONIS, STAF) OLEH MANAGER ---
+    public function storeOperationalStaff(Request $request)
+    {
+        $tenant = Auth::user()->tenant;
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:4',
+            'role' => 'required|in:trainer,receptionist,staff',
+        ]);
+
+        $staff = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'role' => $request->role,
+        ]);
+
+        if ($staff->role === 'receptionist') {
+            \App\Models\Receptionist::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
+                ['name' => $staff->name, 'email' => $staff->email, 'shift' => 'Pagi', 'status' => 'active']
+            );
+        } elseif ($staff->role === 'trainer') {
+            Trainer::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
+                ['name' => $staff->name, 'email' => $staff->email, 'specialization' => 'Fitness Coach', 'status' => 'active']
+            );
+        }
+
+        return redirect()->route('manager.features', ['tab' => 'performance'])->with('success', "Akun operasional " . ucfirst($staff->role) . " berhasil dibuat oleh Manager.");
+    }
 }

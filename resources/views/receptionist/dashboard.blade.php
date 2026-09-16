@@ -9,7 +9,7 @@
 @if(!$activeShift)
 <div class="alert alert-danger shadow-sm mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <strong>Shift Belum Dibuka!</strong> Harap buka shift kasir terlebih dahulu untuk mencatat nominal kas laci meja depan sebelum memproses transaksi kasir.
+    <strong>Shift Ditutup!</strong> Harap buka shift kasir terlebih dahulu sebelum memproses transaksi kasir.
   </div>
   <a href="{{ route('receptionist.shifts') }}" class="btn btn-sm btn-danger font-weight-bold">Buka Shift Sekarang</a>
 </div>
@@ -26,25 +26,25 @@
 <div class="row mb-4">
   <div class="col-md-3">
     <a href="{{ route('admin.checkin.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-primary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold mb-1"><span class="icon-check"></span> Check-In Absensi</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Antarmuka PIN & Manual</p>
+      <h4 class="font-weight-bold mb-1 text-white"><span class="icon-check"></span> Absensi</h4>
+      <p class="mb-0 text-white-50" style="font-size: 12px;">Kehadiran Antarmuka</p>
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('admin.members.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-success text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold mb-1"><span class="icon-person"></span> Register Member</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Pendaftaran & Generate PIN</p>
+      <h4 class="font-weight-bold mb-1 text-white"><span class="icon-person"></span> Daftar Member</h4>
+      <p class="mb-0 text-white-50" style="font-size: 12px;">Pendaftaran Member Gym</p>
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('admin.pos.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-info text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold mb-1"><span class="icon-shopping-cart"></span> POS Kasir & Struk</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Transaksi Kasir & Produk</p>
+      <h4 class="font-weight-bold mb-1 text-white"><span class="icon-shopping-cart"></span> Kasir</h4>
+      <p class="mb-0 text-white-50" style="font-size: 12px;">Transaksi Kasir</p>
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('receptionist.lockers') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-secondary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold mb-1"><span class="icon-settings"></span> Manajemen Loker</h4>
+      <h4 class="font-weight-bold mb-1 text-white"><span class="icon-settings"></span> Manajemen Loker</h4>
       <p class="mb-0 text-white-50" style="font-size: 12px;">Peminjaman & Pengembalian</p>
     </a>
   </div>
@@ -55,7 +55,7 @@
   <div class="col-md-6">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Member Checked-In Hari Ini</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Checked-In Member Hari Ini</h6>
         <span class="badge badge-primary font-weight-bold px-3 py-2" style="border-radius: 12px;">{{ count($todayCheckIns) }} Kunjungan</span>
       </div>
 
@@ -65,8 +65,6 @@
             <tr>
               <th>Jam</th>
               <th>Member</th>
-              <th>PIN Akses</th>
-              <th>Metode</th>
             </tr>
           </thead>
           <tbody>
@@ -74,12 +72,11 @@
               <tr>
                 <td class="font-weight-bold text-dark" style="font-size: 13px;">{{ $ci->checked_in_at ? $ci->checked_in_at->format('H:i:s') : '-' }}</td>
                 <td class="font-weight-bold text-dark">{{ $ci->member ? $ci->member->name : 'Member' }}</td>
-                <td><span class="badge badge-secondary" style="font-size: 12px;">{{ $ci->access_code }}</span></td>
-                <td><span class="badge badge-success">{{ $ci->check_in_method === 'code' ? 'PIN Numpad' : 'Manual' }}</span></td>
+
               </tr>
             @empty
               <tr>
-                <td colspan="4" class="text-center py-4 text-muted">Belum ada kunjungan hari ini.</td>
+                <td colspan="4" class="text-center py-4 text-muted">Belum ada kunjungan</td>
               </tr>
             @endforelse
           </tbody>
