@@ -237,11 +237,19 @@ class Tenant extends Model
 
     public function getExpiresInDaysAttribute()
     {
-        if (!$this->expires_at || $this->status === 'suspended') {
+        if (!$this->expires_at) {
             return 0;
         }
 
         $days = (int) now()->diffInDays($this->expires_at, false);
         return max(0, $days);
+    }
+
+    public function getStatusAttribute($value)
+    {
+        if ($this->expires_at && $this->expires_at->isPast()) {
+            return 'suspended';
+        }
+        return $value ?? 'active';
     }
 }

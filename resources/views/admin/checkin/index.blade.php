@@ -66,8 +66,8 @@
   <div class="{{ Auth::user() && Auth::user()->isOwner() ? 'col-md-12' : 'col-md-7' }}">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">⏱️ Rekap Log Kunjungan & Absensi Hari Ini</h6>
-        <span class="badge badge-primary font-weight-bold px-3 py-2" style="border-radius: 12px;">Total: {{ count($todayCheckIns) }} Kunjungan</span>
+        <h6 class="font-weight-bold text-dark mb-0"><i class="icon-clock-o mr-1 text-primary"></i> Rekap Log Kunjungan & Absensi Hari Ini</h6>
+        <span class="badge badge-primary font-weight-bold px-3 py-2" style="border-radius: 8px;">Total: {{ count($todayCheckIns) }} Kunjungan</span>
       </div>
 
       <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">

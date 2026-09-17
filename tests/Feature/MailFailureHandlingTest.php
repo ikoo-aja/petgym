@@ -45,9 +45,9 @@ class MailFailureHandlingTest extends TestCase
 
         $tenant = $this->makeTenant();
         $admin  = User::factory()->create([
-            'email'     => 'admin-' . uniqid() . '@mail-test.com',
+            'email'     => 'manager-' . uniqid() . '@mail-test.com',
             'password'  => 'password123',
-            'role'      => 'admin',
+            'role'      => 'manager',
             'tenant_id' => $tenant->id,
         ]);
 

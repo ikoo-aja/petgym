@@ -18,13 +18,7 @@ class AdminClassController extends Controller
             return $user->tenant;
         }
 
-        return Tenant::first() ?? Tenant::create([
-            'name' => 'FitLife Studio',
-            'subdomain' => 'fitlife.workout.id',
-            'owner_name' => 'Budi Pratama',
-            'owner_email' => 'budi@fitlife.com',
-            'status' => 'active',
-        ]);
+        abort(403, 'Anda belum memiliki tenant atau website gym yang aktif.');
     }
 
     public function index()

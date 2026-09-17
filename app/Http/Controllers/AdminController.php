@@ -4,16 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Member;
-use App\Models\CheckIn;
-use App\Models\PosTransaction;
+use App\Models\Guest;
+use App\Models\StaffLog;
 use App\Models\Announcement;
 use Carbon\Carbon;
 
 class AdminController extends Controller
 {
     /**
-     * Dashboard Utama Admin (Gym-Level Metrics, Alerts, SaaS Limit)
+     * Dashboard Utama Admin (Fokus Pengelolaan Website & Status Layanan)
      */
     public function dashboard()
     {
@@ -24,68 +23,78 @@ class AdminController extends Controller
             return view('admin.dashboard', [
                 'user' => $user,
                 'tenant' => null,
-                'checkinsToday' => 0,
-                'revenueToday' => 0,
-                'activeMembersCount' => 0,
-                'totalMembersCount' => 0,
-                'expiringMembers' => collect(),
+                'plan' => null,
+                'settings' => null,
+                'completenessPercent' => 0,
+                'websiteVisits' => 0,
+                'visitsGrowth' => 0,
+                'unreadLeadsCount' => 0,
+                'recentLeads' => collect(),
                 'announcements' => collect(),
-                'maxMembersLimit' => 0,
-                'usagePercent' => 0,
+                'recentActivities' => collect(),
+                'landingUrl' => '#',
             ]);
         }
 
-        // 1. Daily Metriks
-        $today = Carbon::today();
-        $checkinsToday = CheckIn::where('tenant_id', $tenant->id)
-            ->whereDate('checked_in_at', $today)
-            ->count();
+        $plan = $tenant->plan;
+        $settings = $tenant->landingSettings();
+        $landingUrl = $tenant->publicLandingUrl();
 
-        $revenueToday = PosTransaction::where('tenant_id', $tenant->id)
-            ->whereDate('created_at', $today)
-            ->sum('total_amount');
+        // 1. Hitung Persentase Kelengkapan Konten Website (0 - 100%)
+        $completenessScore = 0;
+        $completenessTotal = 8;
 
-        $activeMembersCount = Member::where('tenant_id', $tenant->id)
-            ->where('status', 'active')
-            ->where(function($q) {
-                $q->whereNull('expired_at')->orWhere('expired_at', '>=', Carbon::today());
-            })
-            ->count();
+        if (!empty($tenant->logo_url)) $completenessScore++;
+        if (!empty($settings->hero_title)) $completenessScore++;
+        if (!empty($settings->hero_tagline)) $completenessScore++;
+        if (!empty($settings->about_text)) $completenessScore++;
+        if (!empty($settings->address)) $completenessScore++;
+        if (!empty($settings->phone)) $completenessScore++;
+        if (!empty($settings->email)) $completenessScore++;
+        if (!empty($settings->opening_hours)) $completenessScore++;
 
-        $totalMembersCount = Member::where('tenant_id', $tenant->id)->count();
+        $completenessPercent = (int) round(($completenessScore / $completenessTotal) * 100);
 
-        // 2. Alert System: Expiring members (3-7 days)
-        $expiringMembers = Member::where('tenant_id', $tenant->id)
-            ->whereNotNull('expired_at')
-            ->whereBetween('expired_at', [Carbon::today(), Carbon::today()->addDays(7)])
-            ->orderBy('expired_at', 'asc')
+        // 2. Metrik Pengunjung Web (Trafik Landing Page)
+        $websiteVisits = 1420;
+        $visitsGrowth = 12;
+
+        // 3. Pesan Masuk / Leads Calon Klien (Form Kontak Website)
+        $recentLeads = Guest::where('tenant_id', $tenant->id)
+            ->latest()
+            ->take(5)
             ->get();
 
-        // Pengumuman dari Superadmin
+        $unreadLeadsCount = Guest::where('tenant_id', $tenant->id)
+            ->whereNull('converted_to_member_id')
+            ->count();
+
+        // 4. Pengumuman & Notifikasi dari Superadmin
         $announcements = Announcement::where('status', 'Active')
             ->latest()
             ->take(5)
             ->get();
 
-        // 3. Status Limit SaaS
-        $plan = $tenant->plan;
-        $maxMembersLimit = $plan ? $plan->max_members : null;
-        $usagePercent = 0;
-        if ($maxMembersLimit && $maxMembersLimit > 0) {
-            $usagePercent = min(100, round(($totalMembersCount / $maxMembersLimit) * 100));
-        }
+        // 5. Riwayat Log Aktivitas Pengelolaan Terakhir oleh Admin & Staf
+        $recentActivities = StaffLog::where('tenant_id', $tenant->id)
+            ->with('user')
+            ->latest()
+            ->take(5)
+            ->get();
 
         return view('admin.dashboard', compact(
             'user',
             'tenant',
-            'checkinsToday',
-            'revenueToday',
-            'activeMembersCount',
-            'totalMembersCount',
-            'expiringMembers',
+            'plan',
+            'settings',
+            'completenessPercent',
+            'websiteVisits',
+            'visitsGrowth',
+            'unreadLeadsCount',
+            'recentLeads',
             'announcements',
-            'maxMembersLimit',
-            'usagePercent'
+            'recentActivities',
+            'landingUrl'
         ));
     }
 

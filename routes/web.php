@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
 
 use App\Http\Controllers\SuperadminController;
+use App\Http\Controllers\TenantOnboardingController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminMemberController;
 use App\Http\Controllers\AdminPosController;
@@ -80,9 +81,19 @@ use App\Http\Controllers\AdminSettingController;
 use App\Http\Controllers\AdminLogController;
 use App\Http\Controllers\AdminReportController;
 
+// Group Onboarding Setup Website (Khusus Admin yang belum punya website)
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('onboarding')->group(function () {
+    Route::get('/setup', [TenantOnboardingController::class, 'show'])->name('tenant.onboarding');
+    Route::post('/setup', [TenantOnboardingController::class, 'provision'])->name('tenant.onboarding.provision');
+});
+
 // Group Superadmin (Hanya bisa diakses jika sudah login)
 Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')->group(function () {
     Route::get('/dashboard', [SuperadminController::class, 'dashboard'])->name('superadmin.dashboard');
+    Route::get('/registrations', [SuperadminController::class, 'registrations'])->name('superadmin.registrations');
+    Route::post('/registrations/{id}/approve', [SuperadminController::class, 'approveRegistration'])->name('superadmin.registrations.approve');
+    Route::post('/registrations/{id}/status', [SuperadminController::class, 'updateRegistrationStatus'])->name('superadmin.registrations.status');
+    Route::delete('/registrations/{id}', [SuperadminController::class, 'destroyRegistration'])->name('superadmin.registrations.destroy');
     Route::get('/tenants', [SuperadminController::class, 'tenants'])->name('superadmin.tenants');
     Route::post('/tenants', [SuperadminController::class, 'storeTenant'])->name('superadmin.tenants.store');
     Route::post('/tenants/{id}/features', [SuperadminController::class, 'updateTenantFeatures'])->name('superadmin.tenants.features');
@@ -94,6 +105,8 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::post('/plans/{id}/toggle-status', [SuperadminController::class, 'togglePlanStatus'])->name('superadmin.plans.toggle-status');
     Route::delete('/plans/{id}', [SuperadminController::class, 'destroyPlan'])->name('superadmin.plans.destroy');
     Route::get('/billing', [SuperadminController::class, 'billing'])->name('superadmin.billing');
+    Route::post('/billing/{id}/approve', [SuperadminController::class, 'approveRenewal'])->name('superadmin.billing.approve');
+    Route::post('/billing/{id}/reject', [SuperadminController::class, 'rejectRenewal'])->name('superadmin.billing.reject');
     Route::post('/billing/{id}/verify-dp', [SuperadminController::class, 'verifyDpPayment'])->name('superadmin.billing.verify-dp');
     Route::post('/billing/{id}/verify', [SuperadminController::class, 'verifyInvoice'])->name('superadmin.billing.verify');
     Route::get('/announcements', [SuperadminController::class, 'announcements'])->name('superadmin.announcements');
@@ -171,8 +184,8 @@ Route::middleware(['auth', 'verified', 'role:admin,manager,receptionist,trainer'
     Route::post('/landing', [TenantLandingController::class, 'update'])->name('admin.landing.update');
 
     // 11. Pembayaran & Melanjutkan Penyewaan Web ke Superadmin
-    Route::get('/subscription', [AdminController::class, 'subscription'])->name('admin.subscription.index');
-    Route::post('/subscription/pay', [AdminController::class, 'processSubscriptionPayment'])->name('admin.subscription.pay');
+    Route::get('/subscription', [\App\Http\Controllers\AdminSubscriptionController::class, 'index'])->name('admin.subscription.index');
+    Route::post('/subscription/pay', [\App\Http\Controllers\AdminSubscriptionController::class, 'pay'])->name('admin.subscription.pay');
 });
 
 use App\Http\Controllers\ManagerController;

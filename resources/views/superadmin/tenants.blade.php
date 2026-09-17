@@ -10,7 +10,6 @@
 <section id="tenants" class="mb-5">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="font-weight-bold text-black mb-0">Daftar Seluruh Gym (Tenant List)</h4>
-    <button class="btn btn-primary btn-sm px-3" data-toggle="modal" data-target="#addTenantModal">+ Tambah Gym Baru</button>
   </div>
 
   @if(session('success'))
@@ -84,12 +83,14 @@
           @endphp
           <tr>
             <td>
-              <strong class="text-black">{{ $tenant->name }}</strong><br>
-              <small class="text-muted">{{ $tenant->subdomain }}</small>
+              <strong class="text-black" style="font-size: 14px;">{{ $tenant->name }}</strong><br>
+              <a href="{{ $tenant->publicLandingUrl() }}" target="_blank" class="text-primary font-weight-bold small">
+                <i class="icon-globe mr-1"></i> {{ $tenant->subdomain }}
+              </a>
             </td>
             <td>
               <div class="font-weight-bold text-black">{{ $oName }}</div>
-              <div class="d-inline-flex align-items-center" style="gap: 5px;">
+              <div class="d-inline-flex align-items-center mb-1" style="gap: 5px;">
                 <small class="text-muted email-text" style="font-family: monospace; font-size: 12px;">{{ $maskedEmail }}</small>
                 <button type="button" 
                         class="btn btn-link p-0 text-secondary btn-toggle-email" 
@@ -100,6 +101,11 @@
                         style="font-size: 12px; text-decoration: none; outline: none; box-shadow: none; line-height: 1;">
                   <span class="icon-eye"></span>
                 </button>
+              </div>
+              <div>
+                <span class="badge badge-light border text-dark font-weight-bold" style="font-size: 10px;">
+                  <i class="icon-user-check text-success mr-1"></i> Login Admin: {{ $oEmail }}
+                </span>
               </div>
             </td>
             <td>
@@ -120,8 +126,10 @@
             </td>
             <td>{{ is_object($tenant->joined_at) ? $tenant->joined_at->format('d M Y') : ($tenant->joined_at ?? 'Hari Ini') }}</td>
             <td>
-              @if($tenant->status == 'suspended')
-                <span class="text-danger" style="font-weight: 700;">N/A (Suspended)</span>
+              @if($tenant->status == 'suspended' || $expDays <= 0)
+                <span class="text-danger font-weight-bold" style="font-weight: 700;">
+                  0 Hari (Suspended)
+                </span>
               @elseif($expDays <= 7)
                 <span class="text-danger font-weight-bold" style="font-weight: 700; text-decoration: underline;">
                   {{ $expDays }} Hari Lagi
@@ -137,7 +145,7 @@
               @endif
             </td>
             <td>
-              @if($tenant->status == 'active')
+              @if($tenant->status == 'active' && $expDays > 0)
                 <span class="badge badge-status-active px-2 py-1 rounded">Aktif</span>
               @else
                 <span class="badge badge-status-suspended px-2 py-1 rounded">Suspended</span>
@@ -193,54 +201,6 @@
 @endsection
 
 @section('modals')
-<!-- MODAL: TAMBAH GYM BARU (MANUAL ONBOARDING) -->
-<div class="modal fade" id="addTenantModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-header-title font-weight-bold text-black">Manual Onboarding Gym Baru</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <form action="{{ route('superadmin.tenants.store') }}" method="POST" id="addTenantForm">
-        @csrf
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Nama Gym / Tenant</label>
-            <input type="text" name="name" class="form-control" placeholder="Contoh: Gold Gym Sunter" required>
-          </div>
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Subdomain Akses</label>
-            <div class="input-group">
-              <input type="text" name="subdomain" class="form-control" placeholder="goldgym" required>
-              <div class="input-group-append">
-                <span class="input-group-text">.workout.id</span>
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Email Pemilik (Admin Gym)</label>
-            <input type="email" name="owner_email" class="form-control" placeholder="owner@goldgym.com" required>
-          </div>
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Pilih Paket Sewa</label>
-            <select name="plan_id" class="form-control" id="addTenantPlan">
-              @foreach($plans as $p)
-                <option value="{{ $p->id }}">{{ $p->name }} (Rp {{ number_format($p->price, 0, ',', '.') }})</option>
-              @endforeach
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm">Buat Akun Tenant ke Database</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL: ATUR FITUR & ADD-ON TENANT -->
 <div class="modal fade" id="configureFeaturesModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">

@@ -2,7 +2,7 @@
 <html lang="id">
 
 <head>
-  <title>Daftar Akun Pengelola Web Gym — Pet Gym SaaS</title>
+  <title>Daftar Minat Sewa Web Gym — Pet Gym SaaS</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -29,111 +29,96 @@
     <div class="site-section bg-light contact-wrap" style="padding-top: 50px; padding-bottom: 80px; min-height: calc(100vh - 220px);">
       <div class="container">
 
-        <div class="row justify-content-center text-center mb-4">
-          <div class="col-md-8 section-heading mb-2">
-            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym SaaS Platform</span>
-            <h2 class="heading mb-2 text-dark font-weight-bold">Daftar Akun Admin Pengelola Web Gym</h2>
-            <p class="text-muted">Isi data gym, pilih paket sewa, daftarkan akun Admin Gym Anda, dan upload bukti transfer DP 50% untuk mengaktifkan sistem & website pribadi gym Anda.</p>
-          </div>
-        </div>
-
-        <div class="row justify-content-center">
-          <div class="col-md-8 col-lg-7">
-
-            <form action="{{ route('register.saas') }}" method="POST" enctype="multipart/form-data" class="bg-white p-4 p-md-5 shadow-sm rounded-lg border" style="border-radius: 12px;">
-              @csrf
-
-              <!-- Alert Errors -->
-              @if($errors->any())
-                <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
-                  <ul class="mb-0 pl-3">
-                    @foreach($errors->all() as $err)
-                      <li class="small font-weight-bold">{{ $err }}</li>
-                    @endforeach
-                  </ul>
+        @if(session('success_registration'))
+          <div class="row justify-content-center mb-5">
+            <div class="col-md-8">
+              <div class="card border-0 shadow-sm p-4 text-center rounded-lg" style="border-radius: 16px; background-color: #ecfdf5; border: 1px solid #a7f3d0;">
+                <div class="mb-3">
+                  <span class="icon-check_circle display-4 text-success"></span>
                 </div>
-              @endif
-
-              <div class="form-group mb-3">
-                <label for="gym_name" class="text-dark font-weight-bold small">Nama Gym / Studio *</label>
-                <input type="text" id="gym_name" name="gym_name" value="{{ old('gym_name') }}" class="form-control" placeholder="Contoh: FitLife Studio" required autofocus style="height: 48px; border-radius: 8px; font-size: 14px;">
+                <h3 class="font-weight-bold text-dark mb-2">🎉 Pendaftaran Berhasil Terkirim!</h3>
+                <p class="text-muted mb-4" style="font-size: 15px;">
+                  {{ session('success_registration') }}
+                </p>
+                <div class="d-flex justify-content-center" style="gap: 10px;">
+                  <a href="/" class="btn btn-outline-secondary font-weight-bold px-4" style="border-radius: 20px;">Kembali ke Beranda</a>
+                  <a href="{{ route('login') }}" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 20px;">Halaman Login</a>
+                </div>
               </div>
+            </div>
+          </div>
+        @else
+          <div class="row justify-content-center text-center mb-4">
+            <div class="col-md-8 section-heading mb-2">
+              <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym SaaS Platform</span>
+              <h2 class="heading mb-2 text-dark font-weight-bold">Formulir Pendaftaran Sewa Web Gym</h2>
+              <p class="text-muted">Isi informasi kontak Anda dan pilih paket yang diinginkan. Tim Superadmin kami akan segera menghubungi Anda melalui WhatsApp untuk konsultasi dan aktivasi akun.</p>
+            </div>
+          </div>
 
-              <div class="form-group mb-3">
-                <label for="subdomain" class="text-dark font-weight-bold small">Subdomain Website Gym *</label>
-                <div class="input-group">
-                  <input type="text" id="subdomain" name="subdomain" value="{{ old('subdomain') }}" class="form-control" placeholder="fitlife" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
-                  <div class="input-group-append">
-                    <span class="input-group-text bg-light font-weight-bold text-muted" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; font-size: 13px;">.workout.id</span>
+          <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+
+              <form action="{{ route('register.saas') }}" method="POST" class="bg-white p-4 p-md-5 shadow-sm rounded-lg border" style="border-radius: 16px;">
+                @csrf
+
+                <!-- Alert Errors -->
+                @if($errors->any())
+                  <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
+                    <ul class="mb-0 pl-3">
+                      @foreach($errors->all() as $err)
+                        <li class="small font-weight-bold">{{ $err }}</li>
+                      @endforeach
+                    </ul>
                   </div>
+                @endif
+
+                <div class="form-group mb-3">
+                  <label for="name" class="text-dark font-weight-bold small">Nama Lengkap Anda <span class="text-danger">*</span></label>
+                  <input type="text" id="name" name="name" value="{{ old('name') }}" class="form-control form-control-lg" placeholder="Contoh: Budi Pratama" required autofocus style="border-radius: 8px; font-size: 14px;">
                 </div>
-              </div>
 
-              <div class="row">
-                <div class="col-md-6 form-group mb-3">
-                  <label for="owner_name" class="text-dark font-weight-bold small">Nama Admin / Pengelola Gym *</label>
-                  <input type="text" id="owner_name" name="owner_name" value="{{ old('owner_name') }}" class="form-control" placeholder="Contoh: Alfredo Admin" required style="height: 48px; border-radius: 8px; font-size: 14px;">
+                <div class="form-group mb-3">
+                  <label for="email" class="text-dark font-weight-bold small">Alamat Email Aktif <span class="text-danger">*</span></label>
+                  <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control form-control-lg" placeholder="budi@gmail.com" required style="border-radius: 8px; font-size: 14px;">
+                  <small class="text-muted">Email ini akan digunakan untuk pengiriman kredensial akun dan konfirmasi.</small>
                 </div>
-                <div class="col-md-6 form-group mb-3">
-                  <label for="phone" class="text-dark font-weight-bold small">No. WhatsApp / HP Admin *</label>
-                  <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="form-control" placeholder="081234567890" required style="height: 48px; border-radius: 8px; font-size: 14px;">
+
+                <div class="form-group mb-3">
+                  <label for="phone" class="text-dark font-weight-bold small">Nomor WhatsApp Aktif <span class="text-danger">*</span></label>
+                  <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="form-control form-control-lg" placeholder="081234567890" required style="border-radius: 8px; font-size: 14px;">
+                  <small class="text-muted">Superadmin akan menghubungi Anda via WhatsApp ini.</small>
                 </div>
-              </div>
 
-              <div class="form-group mb-3">
-                <label for="email" class="text-dark font-weight-bold small">Email Resmi Admin Gym *</label>
-                <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="admin@fitlife.com" required style="height: 48px; border-radius: 8px; font-size: 14px;">
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 form-group mb-3">
-                  <label for="password" class="text-dark font-weight-bold small">Password Admin Gym *</label>
-                  <input type="password" id="password" name="password" class="form-control" placeholder="Min. 4 karakter" required style="height: 48px; border-radius: 8px; font-size: 14px;">
+                <div class="form-group mb-3">
+                  <label for="plan_name" class="text-dark font-weight-bold small">Pilihan Paket Sewa Web Gym <span class="text-danger">*</span></label>
+                  <select name="plan_name" id="plan_name" class="form-control form-control-lg" required style="border-radius: 8px; font-size: 14px;">
+                    <option value="Paket Basic" {{ (old('plan_name', $selectedPlan) == 'Paket Basic') ? 'selected' : '' }}>Paket Basic — Rp 500.000 / bulan</option>
+                    <option value="Paket Pro" {{ (old('plan_name', $selectedPlan) == 'Paket Pro' || empty(old('plan_name', $selectedPlan))) ? 'selected' : '' }}>Paket Pro ⭐ — Rp 1.200.000 / bulan</option>
+                    <option value="Paket Enterprise" {{ (old('plan_name', $selectedPlan) == 'Paket Enterprise') ? 'selected' : '' }}>Paket Enterprise 👑 — Rp 2.500.000 / bulan</option>
+                  </select>
                 </div>
-                <div class="col-md-6 form-group mb-3">
-                  <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Password *</label>
-                  <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" placeholder="Ulangi password" required style="height: 48px; border-radius: 8px; font-size: 14px;">
+
+                <div class="form-group mb-4">
+                  <label for="notes" class="text-dark font-weight-bold small">Catatan / Kebutuhan Khusus (Opsional)</label>
+                  <textarea id="notes" name="notes" rows="2" class="form-control" placeholder="Tuliskan jika ada pertanyaan atau jadwal preferensi untuk dihubungi..." style="border-radius: 8px; font-size: 14px;">{{ old('notes') }}</textarea>
                 </div>
-              </div>
 
-              <div class="form-group mb-3">
-                <label for="plan_name" class="text-dark font-weight-bold small">Pilih Paket Sewa Website Gym *</label>
-                <select name="plan_name" id="plan_name" class="form-control" style="height: 48px; border-radius: 8px; font-size: 14px;">
-                  <option value="Paket Basic">Paket Basic — Rp 500.000 / bln (DP 50%: Rp 250.000)</option>
-                  <option value="Paket Pro" selected>Paket Pro ⭐ — Rp 1.200.000 / bln (DP 50%: Rp 600.000)</option>
-                  <option value="Paket Enterprise">Paket Enterprise 👑 — Rp 2.500.000 / bln (DP 50%: Rp 1.250.000)</option>
-                </select>
-              </div>
-
-              <!-- Box Informasi Pembayaran DP 50% -->
-              <div class="p-3 mb-4 rounded bg-light border" style="border-radius: 10px;">
-                <label class="font-weight-bold text-dark small d-block mb-1">🏦 Transfer DP 50% Ke Rekening Superadmin:</label>
-                <div class="font-weight-bold text-primary mb-2" style="font-size: 15px;">
-                  Bank BCA: <span class="text-dark font-weight-extrabold">8830-1234-5678</span> a.n. PetGym SaaS Superadmin
+                <div class="form-group mb-3">
+                  <button type="submit" class="btn btn-primary btn-block font-weight-bold shadow-sm py-3" style="border-radius: 30px; font-size: 15px;">
+                    <i class="icon-send mr-1"></i> Kirim Formulir Pendaftaran
+                  </button>
                 </div>
-                <small class="text-muted d-block">Setelah transfer DP 50%, upload foto / bukti transfer di bawah ini untuk diverifikasi Superadmin.</small>
-              </div>
 
-              <div class="form-group mb-4">
-                <label for="proof_file" class="text-dark font-weight-bold small">Upload Bukti Transfer DP 50% *</label>
-                <input type="file" id="proof_file" name="proof_file" class="form-control-file border p-2 rounded bg-white" accept="image/*" required style="border-radius: 8px;">
-                <small class="text-muted">Format: JPG, PNG. Maksimal 5MB.</small>
-              </div>
+                <div class="text-center mt-3 pt-3 border-top">
+                  <span class="text-muted small">Sudah memiliki akun pengelola?</span>
+                  <a href="{{ route('login') }}" class="text-primary small font-weight-bold ml-1">Masuk / Login Di Sini</a>
+                </div>
+              </form>
 
-              <div class="form-group mb-4 mt-2">
-                <button type="submit" class="btn btn-primary btn-block font-weight-bold shadow-sm" style="height: 48px; border-radius: 8px; font-size: 15px;">
-                  🚀 Kirim Pendaftaran & Bukti Transfer DP 50%
-                </button>
-              </div>
-
-              <div class="text-center mt-4 pt-3 border-top">
-                <span class="text-muted small">Sudah memiliki akun pengelola?</span>
-                <a href="{{ route('login') }}" class="text-primary small font-weight-bold ml-1">Masuk / Login Di Sini</a>
-              </div>
-            </form>
-
+            </div>
           </div>
-        </div>
+        @endif
 
       </div>
     </div>

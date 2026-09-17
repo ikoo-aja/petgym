@@ -8,7 +8,7 @@
 <div class="card-custom">
   <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
     <div>
-      <h6 class="font-weight-bold text-dark mb-1">🛡️ Rekap Riwayat Audit Trail Log</h6>
+      <h6 class="font-weight-bold text-dark mb-1"><i class="icon-shield mr-1 text-primary"></i> Rekap Riwayat Audit Trail Log</h6>
       <small class="text-muted">Total {{ $logs->total() }} riwayat aktivitas tercatat</small>
     </div>
 
@@ -18,7 +18,7 @@
         @csrf
         @method('DELETE')
         <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 8px;">
-          🗑️ Bersihkan Audit Log
+          <i class="icon-trash mr-1"></i> Bersihkan Audit Log
         </button>
       </form>
       @endif

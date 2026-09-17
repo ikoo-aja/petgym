@@ -22,9 +22,9 @@ class AdminStaffTrainerPhoneTest extends TestCase
         ]);
 
         return User::factory()->create([
-            'email'     => 'admin-' . uniqid() . '@phone-test.com',
+            'email'     => 'manager-' . uniqid() . '@phone-test.com',
             'password'  => 'password123',
-            'role'      => 'admin',
+            'role'      => 'manager',
             'tenant_id' => $tenant->id,
         ]);
     }

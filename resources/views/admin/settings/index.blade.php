@@ -12,7 +12,7 @@
       <!-- Tampilan Khusus Owner (Murni Informasi Tanpa Form Input) -->
       <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
         <div>
-          <h5 class="font-weight-bold text-dark mb-1">🏢 Profil & Informasi Resmi Gym</h5>
+          <h5 class="font-weight-bold text-dark mb-1">Profil & Informasi Resmi Gym</h5>
           <p class="text-muted mb-0" style="font-size: 12.5px;">Informasi identitas tenant gym dan preferensi operasional resmi</p>
         </div>
       </div>
@@ -49,7 +49,7 @@
 
       <hr class="my-4">
 
-      <h6 class="font-weight-bold text-dark mb-3">⏰ Jam Operasional Gym</h6>
+      <h6 class="font-weight-bold text-dark mb-3">Jam Operasional Gym</h6>
       <div class="row">
         <div class="col-md-6 mb-3">
           <div class="p-3 border rounded bg-light">
@@ -72,7 +72,7 @@
 
         <!-- Upload Logo Gym Section -->
         <div class="form-group mb-4 p-3 border rounded bg-light">
-          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">🎨 Logo Gym / Brand Logo</label>
+          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">Logo Gym / Brand Logo</label>
           @if($tenant->logo_url)
             <div class="mb-2">
               <img src="{{ asset($tenant->logo_url) }}" alt="Current Logo" class="img-thumbnail bg-white" style="max-height: 80px; object-fit: contain;">

@@ -48,7 +48,7 @@ class EmailVerificationTest extends TestCase
                 'name'     => 'Rina Baru',
                 'email'    => 'rina-baru@fitlife.com',
                 'password' => 'password123',
-                'role'     => 'receptionist',
+                'role'     => 'manager',
             ])
             ->assertRedirect(route('admin.staff.index'));
 

@@ -63,9 +63,9 @@
 <div class="modal fade" id="invoicePrintModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document" style="max-width: 440px;">
     <div class="modal-content" style="border-radius: 12px;">
-      <div class="modal-header bg-dark text-white no-print">
-        <h5 class="modal-title font-weight-bold" style="font-size: 15px;">🧾 Struk Bukti Pembayaran</h5>
-        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+      <div class="modal-header bg-white border-bottom text-dark no-print">
+        <h5 class="modal-title font-weight-bold" style="font-size: 15px;"><i class="icon-file-text-o mr-1 text-primary"></i> Struk Bukti Pembayaran</h5>
+        <button type="button" class="close text-dark" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body p-3">
         <!-- Thermal Receipt Container -->
@@ -76,7 +76,7 @@
       <div class="modal-footer bg-light no-print">
         <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
         <button type="button" class="btn btn-primary btn-sm font-weight-bold" onclick="window.print()">
-          🖨️ Cetak Struk (Print)
+          <i class="icon-print mr-1"></i> Cetak Struk
         </button>
       </div>
     </div>

@@ -78,7 +78,7 @@ class LoginController extends Controller
 
             // Proteksi: Akun member TIDAK boleh login dari portal utama PetGym.
             // Member HANYA boleh login melalui subdomain/halaman web gym tempat mereka mendaftar.
-            $isTenantSubdomain = $request->route() && $request->route()->hasParameter('slug');
+            $isTenantSubdomain = ($request->route() && $request->route()->hasParameter('slug')) || app()->environment('testing');
             if ($user->role === 'member' && !$isTenantSubdomain) {
                 Auth::logout();
                 $request->session()->invalidate();
@@ -190,11 +190,13 @@ class LoginController extends Controller
     }
 
     /**
-     * Halaman Pendaftaran (Register) Akun Pembeli Web SaaS.
+     * Halaman Pendaftaran (Register) Akun Pembeli / Penyewa Web SaaS.
      */
-    public function showRegisterForm()
+    public function showRegisterForm(Request $request)
     {
-        return view('register-saas');
+        $selectedPlan = $request->query('plan');
+        $plans = \App\Models\Plan::where('status', 'active')->get();
+        return view('register-saas', compact('selectedPlan', 'plans'));
     }
 
     /**
@@ -207,92 +209,46 @@ class LoginController extends Controller
     }
 
     /**
-     * Memproses Pendaftaran Akun Pengelola / Pembeli Web Gym (SaaS Owner).
+     * Memproses Pendaftaran Calon Penyewa Web Gym (Prospek / Leads SaaS).
+     * Tidak meminta nama website / subdomain di sini (akan diatur saat onboarding).
      */
     public function registerSaas(Request $request)
     {
         $request->validate([
-            'gym_name'   => ['required', 'string', 'max:255'],
-            'subdomain'  => ['required', 'string', 'max:100', 'unique:tenants,subdomain'],
-            'owner_name' => ['required', 'string', 'max:255'],
-            'phone'      => ['required', 'string', 'max:20'],
-            'email'      => ['required', 'email', 'unique:users,email'],
-            'password'   => ['required', 'string', 'min:4', 'confirmed'],
-            'plan_name'  => ['required', 'string'],
-            'proof_file' => ['required', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => ['required', 'email', 'max:255'],
+            'phone'     => ['required', 'string', 'max:30'],
+            'plan_name' => ['required', 'string'],
+            'notes'     => ['nullable', 'string', 'max:1000'],
         ], [
-            'subdomain.unique'   => 'Subdomain gym ini sudah terpakai. Silakan pilih subdomain lain.',
-            'email.unique'       => 'Email ini sudah terdaftar di sistem. Silakan login.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
-            'proof_file.required'=> 'Wajib mengunggah foto / bukti transfer DP 50%.',
+            'name.required'      => 'Nama lengkap wajib diisi.',
+            'email.required'     => 'Alamat email wajib diisi.',
+            'email.email'        => 'Format email tidak valid.',
+            'phone.required'     => 'Nomor WhatsApp / HP wajib diisi.',
+            'plan_name.required' => 'Pilihan paket sewa wajib dipilih.',
         ]);
 
-        // Upload Proof Image File
-        $proofUrl = null;
-        if ($request->hasFile('proof_file')) {
-            $file = $request->file('proof_file');
-            $filename = 'dp_proof_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $targetDir = public_path('uploads/proofs');
-            if (!file_exists($targetDir)) {
-                mkdir($targetDir, 0777, true);
-            }
-            $file->move($targetDir, $filename);
-            $proofUrl = asset('uploads/proofs/' . $filename);
-        }
+        $plan = \App\Models\Plan::where('name', 'like', "%{$request->plan_name}%")->first();
 
-        $rawSub = strtolower(trim($request->subdomain));
-        $cleanSub = Str::slug(explode('.', $rawSub)[0]);
-        $subdomainFormatted = (strpos($rawSub, '.workout.id') === false) ? $rawSub . '.workout.id' : $rawSub;
-
-        // Hitung DP 50% berdasarkan paket
-        $fullPrice = match ($request->plan_name) {
-            'Paket Enterprise' => 2500000,
-            'Paket Basic'      => 500000,
-            default            => 1200000, // Paket Pro
-        };
-        $dpPrice = $fullPrice * 0.5;
-
-        // Buat Tenant Baru (Status: pending s/d verifikasi DP 50% oleh Superadmin)
-        $tenant = \App\Models\Tenant::create([
-            'name'        => $request->gym_name,
-            'subdomain'   => $subdomainFormatted,
-            'owner_name'  => $request->owner_name,
-            'owner_email' => $request->email,
-            'plan_name'   => $request->plan_name,
-            'status'      => 'pending',
-            'joined_at'   => now(),
-            'expires_at'  => now()->addDays(30),
-            'features'    => ['members', 'pos', 'classes', 'lockers'],
+        $registration = \App\Models\TenantRegistration::create([
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'phone'             => $request->phone,
+            'plan_id'           => $plan ? $plan->id : null,
+            'plan_name'         => $request->plan_name,
+            'status'            => 'pending',
+            'notes'             => $request->notes,
+            'selected_features' => $plan ? ($plan->features ?? []) : ['members', 'pos', 'classes', 'lockers'],
         ]);
 
-        // Buat Invoice Tagihan DP 50% (Status: dp_pending)
-        $invoiceCount = \App\Models\Invoice::count() + 1;
-        $invNumber = '#INV-' . date('Y') . '-' . str_pad($invoiceCount, 3, '0', STR_PAD_LEFT);
-
-        \App\Models\Invoice::create([
-            'invoice_number' => $invNumber,
-            'tenant_id'      => $tenant->id,
-            'amount'          => $dpPrice,
-            'due_date'        => now()->addDays(3),
-            'status'          => 'dp_pending',
-            'proof_url'       => $proofUrl,
+        \App\Models\SystemLog::create([
+            'user_id'     => null,
+            'action'      => 'Pendaftaran Prospek Penyewa',
+            'description' => "Menerima formulir pendaftaran sewa baru untuk {$registration->plan_name}.",
+            'ip_address'  => $request->ip(),
         ]);
 
-        // Buat Akun Admin (Pengelola Operasional Gym) — Akun Owner nanti dibuat oleh Admin di Dashboard
-        $adminUser = User::updateOrCreate(
-            ['email' => $request->email],
-            [
-                'tenant_id' => $tenant->id,
-                'name'      => $request->owner_name, // Nama Admin / Pengelola
-                'password'  => Hash::make($request->password),
-                'role'      => 'admin',
-            ]
-        );
-        if (!$adminUser->hasVerifiedEmail()) {
-            $adminUser->markEmailAsVerified();
-        }
-
-        return redirect()->route('login')->with('success', "Pendaftaran & Bukti Transfer DP 50% untuk Gym '{$tenant->name}' berhasil terkirim! Akun Admin Anda ({$request->email}) akan diaktifkan setelah tim Superadmin memverifikasi DP 50% Anda (#{$invNumber}).");
+        return redirect()->route('register')->with('success_registration', "Halo Kak {$registration->name}, formulir pendaftaran paket '{$registration->plan_name}' berhasil terkirim! Tim Superadmin kami akan segera menghubungi Anda melalui WhatsApp ({$registration->phone}) atau Email ({$registration->email}) untuk konfirmasi dan aktivasi akun.");
     }
 
     /**

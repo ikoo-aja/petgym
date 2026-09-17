@@ -14,6 +14,10 @@ class AdminMemberController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard')->with('error', 'Akses Ditolak. Akun Admin tidak memiliki izin untuk melihat data member. Akses ini dikelola oleh Manager Gym.');
+        }
+
         $tenant = $user->tenant;
 
         $query = Member::where('tenant_id', $tenant->id);

@@ -225,12 +225,12 @@
     <!-- 4. PAKET SEWA WEBSITE GYM (PRICING PLANS) -->
     <div class="site-section bg-light" id="pricing-section">
       <div class="container">
-        @if(session('checkout_success'))
+        @if(session('success_registration'))
           <div class="row justify-content-center mb-4">
             <div class="col-md-10">
               <div class="alert alert-success border-0 shadow-sm p-4 text-center rounded" style="border-radius: 12px; background-color: #d1e7dd; color: #0f5132;">
-                <h5 class="font-weight-bold mb-2">🎉 Pendaftaran & Transfer DP 50% Berhasil Dikirim!</h5>
-                <p class="mb-0">{{ session('checkout_success') }}</p>
+                <h5 class="font-weight-bold mb-2">🎉 Pendaftaran Berhasil Terkirim!</h5>
+                <p class="mb-0">{{ session('success_registration') }}</p>
               </div>
             </div>
           </div>
@@ -260,8 +260,8 @@
                   <li>✔ Maksimal 5 Akun Karyawan (Admin & Resepsionis)</li>
                   <li>✔ Termasuk Modul POS, Kasir, dan Check-in Cepat</li>
                 </ul>
-                <button type="button" class="btn btn-outline-primary btn-block py-3 mt-auto font-weight-bold" onclick="openWebCheckout('Paket Basic', 500000, 250000)" style="border-radius: 30px;">
-                  🛒 Pilih & Sewa Paket Basic
+                <button type="button" class="btn btn-outline-primary btn-block py-3 mt-auto font-weight-bold" onclick="openProspectModal('Paket Basic', '500.000')" style="border-radius: 30px;">
+                  🛒 Pilih Paket Basic
                 </button>
               </div>
             </div>
@@ -288,8 +288,8 @@
                   <li>✔ Modul Retensi Member</li>
                   <li>✔ Analitik Kelas</li>
                 </ul>
-                <button type="button" class="btn btn-primary btn-block py-3 mt-auto font-weight-bold text-white shadow-sm" onclick="openWebCheckout('Paket Pro', 1200000, 600000)" style="border-radius: 30px;">
-                  🚀 Pilih & Sewa Paket Pro
+                <button type="button" class="btn btn-primary btn-block py-3 mt-auto font-weight-bold text-white shadow-sm" onclick="openProspectModal('Paket Pro', '1.200.000')" style="border-radius: 30px;">
+                  🚀 Pilih Paket Pro
                 </button>
               </div>
             </div>
@@ -312,8 +312,8 @@
                   <li>✔ Custom Domain (nama website gym sendiri)</li>
                   <li>✔ Prioritas Support 24/7</li>
                 </ul>
-                <button type="button" class="btn btn-outline-primary btn-block py-3 mt-auto font-weight-bold" onclick="openWebCheckout('Paket Enterprise', 2500000, 1250000)" style="border-radius: 30px;">
-                  👑 Pilih & Sewa Enterprise
+                <button type="button" class="btn btn-outline-primary btn-block py-3 mt-auto font-weight-bold" onclick="openProspectModal('Paket Enterprise', '2.500.000')" style="border-radius: 30px;">
+                  👑 Pilih Paket Enterprise
                 </button>
               </div>
             </div>
@@ -436,91 +436,60 @@
   </div>
   <!-- .site-wrap -->
 
-  <!-- Modal Checkout Pembelian / Penyewaan Web Gym ke Superadmin -->
-  <div class="modal fade" id="webCheckoutModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-      <form action="{{ route('public.checkout') }}" method="POST" enctype="multipart/form-data" class="modal-content" style="border-radius: 15px;">
+  <!-- Modal Pendaftaran Prospek Sewa Web Gym ke Superadmin -->
+  <div class="modal fade" id="prospectModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+      <form action="{{ route('register.saas') }}" method="POST" class="modal-content" style="border-radius: 16px;">
         @csrf
-        <input type="hidden" name="plan_name" id="modalPlanName">
-        <input type="hidden" name="dp_price" id="modalDpPrice">
+        <input type="hidden" name="plan_name" id="modalPlanName" value="Paket Pro">
 
-        <div class="modal-header bg-dark text-white p-4">
+        <div class="modal-header bg-dark text-white p-4" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
           <div>
-            <span class="badge badge-danger text-uppercase font-weight-bold px-3 py-1 mb-1" style="font-size: 10px;">SaaS Web Checkout</span>
-            <h4 class="modal-title font-weight-bold text-white mb-0" id="modalTitle">Formulir Penyewaan Web Gym</h4>
+            <span class="badge badge-primary text-uppercase font-weight-bold px-3 py-1 mb-1" style="font-size: 10px;">Pendaftaran Sewa SaaS</span>
+            <h4 class="modal-title font-weight-bold text-white mb-0" id="modalTitle">Pendaftaran Sewa Website Gym</h4>
           </div>
           <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
         </div>
 
         <div class="modal-body p-4">
-          <div class="alert alert-info border-0 p-3 mb-4 rounded-lg" style="background-color: #e0f2fe; color: #0369a1; border-radius: 10px; font-size: 13px;">
-            <i class="icon-info mr-1"></i> <strong>Instruksi Pembelian Web:</strong> Isi identitas gym yang ingin dibuatkan website. Bayar **DP 50%** ke rekening Superadmin untuk mengaktifkan subdomain & sistem gym Anda.
-          </div>
-
-          <div class="row">
-            <div class="col-md-6 form-group mb-3">
-              <label class="font-weight-bold text-dark small">Nama Studio Gym / Tenant *</label>
-              <input type="text" name="gym_name" class="form-control" placeholder="Contoh: FitLife Studio" required style="border-radius: 8px;">
+          <div class="p-3 mb-3 rounded d-flex justify-content-between align-items-center" style="background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <div>
+              <small class="text-muted d-block">Paket Yang Dipilih:</small>
+              <strong class="text-primary h5 mb-0 font-weight-bold" id="displayPlanName">Paket Pro</strong>
             </div>
-            <div class="col-md-6 form-group mb-3">
-              <label class="font-weight-bold text-dark small">Subdomain Pilihan *</label>
-              <div class="input-group">
-                <input type="text" name="subdomain" class="form-control" placeholder="fitlife" required style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
-                <div class="input-group-append">
-                  <span class="input-group-text bg-light font-weight-bold text-muted" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; font-size: 13px;">.workout.id</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-4 form-group mb-3">
-              <label class="font-weight-bold text-dark small">Nama Pemilik (Owner) *</label>
-              <input type="text" name="owner_name" class="form-control" placeholder="Contoh: Alfredo" required style="border-radius: 8px;">
-            </div>
-            <div class="col-md-4 form-group mb-3">
-              <label class="font-weight-bold text-dark small">Email Resmi Owner *</label>
-              <input type="email" name="owner_email" class="form-control" placeholder="owner@fitlife.com" required style="border-radius: 8px;">
-            </div>
-            <div class="col-md-4 form-group mb-3">
-              <label class="font-weight-bold text-dark small">No. WhatsApp / Telepon *</label>
-              <input type="text" name="owner_phone" class="form-control" placeholder="081234567890" required style="border-radius: 8px;">
-            </div>
-          </div>
-
-          <div class="p-3 mb-4 rounded" style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px;">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="text-muted small">Paket Sewa Dipilih:</span>
-              <span class="font-weight-bold text-dark" id="displayPlanName">-</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="text-muted small">Harga Normal Bulanan:</span>
-              <span class="font-weight-bold text-dark" id="displayFullPrice">-</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-              <span class="font-weight-bold text-primary">DP 50% Yang Wajib Ditransfer:</span>
-              <h4 class="font-weight-extrabold text-primary mb-0" id="displayDpPrice">-</h4>
+            <div class="text-right">
+              <small class="text-muted d-block">Biaya Langganan:</small>
+              <strong class="text-dark font-weight-bold" id="displayFullPrice">Rp 1.200.000 / bln</strong>
             </div>
           </div>
 
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark small d-block">Transfer DP 50% Ke Rekening Superadmin:</label>
-            <div class="p-3 bg-light rounded border mb-2 font-weight-bold text-dark" style="font-size: 14px;">
-              🏦 Bank BCA: <span class="text-primary font-weight-extrabold">8830-1234-5678</span> a.n. PetGym SaaS Superadmin
-            </div>
+            <label class="font-weight-bold text-dark small">Nama Lengkap Anda <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="Contoh: Budi Pratama" required style="border-radius: 8px;">
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark small">Alamat Email Aktif <span class="text-danger">*</span></label>
+            <input type="email" name="email" class="form-control" placeholder="budi@gmail.com" required style="border-radius: 8px;">
+            <small class="text-muted">Untuk konfirmasi & kredensial akun.</small>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark small">Nomor WhatsApp Aktif <span class="text-danger">*</span></label>
+            <input type="text" name="phone" class="form-control" placeholder="081234567890" required style="border-radius: 8px;">
+            <small class="text-muted">Tim Superadmin akan menghubungi Anda via WhatsApp.</small>
           </div>
 
           <div class="form-group mb-0">
-            <label class="font-weight-bold text-dark small">Upload Bukti Transfer DP 50% *</label>
-            <input type="file" name="proof_file" class="form-control-file border p-2 rounded bg-white" accept="image/*" required style="border-radius: 8px;">
-            <small class="text-muted">Format: JPG, PNG. Maksimal 5MB.</small>
+            <label class="font-weight-bold text-dark small">Catatan / Kebutuhan Khusus (Opsional)</label>
+            <textarea name="notes" rows="2" class="form-control" placeholder="Tuliskan jika ada kebutuhan khusus..." style="border-radius: 8px;"></textarea>
           </div>
         </div>
 
-        <div class="modal-footer bg-light p-3">
+        <div class="modal-footer bg-light p-3" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
           <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 20px;">Batal</button>
           <button type="submit" class="btn btn-primary font-weight-bold px-4 py-2 shadow-sm" style="border-radius: 20px;">
-            <i class="icon-send mr-1"></i> Kirim Permohonan Sewa Web Gym
+            <i class="icon-send mr-1"></i> Kirim Formulir Pendaftaran
           </button>
         </div>
       </form>
@@ -544,14 +513,12 @@
   <script src="js/main.js"></script>
 
   <script>
-    function openWebCheckout(planName, fullPrice, dpPrice) {
+    function openProspectModal(planName, price) {
       document.getElementById('modalPlanName').value = planName;
-      document.getElementById('modalDpPrice').value = dpPrice;
-      document.getElementById('modalTitle').innerText = 'Penyewaan Website Gym — ' + planName;
+      document.getElementById('modalTitle').innerText = 'Pendaftaran Sewa — ' + planName;
       document.getElementById('displayPlanName').innerText = planName;
-      document.getElementById('displayFullPrice').innerText = 'Rp ' + Number(fullPrice).toLocaleString('id-ID') + ' / bulan';
-      document.getElementById('displayDpPrice').innerText = 'Rp ' + Number(dpPrice).toLocaleString('id-ID');
-      $('#webCheckoutModal').modal('show');
+      document.getElementById('displayFullPrice').innerText = 'Rp ' + price + ' / bln';
+      $('#prospectModal').modal('show');
     }
   </script>
 

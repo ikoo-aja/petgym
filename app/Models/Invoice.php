@@ -13,9 +13,13 @@ class Invoice extends Model
         'invoice_number',
         'tenant_id',
         'amount',
+        'plan_name',
+        'duration_months',
+        'payment_method',
         'due_date',
         'status',
         'proof_url',
+        'notes',
         'paid_at',
     ];
 

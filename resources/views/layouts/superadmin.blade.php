@@ -206,6 +206,17 @@
           <a class="nav-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}" href="{{ route('superadmin.dashboard') }}"><span class="icon-dashboard"></span> Dashboard</a>
         </li>
         <li class="nav-item">
+          @php
+            $pendingRegistrationsBadge = \App\Models\TenantRegistration::where('status', 'pending')->count();
+          @endphp
+          <a class="nav-link {{ request()->routeIs('superadmin.registrations*') ? 'active' : '' }} d-flex justify-content-between align-items-center" href="{{ route('superadmin.registrations') }}">
+            <span><span class="icon-user-plus"></span> Pendaftaran Penyewa</span>
+            @if($pendingRegistrationsBadge > 0)
+              <span class="badge badge-danger badge-pill px-2" style="font-size: 10px;">{{ $pendingRegistrationsBadge }}</span>
+            @endif
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('superadmin.tenants') ? 'active' : '' }}" href="{{ route('superadmin.tenants') }}"><span class="icon-building"></span> Kelola Penyewa</a>
         </li>
         <li class="nav-item">

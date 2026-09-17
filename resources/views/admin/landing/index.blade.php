@@ -26,13 +26,13 @@
       @csrf
 
       <!-- ============ PROFIL & LOGO GYM ============ -->
-      <div class="card-custom">
+      <div class="card-custom" id="gym-identity">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="font-weight-bold text-dark mb-0">🏢 Identitas Gym & Logo Brand</h6>
+          <h6 class="font-weight-bold text-dark mb-0">Identitas Gym & Logo Brand</h6>
         </div>
 
         <div class="form-group mb-3 p-3 border rounded bg-light">
-          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">🎨 Logo Gym / Brand Logo</label>
+          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">Logo Gym / Brand Logo</label>
           @if($tenant->logo_url)
             <div class="mb-2">
               <img src="{{ asset($tenant->logo_url) }}?v={{ time() }}" alt="Current Logo" class="img-thumbnail bg-white" style="max-height: 80px; object-fit: contain;">
@@ -75,7 +75,7 @@
       </div>
 
       <!-- ============ HERO ============ -->
-      <div class="card-custom">
+      <div class="card-custom" id="section-hero">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">1. Bagian Hero (Pembuka)</h6>
         </div>
@@ -100,7 +100,7 @@
       </div>
 
       <!-- ============ TENTANG ============ -->
-      <div class="card-custom">
+      <div class="card-custom" id="section-about">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">2. Tentang Gym</h6>
         </div>
@@ -111,7 +111,7 @@
       </div>
 
       <!-- ============ FITUR UNGGULAN ============ -->
-      <div class="card-custom">
+      <div class="card-custom" id="section-features">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">3. Fitur Unggulan</h6>
         </div>
@@ -146,7 +146,7 @@
       </div>
 
       <!-- ============ WARNA BRAND ============ -->
-      <div class="card-custom">
+      <div class="card-custom" id="section-colors">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">4. Warna Brand</h6>
         </div>
@@ -174,7 +174,7 @@
       </div>
 
       <!-- ============ BAGIAN HALAMAN ============ -->
-      <div class="card-custom">
+      <div class="card-custom" id="section-visibility">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">5. Bagian yang Ditampilkan</h6>
         </div>
@@ -198,7 +198,7 @@
       </div>
 
       <!-- ============ STATISTIK ============ -->
-      <div class="card-custom">
+      <div class="card-custom" id="section-stats">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">6. Statistik Angka</h6>
         </div>
@@ -225,7 +225,7 @@
       </div>
 
       <!-- ============ KONTAK ============ -->
-      <div class="card-custom">
+      <div class="card-custom" id="section-contact">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">7. Info Kontak</h6>
         </div>

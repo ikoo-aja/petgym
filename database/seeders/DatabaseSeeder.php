@@ -76,18 +76,6 @@ class DatabaseSeeder extends Seeder
                 'expires_at' => Carbon::now()->addDays(24),
                 'features' => ['POS', 'Class', 'Trainer', 'Inventory'],
             ],
-            [
-                'name' => 'Powerhouse Gym',
-                'subdomain' => 'powerhouse.workout.id',
-                'slug' => 'powerhouse',
-                'owner_name' => 'Siti Rahma',
-                'owner_email' => 'siti@powerhouse.com',
-                'plan_id' => $enterprisePlan->id,
-                'plan_name' => 'Paket Enterprise',
-                'status' => 'active',
-                'joined_at' => Carbon::now()->subDays(120),
-                'expires_at' => Carbon::now()->addDays(112),
-                'features' => ['POS', 'Class', 'Trainer', 'Inventory', 'Mobile', 'Analytics'],            ],
         ];
 
         $tenantModels = [];

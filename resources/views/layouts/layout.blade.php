@@ -419,7 +419,7 @@
       </li>
       @endif
 
-      @if(in_array($userRole, ['admin', 'receptionist', 'trainer']))
+      @if(in_array($userRole, ['receptionist', 'trainer']))
       <li>
         <a href="{{ route('admin.members.index') }}" class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member
@@ -430,7 +430,7 @@
       @if($userRole === 'admin')
       <li>
         <a href="{{ route('admin.subscription.index') }}" class="{{ request()->routeIs('admin.subscription.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-credit-card"></span></span> Pembayaran untuk Pengaturan Melanjutkan Web
+          <span class="icon-wrapper"><span class="icon-credit-card"></span></span> Langganan website
         </a>
       </li>
       <li>

@@ -57,6 +57,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return in_array($this->role, ['owner', 'admin', 'manager', 'receptionist', 'trainer']) || !is_null($this->tenant_id);
     }
 
+    public function hasSetupWebsite(): bool
+    {
+        return !is_null($this->tenant_id);
+    }
+
     /**
      * Nama route dashboard berdasarkan role user.
      */
@@ -64,7 +69,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         if ($this->isSuperadmin()) return 'superadmin.dashboard';
         if ($this->isOwner()) return 'owner.dashboard';
-        if ($this->isAdmin()) return 'admin.dashboard';
+        if ($this->isAdmin()) {
+            return $this->hasSetupWebsite() ? 'admin.dashboard' : 'tenant.onboarding';
+        }
         if ($this->isManager()) return 'manager.dashboard';
         if ($this->isReceptionist()) return 'receptionist.dashboard';
         if ($this->role === 'trainer') return 'trainer.dashboard';

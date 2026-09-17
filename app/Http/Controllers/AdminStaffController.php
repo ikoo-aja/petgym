@@ -35,7 +35,15 @@ class AdminStaffController extends Controller
         $user = Auth::user();
         $tenant = $user->tenant;
 
-        $staffs = User::where('tenant_id', $tenant->id)->latest()->get();
+        $query = User::where('tenant_id', $tenant->id);
+
+        if ($user->isAdmin()) {
+            $query->whereIn('role', ['manager', 'owner']);
+        } elseif ($user->isManager()) {
+            $query->whereIn('role', ['receptionist', 'trainer']);
+        }
+
+        $staffs = $query->latest()->get();
 
         return view('admin.staff.index', compact('staffs', 'tenant'));
     }
@@ -137,8 +145,12 @@ class AdminStaffController extends Controller
 
         $staff = User::where('tenant_id', $tenant->id)->findOrFail($id);
 
-        if ($user->isManager() && in_array(strtolower($staff->role), ['admin', 'owner', 'superadmin', 'manager'])) {
-            return redirect()->route('admin.staff.index')->with('error', 'Manager Gym tidak memiliki hak akses untuk mengotak-atik akun Admin atau Owner.');
+        if ($user->isAdmin() && !in_array($staff->role, ['manager', 'owner'])) {
+            return redirect()->route('admin.staff.index')->with('error', 'Admin hanya dapat mengelola akun Manager Gym dan Owner.');
+        }
+
+        if ($user->isManager() && !in_array($staff->role, ['receptionist', 'trainer'])) {
+            return redirect()->route('admin.staff.index')->with('error', 'Manager Gym hanya dapat mengelola akun Resepsionis dan Personal Trainer.');
         }
 
         if ($staff->hasVerifiedEmail()) {
@@ -173,8 +185,12 @@ class AdminStaffController extends Controller
 
         $staff = User::where('tenant_id', $tenant->id)->findOrFail($id);
         
-        if ($user->isManager() && in_array(strtolower($staff->role), ['admin', 'owner', 'superadmin', 'manager'])) {
-            return redirect()->route('admin.staff.index')->with('error', 'Manager Gym tidak memiliki hak akses untuk menghapus akun Admin, Owner, atau Manager.');
+        if ($user->isAdmin() && !in_array($staff->role, ['manager', 'owner'])) {
+            return redirect()->route('admin.staff.index')->with('error', 'Admin hanya dapat mengelola akun Manager Gym dan Owner.');
+        }
+
+        if ($user->isManager() && !in_array($staff->role, ['receptionist', 'trainer'])) {
+            return redirect()->route('admin.staff.index')->with('error', 'Manager Gym hanya dapat mengelola akun Resepsionis dan Personal Trainer.');
         }
 
         $staffName = $staff->name;

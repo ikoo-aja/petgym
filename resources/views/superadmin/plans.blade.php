@@ -67,12 +67,12 @@
           </h3>
 
           <ul class="list-unstyled my-3 text-muted" style="line-height: 2; font-size: 14px;">
-            <li>✓ {{ $plan->max_members ? 'Maksimal ' . $plan->max_members . ' Member' : 'Unlimited Member' }}</li>
+            <li><i class="icon-check text-success mr-1"></i> {{ $plan->max_members ? 'Maksimal ' . $plan->max_members . ' Member' : 'Unlimited Member' }}</li>
             @foreach($masterFeatures as $fItem)
               @if(in_array($fItem, $planFeatures))
-                <li>✓ {{ $fItem }}</li>
+                <li><i class="icon-check text-success mr-1"></i> {{ $fItem }}</li>
               @else
-                <li class="text-muted" style="opacity: 0.5;">✗ {{ $fItem }}</li>
+                <li class="text-muted" style="opacity: 0.5;"><i class="icon-close text-muted mr-1"></i> {{ $fItem }}</li>
               @endif
             @endforeach
           </ul>

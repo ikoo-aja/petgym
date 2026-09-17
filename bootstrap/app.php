@@ -19,21 +19,17 @@ return Application::configure(basePath: dirname(__DIR__))
             users: function ($request) {
                 $user = auth()->user();
                 if (!$user) return '/login';
-                if ($user->isSuperadmin()) return '/superadmin/dashboard';
-                if ($user->isOwner()) return '/owner/dashboard';
-                if ($user->isAdmin()) return '/admin/dashboard';
-                if ($user->isManager()) return '/manager/dashboard';
-                if ($user->isReceptionist()) return '/receptionist/dashboard';
-                if ($user->role === 'trainer') return '/trainer/dashboard';
-                return '/admin/dashboard';
+                return route($user->dashboardRoute(), absolute: false);
             }
         );
         $middleware->web(append: [
             \App\Http\Middleware\EnsurePasswordChanged::class,
+            \App\Http\Middleware\EnsureTenantSetup::class,
         ]);
 
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserRole::class,
+            'tenant.setup' => \App\Http\Middleware\EnsureTenantSetup::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

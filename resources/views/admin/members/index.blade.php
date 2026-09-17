@@ -132,9 +132,7 @@
       </div>
       <div class="modal-body">
         <div class="alert alert-warning py-2 mb-3" style="font-size: 12px;">
-          <strong>⚠️ Perhatian:</strong> Member baru akan terdaftar dengan status <strong>Belum Aktif</strong>.
-          Setelah pendaftaran, member perlu <strong>membeli paket membership di POS Kasir</strong> agar statusnya berubah menjadi Aktif.
-          Kode Akses PIN 6-digit akan digenerate otomatis oleh sistem.
+          <i class="icon-warning mr-1"></i> <strong>Perhatian:</strong> Member baru akan terdaftar dengan status <strong>Belum Aktif</strong> sampai melakukan pembelian paket membership di POS Kasir.
         </div>
 
         <div class="form-group mb-3">
