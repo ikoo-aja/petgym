@@ -185,12 +185,12 @@ class ReceptionistPosController extends Controller
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
-            'action' => 'Pengajuan Void Transaksi',
-            'description' => "Kasir {$user->name} mengajukan pembatalan (void) invoice {$transaction->invoice_number}. Alasan: {$request->void_reason}",
+            'action' => 'Pengajuan Pembatalan Transaksi',
+            'description' => "Kasir {$user->name} mengajukan pembatalan invoice {$transaction->invoice_number}. Alasan: {$request->void_reason}",
             'ip_address' => $request->ip(),
         ]);
         $redirectRoute = $user->isReceptionist() ? 'receptionist.dashboard' : 'receptionist.pos.index';
-        return redirect()->route($redirectRoute)->with('success', 'Pengajuan void transaksi telah dikirim ke Manager untuk persetujuan.');
+        return redirect()->route($redirectRoute)->with('success', 'Pengajuan pembatalan transaksi telah dikirim untuk persetujuan.');
     }
 
     public function storeProduct(Request $request)

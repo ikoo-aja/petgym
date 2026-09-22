@@ -27,8 +27,8 @@ class ManagerStaffController extends Controller
     }
 
     /**
-     * Menampilkan daftar staf operasional (Resepsionis/Kasir & Trainer).
-     * Mengecualikan akun Admin, Manager, dan Owner.
+     * Menampilkan daftar staf operasional (Supervisor, Resepsionis/Kasir & Trainer).
+     * Mengecualikan akun Admin, Manager, Owner, Superadmin, dan Member.
      */
     public function index()
     {
@@ -36,7 +36,7 @@ class ManagerStaffController extends Controller
         $tenant = $user->tenant;
 
         $staffs = User::where('tenant_id', $tenant->id)
-            ->whereNotIn('role', ['admin', 'manager', 'owner', 'superadmin'])
+            ->whereIn('role', ['supervisor', 'receptionist', 'trainer'])
             ->latest()
             ->get();
 
@@ -121,7 +121,7 @@ class ManagerStaffController extends Controller
         $tenant = $user->tenant;
 
         $staff = User::where('tenant_id', $tenant->id)
-            ->whereNotIn('role', ['admin', 'manager', 'owner', 'superadmin'])
+            ->whereIn('role', ['supervisor', 'receptionist', 'trainer'])
             ->findOrFail($id);
 
         if ($staff->hasVerifiedEmail()) {
@@ -158,7 +158,7 @@ class ManagerStaffController extends Controller
         }
 
         $staff = User::where('tenant_id', $tenant->id)
-            ->whereNotIn('role', ['admin', 'manager', 'owner', 'superadmin'])
+            ->whereIn('role', ['supervisor', 'receptionist', 'trainer'])
             ->findOrFail($id);
 
         $staffName = $staff->name;

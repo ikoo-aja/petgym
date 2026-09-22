@@ -52,7 +52,7 @@
             <div class="col-md-8 section-heading mb-2">
               <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform SaaS PetGym</span>
               <h2 class="heading mb-2 text-dark font-weight-bold">Formulir Pendaftaran Sewa Web Gym</h2>
-              <p class="text-muted">Isi informasi kontak Anda dan pilih paket yang diinginkan. Tim Superadmin kami akan segera menghubungi Anda melalui WhatsApp untuk konsultasi dan aktivasi akun.</p>
+              <p class="text-muted">Isi informasi kontak Anda dan pilih paket yang diinginkan. Tim Customer Support kami akan segera menghubungi Anda melalui WhatsApp untuk konsultasi dan aktivasi akun.</p>
             </div>
           </div>
 
@@ -87,7 +87,7 @@
                 <div class="form-group mb-3">
                   <label for="phone" class="text-dark font-weight-bold small">Nomor WhatsApp Aktif <span class="text-danger">*</span></label>
                   <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="form-control form-control-lg" placeholder="081234567890" required style="border-radius: 8px; font-size: 14px;">
-                  <small class="text-muted">Superadmin akan menghubungi Anda via WhatsApp ini.</small>
+                  <small class="text-muted">Tim kami akan menghubungi Anda via WhatsApp ini.</small>
                 </div>
 
                 <div class="form-group mb-3">

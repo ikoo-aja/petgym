@@ -169,7 +169,7 @@
             <tr>
               <th>Invoice</th>
               <th>Total</th>
-              <th>Status Void</th>
+              <th>Status Pembatalan</th>
               <th class="text-right">Aksi</th>
             </tr>
           </thead>
@@ -200,9 +200,9 @@
                     <button class="btn btn-xs btn-outline-danger btn-void-req"
                       data-id="{{ $tx->id }}"
                       data-invoice="{{ $tx->invoice_number }}"
-                      style="border-radius: 6px;">Void</button>
+                      style="border-radius: 6px;">Batal</button>
                   @else
-                    <span class="text-muted font-italic" style="font-size:11px;">No Void</span>
+                    <span class="text-muted font-italic" style="font-size:11px;">-</span>
                   @endif
                 </td>
               </tr>
@@ -218,28 +218,28 @@
   </div>
 </div>
 
-<!-- Modal Request Void -->
+<!-- Modal Permohonan Pembatalan Transaksi -->
 <div class="modal fade" id="voidRequestModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <form id="voidRequestForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
       @csrf
       <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Ajukan Pembatalan (Void) Transaksi</h5>
+        <h5 class="modal-title font-weight-bold">Ajukan Pembatalan Transaksi</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
         <div class="alert alert-warning" style="font-size:13px;">
-          <strong>Pemberitahuan:</strong> Pembatalan transaksi memerlukan persetujuan otorisasi dari Manager. Sisa stok produk ritel akan otomatis dikembalikan setelah disetujui.
+          <strong>Pemberitahuan:</strong> Pembatalan transaksi memerlukan persetujuan otorisasi dari Supervisor / Manager. Sisa stok produk ritel akan otomatis dikembalikan setelah disetujui.
         </div>
         <p class="font-weight-bold text-dark">Invoice: <span id="voidInvoiceNum"></span></p>
         <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Alasan Void Transaksi *</label>
-          <textarea name="void_reason" class="form-control" rows="3" placeholder="Tuliskan alasan pembatalan, misal: Salah input nominal kasir / double click" required></textarea>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Alasan Pembatalan Transaksi *</label>
+          <textarea name="void_reason" class="form-control" rows="3" placeholder="Tuliskan alasan pembatalan, misal: Salah input nominal kasir / salah pilih produk" required></textarea>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-danger font-weight-bold">Kirim Pengajuan Void</button>
+        <button type="submit" class="btn btn-danger font-weight-bold">Kirim Pengajuan Pembatalan</button>
       </div>
     </form>
   </div>
@@ -256,7 +256,7 @@
       var id = $(this).data('id');
       var inv = $(this).data('invoice');
       $('#voidInvoiceNum').text(inv);
-      $('#voidRequestForm').attr('action', '/admin/pos/void/' + id);
+      $('#voidRequestForm').attr('action', '/receptionist/pos/void/' + id);
       $('#voidRequestModal').modal('show');
     });
 

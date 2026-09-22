@@ -2,12 +2,12 @@
 
 @section('title', 'Master Loker Gym &mdash; PetGym')
 @section('page_title', 'Master Data Loker Gym')
-@section('page_subtitle', 'Setup kapasitas loker, pendaftaran loker baru, dan blokir loker rusak oleh Admin')
+@section('page_subtitle', 'Setup kapasitas loker, pendaftaran loker baru, dan status loker')
 
 @section('content')
 <div class="row">
   @if(!Auth::user() || !Auth::user()->isOwner())
-  <!-- Form Tambah Loker Baru (Khusus Admin) -->
+  <!-- Form Tambah Loker Baru -->
   <div class="col-md-4">
     <div class="card-custom mb-4">
       <h6 class="font-weight-bold text-dark mb-3">Daftarkan Loker Baru</h6>
@@ -64,7 +64,7 @@
               <th>No. Loker</th>
               <th>Status Okupansi</th>
               @if(!Auth::user() || !Auth::user()->isOwner())
-              <th class="text-right">Aksi Admin</th>
+              <th class="text-right">Aksi</th>
               @endif
             </tr>
           </thead>

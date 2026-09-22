@@ -455,7 +455,7 @@ class ReceptionistController extends Controller
             'description' => 'required|string',
         ]);
 
-        Complaint::create([
+        $complaint = Complaint::create([
             'tenant_id' => $tenant->id,
             'member_id' => $request->member_id,
             'reported_by' => Auth::id(),
@@ -464,7 +464,15 @@ class ReceptionistController extends Controller
             'status' => 'open',
         ]);
 
-        return redirect()->route('receptionist.complaints')->with('success', 'Keluhan member berhasil dicatat dan dikirim ke Manager.');
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => Auth::id(),
+            'action' => 'Pencatatan Keluhan Member',
+            'description' => "Resepsionis mencatat tiket keluhan baru #{$complaint->id} dari member: {$complaint->title}",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('receptionist.complaints')->with('success', 'Keluhan member berhasil dicatat dan diteruskan ke Supervisor untuk ditindaklanjuti.');
     }
 
     /**

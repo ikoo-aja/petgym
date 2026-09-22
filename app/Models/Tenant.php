@@ -42,22 +42,39 @@ class Tenant extends Model
     }
 
     /**
-     * Mengembalikan URL landing page publik tenant (misal: http://memek.localhost:8000).
+     * Mengembalikan URL landing page publik tenant (misal: http://fitlife.localhost:8000).
      */
     public function publicLandingUrl(): string
     {
         $slug = $this->slug ?: (str_contains($this->subdomain, '.') ? explode('.', $this->subdomain)[0] : $this->subdomain);
-        $scheme = request() ? request()->getScheme() : 'http';
-        $host = request() ? request()->getHttpHost() : 'localhost:8000';
+        $scheme = request() ? request()->getScheme() : (parse_url(config('app.url'), PHP_URL_SCHEME) ?: 'http');
+        
+        $apex = config('app.tenant_apex', 'localhost');
+        $port = request() ? request()->getPort() : (parse_url(config('app.url'), PHP_URL_PORT) ?: null);
+        $portStr = ($port && !in_array((int)$port, [80, 443])) ? ":{$port}" : '';
 
-        // Ambil base domain & port (misal: fitlife.localhost:8000 -> localhost:8000)
-        if (substr_count($host, '.') >= 2) {
-            $baseHost = implode('.', array_slice(explode('.', $host), -2));
-        } else {
-            $baseHost = $host;
+        if (request()) {
+            $host = request()->getHost();
+
+            // Jika request datang dari IP address (misal 127.0.0.1) atau 'localhost'
+            if (filter_var($host, FILTER_VALIDATE_IP) || $host === 'localhost') {
+                return "{$scheme}://{$slug}.{$apex}{$portStr}";
+            }
+
+            // Jika host sudah berakhiran dengan tenant_apex (misal fitlife.localhost atau fitlife.petgym.com)
+            if (str_ends_with($host, '.' . $apex) || $host === $apex) {
+                return "{$scheme}://{$slug}.{$apex}{$portStr}";
+            }
+
+            // Jika domain khusus di lingkungan server/produksi
+            $parts = explode('.', $host);
+            if (count($parts) >= 2) {
+                $baseDomain = implode('.', array_slice($parts, -2));
+                return "{$scheme}://{$slug}.{$baseDomain}{$portStr}";
+            }
         }
 
-        return "{$scheme}://{$slug}.{$baseHost}";
+        return "{$scheme}://{$slug}.{$apex}{$portStr}";
     }
 
     public function plan()

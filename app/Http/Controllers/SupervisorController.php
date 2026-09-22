@@ -200,12 +200,12 @@ class SupervisorController extends Controller
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => Auth::id(),
-            'action' => 'Approve Void Transaksi',
-            'description' => "Supervisor menyetujui void (pembatalan) transaksi invoice {$transaction->invoice_number}",
+            'action' => 'Persetujuan Pembatalan Transaksi',
+            'description' => "Supervisor menyetujui pembatalan transaksi invoice {$transaction->invoice_number}",
             'ip_address' => request()->ip(),
         ]);
 
-        return redirect()->route('supervisor.features', ['tab' => 'void'])->with('success', "Permintaan void untuk invoice {$transaction->invoice_number} berhasil disetujui.");
+        return redirect()->route('supervisor.features', ['tab' => 'void'])->with('success', "Permintaan pembatalan transaksi untuk invoice {$transaction->invoice_number} berhasil disetujui.");
     }
 
     public function rejectVoid($id)
@@ -218,12 +218,12 @@ class SupervisorController extends Controller
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => Auth::id(),
-            'action' => 'Reject Void Transaksi',
-            'description' => "Supervisor menolak void (pembatalan) transaksi invoice {$transaction->invoice_number}",
+            'action' => 'Penolakan Pembatalan Transaksi',
+            'description' => "Supervisor menolak pembatalan transaksi invoice {$transaction->invoice_number}",
             'ip_address' => request()->ip(),
         ]);
 
-        return redirect()->route('supervisor.features', ['tab' => 'void'])->with('success', "Permintaan void untuk invoice {$transaction->invoice_number} ditolak.");
+        return redirect()->route('supervisor.features', ['tab' => 'void'])->with('success', "Permintaan pembatalan transaksi untuk invoice {$transaction->invoice_number} ditolak.");
     }
 
     // ==========================================
@@ -413,8 +413,8 @@ class SupervisorController extends Controller
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => Auth::id(),
-            'action' => 'Update Tiket Komplain',
-            'description' => "Supervisor memperbarui tiket komplain #{$complaint->id} ({$complaint->title}) menjadi {$complaint->status}",
+            'action' => 'Tindak Lanjut Keluhan Member',
+            'description' => "Supervisor menindaklanjuti tiket keluhan #{$complaint->id} ({$complaint->title}) dengan status: {$complaint->status}",
             'ip_address' => request()->ip(),
         ]);
 

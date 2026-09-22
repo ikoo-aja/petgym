@@ -47,7 +47,7 @@
               <!-- Alert Error Gagal Login -->
               @if($errors->has('email'))
                 <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
-                  <small class="font-weight-bold"><i class="icon-exclamation-circle mr-1"></i> {{ $errors->first('email') }}</small>
+                  <small class="font-weight-bold"><i class="icon-exclamation-circle mr-1"></i> {!! $errors->first('email') !!}</small>
                 </div>
               @endif
 

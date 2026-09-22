@@ -46,31 +46,8 @@
 </div>
 
 <div class="row">
-  <!-- Profile & Manager Info -->
-  <div class="col-md-4">
-    <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Profil Manager</h6>
-      <div class="p-3 bg-light rounded mb-3">
-        <div class="font-weight-bold text-dark" style="font-size: 15px;">{{ $user->name }}</div>
-        <small class="text-muted d-block">{{ $user->email }}</small>
-        <span class="badge badge-warning text-dark mt-2 font-weight-bold px-3 py-1">Role: Manager Gym</span>
-      </div>
-
-      <div style="font-size: 13px;">
-        <div class="d-flex justify-content-between mb-2">
-          <span class="text-muted">Departemen:</span>
-          <span class="font-weight-bold text-dark">{{ $managerProfile->department ?? 'Operasional' }}</span>
-        </div>
-        <div class="d-flex justify-content-between">
-          <span class="text-muted">Status Akun:</span>
-          <span class="badge badge-success">Aktif</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Recent Audit Logs -->
-  <div class="col-md-8">
+  <div class="col-md-12">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">Log Aktivitas Staf Terbaru (Audit Trail)</h6>

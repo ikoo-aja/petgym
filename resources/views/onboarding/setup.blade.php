@@ -69,7 +69,7 @@
           <div class="text-center mb-4">
             <h2 class="font-weight-extrabold text-dark mb-2">Selamat Datang di PetGym SaaS</h2>
             <p class="text-muted lead" style="font-size: 15px;">
-              Akun pengelola Anda telah disetujui oleh Superadmin. Sekarang, mari lengkapi identitas website gym Anda untuk mengaktifkan subdomain dan ruang operasional sistem.
+              Pendaftaran akun gym Anda telah berhasil disetujui. Sekarang, mari lengkapi identitas website gym Anda untuk mengaktifkan subdomain dan ruang operasional sistem.
             </p>
           </div>
 

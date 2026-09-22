@@ -49,9 +49,7 @@
                 <li><a href="#cara-kerja-section" class="nav-link">Cara Kerja</a></li>
                 <li><a href="#fitur-section" class="nav-link">Fitur Utama</a></li>
                 <li><a href="#pricing-section" class="nav-link">Paket Harga</a></li>
-                <li><a href="#contact-section" class="nav-link">Kontak</a></li>
-                <li class="d-inline-block ml-3"><a href="{{ route('login') }}" class="btn btn-outline-white text-white px-4 py-2 font-weight-bold" style="border-radius: 30px; border: 2px solid rgba(255,255,255,0.7);">Masuk</a></li>
-                <li class="d-inline-block ml-2"><a href="{{ route('register') }}" class="btn btn-primary text-white px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 30px;">Daftar Akun</a></li>
+                <li class="d-inline-block ml-3"><a href="{{ route('register') }}" class="btn btn-primary text-white px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 30px;">Daftar Akun</a></li>
               </ul>
             </nav>
             <a href="#" class="d-inline-block d-lg-none site-menu-toggle js-menu-toggle float-right"><span class="icon-menu h3"></span></a>
@@ -257,7 +255,7 @@
                 </div>
                 <ul class="list-unstyled mb-4 text-left text-dark" style="line-height: 2;">
                   <li>✔ Kapasitas maksimal 150 Member Aktif</li>
-                  <li>✔ Maksimal 5 Akun Karyawan (Admin & Resepsionis)</li>
+                  <li>✔ Maksimal 5 Akun Karyawan (Staf & Resepsionis)</li>
                   <li>✔ Termasuk Modul POS, Kasir, dan Check-in Cepat</li>
                 </ul>
                 <button type="button" class="btn btn-outline-primary btn-block py-3 mt-auto font-weight-bold" onclick="openProspectModal('Paket Basic', '500.000')" style="border-radius: 30px;">
@@ -436,7 +434,7 @@
   </div>
   <!-- .site-wrap -->
 
-  <!-- Modal Pendaftaran Prospek Sewa Web Gym ke Superadmin -->
+  <!-- Modal Pendaftaran Prospek Sewa Web Gym -->
   <div class="modal fade" id="prospectModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-md" role="document">
       <form action="{{ route('register.saas') }}" method="POST" class="modal-content" style="border-radius: 16px;">
@@ -477,7 +475,7 @@
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark small">Nomor WhatsApp Aktif <span class="text-danger">*</span></label>
             <input type="text" name="phone" class="form-control" placeholder="081234567890" required style="border-radius: 8px;">
-            <small class="text-muted">Tim Superadmin akan menghubungi Anda via WhatsApp.</small>
+            <small class="text-muted">Tim kami akan menghubungi Anda via WhatsApp.</small>
           </div>
 
           <div class="form-group mb-0">

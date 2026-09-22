@@ -43,7 +43,7 @@
       <hr class="my-4">
 
       <!-- Manual Entry Fallback -->
-      <h6 class="font-weight-bold text-dark mb-2 text-left" style="font-size: 13.5px;">Manual Entry oleh Admin (Cadangan)</h6>
+      <h6 class="font-weight-bold text-dark mb-2 text-left" style="font-size: 13.5px;">Presensi Manual Petugas (Cadangan)</h6>
       <form action="{{ route('receptionist.checkin.manual') }}" method="POST">
         @csrf
         <div class="form-group mb-2 position-relative" id="checkinMemberSearchWrapper">
@@ -101,7 +101,7 @@
                   @if($ci->check_in_method === 'code')
                     <span class="badge badge-success">Kode Akses (PIN)</span>
                   @else
-                    <span class="badge badge-info">Manual Admin</span>
+                    <span class="badge badge-info">Manual Staf</span>
                   @endif
                 </td>
                 <td class="text-right">

@@ -542,7 +542,7 @@
       <li class="menu-header">Operasional Lapangan</li>
       <li>
         <a href="/supervisor/features?tab=void" class="{{ request()->is('supervisor/features*') && (request()->query('tab', 'void') === 'void') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-check"></span></span> Otorisasi Kasir
+          <span class="icon-wrapper"><span class="icon-check"></span></span> Otorisasi Pembatalan Kasir
         </a>
       </li>
       <li>

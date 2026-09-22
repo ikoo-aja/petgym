@@ -12,7 +12,7 @@
     <h6 class="font-weight-bold text-dark mb-0 mr-3">Status Loker:</h6>
     <div class="d-flex align-items-center"><span style="width:16px;height:16px;border-radius:4px;background:#28a745;display:inline-block;margin-right:6px;"></span> <span style="font-size:13px;">Tersedia</span></div>
     <div class="d-flex align-items-center"><span style="width:16px;height:16px;border-radius:4px;background:#007bff;display:inline-block;margin-right:6px;"></span> <span style="font-size:13px;">Terpakai</span></div>
-    <div class="d-flex align-items-center"><span style="width:16px;height:16px;border-radius:4px;background:#dc3545;display:inline-block;margin-right:6px;"></span> <span style="font-size:13px;">Rusak (Diblokir Admin)</span></div>
+    <div class="d-flex align-items-center"><span style="width:16px;height:16px;border-radius:4px;background:#dc3545;display:inline-block;margin-right:6px;"></span> <span style="font-size:13px;">Rusak / Tidak Aktif</span></div>
     <div class="ml-auto">
       <span class="badge badge-info font-weight-bold px-3 py-2" style="border-radius:10px;">Total: {{ count($lockers) }} Loker</span>
     </div>
@@ -54,7 +54,7 @@
       </div>
     @empty
       <div class="text-center text-muted w-100 py-5">
-        <p>Belum ada data loker. Admin perlu menambahkan master loker di menu <strong>"Master Loker Gym"</strong>.</p>
+        <p>Belum ada data loker terdaftar dalam sistem.</p>
       </div>
     @endforelse
   </div>

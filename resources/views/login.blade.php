@@ -46,7 +46,7 @@
           <div class="col-md-8 section-heading mb-2">
             <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform SaaS PetGym</span>
             <h2 class="heading mb-2 text-dark font-weight-bold">Masuk ke Portal Pengelola Gym</h2>
-            <p class="text-muted">Masuk ke portal akun Pemilik Gym (Owner), Staf Operasional, Manager, atau Superadmin.</p>
+            <p class="text-muted">Masuk ke portal akun Staf Operasional, Manager, atau Pemilik Gym.</p>
           </div>
         </div>
 
@@ -59,7 +59,7 @@
               <!-- Alert Error Gagal Login -->
               @if($errors->has('email'))
                 <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
-                  <small class="font-weight-bold"><i class="icon-exclamation-circle mr-1"></i> {{ $errors->first('email') }}</small>
+                  <small class="font-weight-bold"><i class="icon-exclamation-circle mr-1"></i> {!! $errors->first('email') !!}</small>
                 </div>
               @endif
 
