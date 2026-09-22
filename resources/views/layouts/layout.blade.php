@@ -301,6 +301,8 @@
       $dashUrl = route('owner.dashboard');
   } elseif ($userRole === 'manager') {
       $dashUrl = route('manager.dashboard');
+  } elseif ($userRole === 'supervisor') {
+      $dashUrl = route('supervisor.dashboard');
   } elseif ($userRole === 'receptionist') {
       $dashUrl = route('receptionist.dashboard');
   } elseif ($userRole === 'trainer') {
@@ -343,7 +345,7 @@
         </a>
       </li>
 
-      @if($userRole !== 'manager')
+      @if(in_array($userRole, ['member', 'owner', 'admin']))
       <li class="menu-header">Operasional</li>
       @endif
 
@@ -382,8 +384,8 @@
         </a>
       </li>
       <li>
-        <a href="{{ route('owner.members') }}" class="{{ request()->routeIs('owner.members') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Data & Status Member
+        <a href="{{ route('owner.performance') }}" class="{{ request()->routeIs('owner.performance*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Kinerja Karyawan
         </a>
       </li>
       <li>
@@ -419,14 +421,6 @@
       </li>
       @endif
 
-      @if(in_array($userRole, ['receptionist', 'trainer']))
-      <li>
-        <a href="{{ route('admin.members.index') }}" class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member
-        </a>
-      </li>
-      @endif
-
       @if($userRole === 'admin')
       <li>
         <a href="{{ route('admin.subscription.index') }}" class="{{ request()->routeIs('admin.subscription.*') ? 'active' : '' }}">
@@ -439,18 +433,13 @@
         </a>
       </li>
       <li>
-        <a href="{{ route('admin.logs.index') }}" class="{{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-history"></span></span> Riwayat Aktivitas
-        </a>
-      </li>
-      <li>
-        <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span>Laporan
+        <a href="{{ route('account.settings') }}" class="{{ request()->routeIs('account.settings*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Pengaturan Akun
         </a>
       </li>
       <li>
         <a href="{{ route('admin.landing.edit') }}" class="{{ request()->routeIs('admin.landing.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-globe"></span></span> Pengaturan & Landing Page
+          <span class="icon-wrapper"><span class="icon-globe"></span></span> Pengaturan Web
         </a>
       </li>
       @endif
@@ -458,96 +447,152 @@
       @if($userRole === 'receptionist')
       <li class="menu-header">Operasional Resepsionis</li>
       <li>
-        <a href="{{ route('admin.checkin.index') }}" class="{{ request()->routeIs('admin.checkin.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-check"></span></span>Absensi
+        <a href="{{ route('manager.members.index') }}" class="{{ request()->routeIs('manager.members.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member
         </a>
       </li>
       <li>
-        <a href="{{ route('admin.pos.index') }}" class="{{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span>Kasir
+        <a href="{{ route('receptionist.checkin.index') }}" class="{{ request()->routeIs('receptionist.checkin.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-check"></span></span> Presensi Member
         </a>
       </li>
       <li>
-        <a href="{{ route('receptionist.lockers') }}" class="{{ request()->routeIs('receptionist.lockers') ? 'active' : '' }}">
+        <a href="{{ route('receptionist.pos.index') }}" class="{{ request()->routeIs('receptionist.pos.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> Kasir
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('receptionist.lockers') }}" class="{{ request()->routeIs('receptionist.lockers*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-settings"></span></span> Manajemen Loker
         </a>
       </li>
       <li>
-        <a href="{{ route('receptionist.guests') }}" class="{{ request()->routeIs('receptionist.guests') ? 'active' : '' }}">
+        <a href="{{ route('receptionist.guests') }}" class="{{ request()->routeIs('receptionist.guests*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-person"></span></span> Buku Tamu
         </a>
-      </li> <li>
-        <a href="{{ route('receptionist.shifts') }}" class="{{ request()->routeIs('receptionist.shifts') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-history"></span></span> Shift & Keluhan Staf
+      </li>
+      <li>
+        <a href="{{ route('receptionist.lost-found') }}" class="{{ request()->routeIs('receptionist.lost-found*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-search"></span></span> Barang Tertinggal
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('receptionist.shifts') }}" class="{{ request()->routeIs('receptionist.shifts*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-history"></span></span> Shift Kasir
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('receptionist.complaints') }}" class="{{ request()->routeIs('receptionist.complaints*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-chat"></span></span> Keluhan Member
         </a>
       </li>
       @endif
 
       @if($userRole === 'manager')
-      <li class="menu-header">Operasional Manager</li>
+      <li class="menu-header">Manajerial & Strategis</li>
       <li>
-        <a href="{{ route('admin.members.index') }}" class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
+        <a href="{{ route('manager.members.index') }}" class="{{ request()->routeIs('manager.members.*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-person"></span></span> Data Member
         </a>
       </li>
       <li>
-        <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
+        <a href="{{ route('manager.staff.index') }}" class="{{ request()->routeIs('manager.staff.*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-people"></span></span> Data Staf
         </a>
       </li>
       <li>
-        <a href="{{ route('admin.lockers.index') }}" class="{{ request()->routeIs('admin.lockers.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym
-        </a>
-      </li>
-      <li>
-        <a href="{{ route('admin.classes.index') }}" class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}">
+        <a href="{{ route('manager.classes.index') }}" class="{{ request()->routeIs('manager.classes.*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-calendar"></span></span> Jadwal Kelas & Trainer
         </a>
       </li>
       <li>
-        <a href="/manager/features?tab=maintenance" class="{{ request()->query('tab') === 'maintenance' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Alat & Perawatan
+        <a href="/manager/features?tab=classes" class="{{ request()->is('manager/features*') && (request()->query('tab', 'classes') === 'classes') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Master Kelas Rencana
         </a>
       </li>
       <li>
-        <a href="/manager/features?tab=shift" class="{{ request()->query('tab') === 'shift' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Shift & Cuti
-        </a>
-      </li>
-      <li>
-        <a href="/manager/features?tab=approval" class="{{ request()->query('tab') === 'approval' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-check"></span></span> Kelola Pembatalan
-        </a>
-      </li>
-      <li>
-        <a href="/manager/features?tab=promo" class="{{ request()->query('tab') === 'promo' ? 'active' : '' }}">
+        <a href="/manager/features?tab=promo" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'promo') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-file-text"></span></span> Promo & Voucher
         </a>
       </li>
       <li>
-        <a href="/manager/features?tab=performance" class="{{ request()->query('tab') === 'performance' ? 'active' : '' }}">
+        <a href="/manager/features?tab=performance" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'performance') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-people"></span></span> Kinerja Karyawan
         </a>
       </li>
       <li>
-        <a href="/manager/features?tab=report" class="{{ request()->query('tab') === 'report' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Rekap Kas & Kehadiran
+        <a href="/manager/features?tab=cash" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'cash') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Rekap Kas Keuangan
         </a>
       </li>
       <li>
-        <a href="/manager/features?tab=stock" class="{{ request()->query('tab') === 'stock' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> Stok Ritel
+        <a href="/manager/features?tab=vendor" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'vendor') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Database Vendor Mitra
+        </a>
+      </li>
+      <li class="menu-header">Pengaturan</li>
+      <li>
+        <a href="{{ route('account.settings') }}" class="{{ request()->routeIs('account.settings*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Akun
+        </a>
+      </li>
+      @endif
+
+      @if($userRole === 'supervisor')
+      <li class="menu-header">Operasional Lapangan</li>
+      <li>
+        <a href="/supervisor/features?tab=void" class="{{ request()->is('supervisor/features*') && (request()->query('tab', 'void') === 'void') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-check"></span></span> Otorisasi Kasir
         </a>
       </li>
       <li>
-        <a href="/manager/features?tab=complaints" class="{{ request()->query('tab') === 'complaints' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Komplain Pelanggan
+        <a href="/supervisor/features?tab=shift" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'shift') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Shift dan Cuti Staf
         </a>
       </li>
       <li>
-        <a href="/manager/features?tab=vendors" class="{{ request()->query('tab') === 'vendors' ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Kontak Vendor
+        <a href="/supervisor/features?tab=equipment" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'equipment') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Aset dan Alat Gym
+        </a>
+      </li>
+      <li>
+        <a href="/supervisor/features?tab=stock" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'stock') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> Peringatan Stok Barang
+        </a>
+      </li>
+      <li>
+        <a href="/supervisor/features?tab=complaint" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'complaint') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Komplain Member
+        </a>
+      </li>
+      <li>
+        <a href="/supervisor/features?tab=locker" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'locker') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym
+        </a>
+      </li>
+      @endif
+
+      @if($userRole === 'trainer')
+      <li class="menu-header">Operasional Pelatih</li>
+      <li>
+        <a href="{{ route('trainer.pt-sessions') }}" class="{{ request()->routeIs('trainer.pt-sessions*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Booking Sesi PT
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('trainer.classes') }}" class="{{ request()->routeIs('trainer.classes*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Penugasan Kelas
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('trainer.rsvps') }}" class="{{ request()->routeIs('trainer.rsvps*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Peserta RSVP Kelas
+        </a>
+      </li>
+      <li class="menu-header">Pengaturan</li>
+      <li>
+        <a href="{{ route('account.settings') }}" class="{{ request()->routeIs('account.settings*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Akun
         </a>
       </li>
       @endif
@@ -558,20 +603,38 @@
   <main class="admin-main">
     <div class="top-navbar">
       <div class="page-title-box">
-        <h5>@yield('page_title', 'Dashboard ' . ucfirst($userRole))</h5>
+        <h5>@yield('page_title', 'Beranda ' . ucfirst($userRole))</h5>
         <p>@yield('page_subtitle', 'Sistem Pengelolaan Gym')</p>
       </div>
 
-      <div class="user-profile-nav">
-        <div class="text-right mr-2">
-          <div style="font-weight: 700; color: #111827; font-size: 13.5px;">{{ $currentUser ? $currentUser->name : 'User' }}</div>
-          <div style="font-size: 12px; color: #36393f; font-weight: Bold">Role: {{ ucfirst($userRole) }}</div>
+      <div class="user-profile-nav d-flex align-items-center">
+        <div class="text-right mr-3">
+          <div style="font-weight: 700; color: #111827; font-size: 13.5px;">{{ $currentUser ? $currentUser->name : 'Pengguna' }}</div>
+          <div style="font-size: 11.5px; color: #6b7280; font-weight: 700;">Peran: {{ ucfirst($userRole) }}</div>
         </div>
 
-        <form action="{{ route('logout') }}" method="POST" class="d-inline">
-          @csrf
-          <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 8px;">Logout</button>
-        </form>
+        @php
+          $receptionistOpenShift = null;
+          if ($userRole === 'receptionist' && $currentUser && $currentUser->tenant_id) {
+              $receptionistOpenShift = \App\Models\ReceptionistShift::where('tenant_id', $currentUser->tenant_id)
+                  ->where('user_id', $currentUser->id)
+                  ->where('status', 'open')
+                  ->first();
+          }
+        @endphp
+
+        @if($receptionistOpenShift)
+          <button type="button" class="btn btn-sm btn-outline-danger font-weight-bold" data-toggle="modal" data-target="#receptionistCloseShiftModal" style="border-radius: 8px; padding: 6px 14px;">
+            <span class="icon-power mr-1"></span> Keluar
+          </button>
+        @else
+          <form action="{{ route('logout') }}" method="POST" class="d-inline m-0">
+            @csrf
+            <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 8px; padding: 6px 14px;">
+              <span class="icon-power mr-1"></span> Keluar
+            </button>
+          </form>
+        @endif
       </div>
     </div>
 
@@ -582,6 +645,43 @@
      </div>
   </main>
 </div>
+
+@if($receptionistOpenShift)
+<!-- Modal Tutup Shift Kasir Sebelum Logout -->
+<div class="modal fade" id="receptionistCloseShiftModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form action="{{ route('receptionist.shifts.close-logout') }}" method="POST" class="modal-content shadow border-0" style="border-radius: 12px;">
+      @csrf
+      <div class="modal-header bg-light border-bottom">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Tutup Shift Kasir & Setoran Akhir</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-warning border-0 mb-3" style="background-color: #fffbeb; color: #b45309;">
+          <strong>Pemberitahuan Serah Terima Kas:</strong> Shift kasir Anda saat ini sedang aktif (dibuka sejak <strong>{{ $receptionistOpenShift->opened_at->format('H:i') }} WIB</strong> dengan kas awal <strong>Rp {{ number_format($receptionistOpenShift->start_cash, 0, ',', '.') }}</strong>). Sebelum keluar dari sistem, Anda wajib memasukkan nominal uang fisik kas akhir di laci.
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark small mb-1">Nominal Setoran Kas Fisik Akhir (Rp) *</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text font-weight-bold">Rp</span>
+            </div>
+            <input type="number" name="end_cash" class="form-control font-weight-bold" placeholder="Hitung seluruh uang fisik di laci kasir" required min="0">
+          </div>
+          <small class="text-muted">Hitung seluruh uang tunai fisik yang ada di laci kasir saat ini untuk diserahterimakan.</small>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-danger font-weight-bold">
+          Tutup Shift dan Keluar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+@endif
 
 <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
 <script src="{{ asset('js/bootstrap.min.js') }}"></script>

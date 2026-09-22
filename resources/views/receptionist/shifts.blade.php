@@ -1,75 +1,62 @@
 @extends('layouts.admin')
 
-@section('title', 'Shift Kasir & Keluhan &mdash; PetGym')
-@section('page_title', 'Manajemen Shift Kasir & Pencatatan Keluhan')
-@section('page_subtitle', 'Buka/tutup shift harian, input setoran laci kas fisik, dan form tiket keluhan member')
+@section('title', 'Manajemen Shift Kasir &mdash; PetGym')
+@section('page_title', 'Manajemen Shift Kasir')
+@section('page_subtitle', 'Buka shift kasir dengan modal awal, pantau penjualan kasir, dan lakukan setoran fisik penutupan shift')
 
 @section('content')
-
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-  <strong>Berhasil!</strong> {{ session('success') }}
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-</div>
-@endif
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-  <strong>Gagal!</strong> {{ session('error') }}
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-</div>
-@endif
-
-@php
-  $openShift = $shifts->where('status', 'open')->first();
-@endphp
-
 <div class="row mb-4">
   <!-- Buka / Tutup Shift Kasir -->
   <div class="col-md-5">
     <div class="card-custom">
       @if($openShift)
-        <h6 class="font-weight-bold text-dark mb-3">Shift Kasir Aktif</h6>
-        <div class="alert alert-success mb-3 border-0" style="background-color: #ecfdf5;">
-          <strong>Shift Sedang Berjalan</strong>
-          <br>Dibuka sejak <strong>{{ $openShift->opened_at ? \Carbon\Carbon::parse($openShift->opened_at)->format('d M Y, H:i') : '-' }} WIB</strong>
-          <br>Kas Awal: <strong>Rp {{ number_format($openShift->start_cash, 0, ',', '.') }}</strong>
+        <h6 class="font-weight-bold text-dark mb-3">Status Shift Kasir: Aktif</h6>
+        <div class="alert alert-success mb-3 border-0 p-3" style="background-color: #ecfdf5; border-radius: 10px;">
+          <div class="font-weight-bold text-dark mb-2">Shift Sedang Berjalan</div>
+          <div class="small text-muted mb-1">Dibuka sejak: <strong class="text-dark">{{ $openShift->opened_at ? \Carbon\Carbon::parse($openShift->opened_at)->format('d M Y, H:i') : '-' }} WIB</strong></div>
+          <div class="small text-muted mb-1">Modal Kas Awal: <strong class="text-dark">Rp {{ number_format($openShift->start_cash, 0, ',', '.') }}</strong></div>
+          <div class="small text-muted mb-1">Penjualan Tunai Shift Ini: <strong class="text-success">Rp {{ number_format($cashSalesDuringShift ?? 0, 0, ',', '.') }}</strong></div>
+          <div class="small text-muted mb-2">Penjualan Digital / Non-Tunai: <strong class="text-info">Rp {{ number_format($digitalSalesDuringShift ?? 0, 0, ',', '.') }}</strong></div>
+          <div class="border-top pt-2 mt-2 font-weight-bold text-dark" style="font-size: 13.5px;">
+            Target Kas Fisik di Laci: <span class="text-primary font-weight-bold">Rp {{ number_format(($openShift->start_cash + ($cashSalesDuringShift ?? 0)), 0, ',', '.') }}</span>
+          </div>
         </div>
 
-        <form action="{{ route('receptionist.shifts.end', $openShift->id) }}" method="POST" data-confirm="Yakin ingin menutup shift kasir? Pastikan nominal kas laci sudah benar.">
+        <form action="{{ route('receptionist.shifts.end', $openShift->id) }}" method="POST" data-confirm="Yakin ingin menutup shift kasir? Pastikan seluruh uang fisik laci kasir telah dihitung dengan benar.">
           @csrf
           <div class="form-group mb-3">
-            <label class="font-weight-bold mb-1" style="font-size:13px;">Nominal Kas Laci Akhir Shift (Fisik) *</label>
+            <label class="font-weight-bold text-dark mb-1" style="font-size:13px;">Nominal Setoran Kas Fisik Akhir (Rp) *</label>
             <div class="input-group">
               <div class="input-group-prepend">
                 <span class="input-group-text font-weight-bold">Rp</span>
               </div>
-              <input type="number" name="end_cash" class="form-control" placeholder="Hitung fisik nominal laci kasir" required min="0">
+              <input type="number" name="end_cash" class="form-control font-weight-bold" placeholder="Hitung seluruh uang fisik di laci kasir" required min="0" style="border-radius: 0 8px 8px 0;">
             </div>
-            <small class="text-muted">Hitung secara manual uang fisik yang ada di laci kasir saat ini.</small>
+            <small class="text-muted mt-1 d-block">Hitung seluruh uang fisik di laci kasir untuk diserahterimakan ke shift berikutnya.</small>
           </div>
-          <button type="submit" class="btn btn-danger btn-block font-weight-bold">
-            Tutup Shift & Setor Kas
+          <button type="submit" class="btn btn-danger btn-block font-weight-bold py-2" style="border-radius: 8px;">
+            Tutup Shift & Setor Kas Akhir
           </button>
         </form>
       @else
         <h6 class="font-weight-bold text-dark mb-3">Buka Shift Kasir Baru</h6>
-        <div class="alert alert-info mb-3 border-0" style="background-color: #eff6ff; color: #1e40af;">
-          <small><strong>Informasi:</strong> Anda belum memiliki shift kasir yang aktif. Buka shift baru untuk mulai mencatat transaksi kasir hari ini.</small>
+        <div class="alert alert-info mb-3 border-0 p-3" style="background-color: #eff6ff; color: #1e40af; border-radius: 10px;">
+          <small><strong>Kewajiban Kas Awal:</strong> Anda belum memiliki shift kasir aktif. Masukkan uang modal kas awal dari serah terima untuk mengaktifkan seluruh fitur operasional gym.</small>
         </div>
 
         <form action="{{ route('receptionist.shifts.start') }}" method="POST">
           @csrf
           <div class="form-group mb-3">
-            <label class="font-weight-bold mb-1" style="font-size:13px;">Nominal Kas Laci Awal Shift (Fisik) *</label>
+            <label class="font-weight-bold text-dark mb-1" style="font-size:13px;">Nominal Modal Kas Awal (Rp) *</label>
             <div class="input-group">
               <div class="input-group-prepend">
                 <span class="input-group-text font-weight-bold">Rp</span>
               </div>
-              <input type="number" name="start_cash" class="form-control" placeholder="Masukkan kas awal dari serah terima" required min="0">
+              <input type="number" name="start_cash" class="form-control font-weight-bold" placeholder="Contoh: 200000" required min="0" style="border-radius: 0 8px 8px 0;">
             </div>
-            <small class="text-muted">Hitung kas yang ada di laci saat serah terima dari shift sebelumnya.</small>
+            <small class="text-muted mt-1 d-block">Hitung uang kas kembalian di laci saat serah terima dari shift sebelumnya.</small>
           </div>
-          <button type="submit" class="btn btn-success btn-block font-weight-bold">
+          <button type="submit" class="btn btn-success btn-block font-weight-bold py-2" style="border-radius: 8px;">
             Buka Shift Kasir Sekarang
           </button>
         </form>
@@ -80,8 +67,11 @@
   <!-- Riwayat Shift -->
   <div class="col-md-7">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Riwayat Shift Kasir Anda</h6>
-      <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="font-weight-bold text-dark mb-0">Riwayat Shift Kasir Anda</h6>
+        <span class="badge badge-primary font-weight-bold px-3 py-2" style="border-radius: 8px;">{{ count($shifts) }} Shift</span>
+      </div>
+      <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
             <tr>
@@ -97,11 +87,11 @@
           <tbody>
             @forelse($shifts as $s)
             <tr>
-              <td style="font-size:13px;">{{ $s->opened_at ? \Carbon\Carbon::parse($s->opened_at)->format('d M Y') : '-' }}</td>
+              <td style="font-size:13px;" class="text-dark">{{ $s->opened_at ? \Carbon\Carbon::parse($s->opened_at)->format('d M Y') : '-' }}</td>
               <td class="font-weight-bold text-dark" style="font-size:13px;">{{ $s->opened_at ? \Carbon\Carbon::parse($s->opened_at)->format('H:i') : '-' }}</td>
               <td style="font-size:13px;">{{ $s->closed_at ? \Carbon\Carbon::parse($s->closed_at)->format('H:i') : '-' }}</td>
-              <td style="font-size:12px;">Rp {{ number_format($s->start_cash, 0, ',', '.') }}</td>
-              <td style="font-size:12px;">{{ $s->end_cash !== null ? 'Rp ' . number_format($s->end_cash, 0, ',', '.') : '-' }}</td>
+              <td style="font-size:12.5px;">Rp {{ number_format($s->start_cash, 0, ',', '.') }}</td>
+              <td style="font-size:12.5px;">{{ $s->end_cash !== null ? 'Rp ' . number_format($s->end_cash, 0, ',', '.') : '-' }}</td>
               <td>
                 @if($s->end_cash !== null)
                   @php $diff = $s->end_cash - $s->start_cash; @endphp
@@ -114,9 +104,9 @@
               </td>
               <td>
                 @if($s->status === 'open')
-                  <span class="badge badge-success">Aktif</span>
+                  <span class="badge badge-success px-2 py-1">Aktif</span>
                 @else
-                  <span class="badge badge-secondary">Closed</span>
+                  <span class="badge badge-secondary px-2 py-1">Selesai</span>
                 @endif
               </td>
             </tr>
@@ -131,93 +121,4 @@
     </div>
   </div>
 </div>
-
-<!-- Pencatatan Keluhan Member -->
-<div class="row">
-  <div class="col-md-5">
-    <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Form Input Keluhan Member Baru</h6>
-      <form action="{{ route('receptionist.complaints.store') }}" method="POST">
-        @csrf
-        <div class="form-group mb-2">
-          <label class="font-weight-bold mb-1" style="font-size:12px;">Pilih Member yang Mengeluh *</label>
-          <select name="member_id" class="form-control form-control-sm" required>
-            <option value="">-- Pilih Member --</option>
-            @foreach($members as $m)
-              <option value="{{ $m->id }}">{{ $m->name }}</option>
-            @endforeach
-          </select>
-        </div>
-        <div class="form-group mb-2">
-          <label class="font-weight-bold mb-1" style="font-size:12px;">Judul Keluhan *</label>
-          <input type="text" name="title" class="form-control form-control-sm" placeholder="Misal: AC mati di ruang ganti" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold mb-1" style="font-size:12px;">Deskripsi Lengkap *</label>
-          <textarea name="description" class="form-control form-control-sm" rows="3" placeholder="Jelaskan detail keluhan member secara lengkap..." required></textarea>
-        </div>
-        <button type="submit" class="btn btn-danger btn-block btn-sm font-weight-bold">
-          Kirim Tiket Keluhan ke Manager
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Daftar Keluhan Tercatat -->
-  <div class="col-md-7">
-    <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Riwayat Tiket Keluhan Member</h6>
-      <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-            <tr>
-              <th>Tanggal</th>
-              <th>Member</th>
-              <th>Judul</th>
-              <th>Status</th>
-              <th>Resolusi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($complaints as $c)
-            <tr>
-              <td style="font-size:12px;">{{ $c->created_at->format('d M Y') }}</td>
-              <td class="font-weight-bold text-dark">{{ $c->member ? $c->member->name : '-' }}</td>
-              <td style="font-size:13px;">{{ $c->title }}</td>
-              <td>
-                @if($c->status === 'open')
-                  <span class="badge badge-danger">Open</span>
-                @elseif($c->status === 'in_progress')
-                  <span class="badge badge-warning text-dark">In Progress</span>
-                @elseif($c->status === 'resolved')
-                  <span class="badge badge-success">Resolved</span>
-                @else
-                  <span class="badge badge-secondary">Closed</span>
-                @endif
-              </td>
-              <td style="font-size:12px; max-width:150px;" class="text-truncate">{{ $c->resolution ?? 'Belum ada resolusi' }}</td>
-            </tr>
-            @empty
-            <tr>
-              <td colspan="5" class="text-center py-4 text-muted">Belum ada keluhan yang tercatat.</td>
-            </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
 @endsection
-
-@section('scripts')
-<script>
-  $(document).ready(function() {
-    $('form').on('submit', function() {
-      // Disable all submit buttons inside the submitted form
-      $(this).find('button[type="submit"]').prop('disabled', true).text('Memproses...');
-    });
-  });
-</script>
-@endsection
-

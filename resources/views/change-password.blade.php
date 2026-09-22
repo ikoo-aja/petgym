@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <title>Ubah Password — Pet Gym Management System</title>
+  <title>Ubah Kata Sandi — Sistem Manajemen PetGym</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -35,9 +35,9 @@
     <div class="container">
       <div class="row justify-content-center text-center mb-4">
         <div class="col-md-8 section-heading mb-2">
-          <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym Platform</span>
-          <h2 class="heading mb-2 text-dark font-weight-bold">Ubah Password Default</h2>
-          <p class="text-muted">Anda harus mengubah password default sebelum dapat menggunakan dashboard.</p>
+          <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform PetGym</span>
+          <h2 class="heading mb-2 text-dark font-weight-bold">Ubah Kata Sandi Default</h2>
+          <p class="text-muted">Anda harus mengubah kata sandi default sebelum dapat menggunakan dasbor.</p>
         </div>
       </div>
 
@@ -49,7 +49,7 @@
             <!-- Alert Error -->
             @if($errors->has('current_password'))
               <div class="alert alert-danger py-2 mb-4" role="alert">
-                <strong>Password saat ini salah.</strong>
+                <strong>Kata sandi saat ini salah.</strong>
               </div>
             @endif
 
@@ -61,9 +61,9 @@
             @endif
 
             <div class="form-group mb-3">
-              <label class="font-weight-bold text-dark" style="font-size: 13px;">Password Saat Ini</label>
+              <label class="font-weight-bold text-dark" style="font-size: 13px;">Kata Sandi Saat Ini</label>
               <div class="input-group">
-                <input type="password" name="current_password" class="form-control" placeholder="Masukkan password saat ini" required>
+                <input type="password" name="current_password" class="form-control" placeholder="Masukkan kata sandi saat ini" required>
                 <div class="input-group-append">
                   <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="togglePw(this)">
                     <i class="icon-eye text-muted"></i>
@@ -73,9 +73,9 @@
             </div>
 
             <div class="form-group mb-3">
-              <label class="font-weight-bold text-dark" style="font-size: 13px;">Password Baru</label>
+              <label class="font-weight-bold text-dark" style="font-size: 13px;">Kata Sandi Baru</label>
               <div class="input-group">
-                <input type="password" name="new_password" class="form-control" placeholder="Masukkan password baru" minlength="4" required>
+                <input type="password" name="new_password" class="form-control" placeholder="Masukkan kata sandi baru" minlength="4" required>
                 <div class="input-group-append">
                   <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="togglePw(this)">
                     <i class="icon-eye text-muted"></i>
@@ -85,9 +85,9 @@
             </div>
 
             <div class="form-group mb-0">
-              <label class="font-weight-bold text-dark" style="font-size: 13px;">Konfirmasi Password Baru</label>
+              <label class="font-weight-bold text-dark" style="font-size: 13px;">Konfirmasi Kata Sandi Baru</label>
               <div class="input-group">
-                <input type="password" name="new_password_confirmation" class="form-control" placeholder="Masukkan ulang password baru" minlength="4" required>
+                <input type="password" name="new_password_confirmation" class="form-control" placeholder="Masukkan ulang kata sandi baru" minlength="4" required>
                 <div class="input-group-append">
                   <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="togglePw(this)">
                     <i class="icon-eye text-muted"></i>
@@ -97,7 +97,7 @@
             </div>
 
             <button type="submit" class="btn btn-success font-weight-bold w-100 mt-3" style="border-radius: 8px;">
-              Simpan Password Baru
+              Simpan Kata Sandi Baru
             </button>
           </form>
         </div>

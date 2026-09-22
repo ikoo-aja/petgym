@@ -58,16 +58,16 @@
 
         <!-- Progress Steps -->
         <div class="d-flex justify-content-center align-items-center mb-4 text-center" style="gap: 10px;">
-          <span class="step-pill bg-success text-white">✓ 1. Akun Dibuat</span>
+          <span class="step-pill bg-success text-white">1. Akun Dibuat</span>
           <span class="text-muted font-weight-bold">→</span>
-          <span class="step-pill bg-primary text-white shadow-sm">⚙ 2. Setup Website & Brand</span>
+          <span class="step-pill bg-primary text-white shadow-sm">2. Pengaturan Website & Brand</span>
           <span class="text-muted font-weight-bold">→</span>
           <span class="step-pill bg-light text-muted border">3. Dasbor Gym</span>
         </div>
 
         <div class="onboarding-card p-4 p-md-5">
           <div class="text-center mb-4">
-            <h2 class="font-weight-extrabold text-dark mb-2">Selamat Datang di PetGym SaaS! 🎉</h2>
+            <h2 class="font-weight-extrabold text-dark mb-2">Selamat Datang di PetGym SaaS</h2>
             <p class="text-muted lead" style="font-size: 15px;">
               Akun pengelola Anda telah disetujui oleh Superadmin. Sekarang, mari lengkapi identitas website gym Anda untuk mengaktifkan subdomain dan ruang operasional sistem.
             </p>
@@ -120,7 +120,7 @@
                     <span class="text-muted d-block">Alamat Website Publik Gym Anda Nanti:</span>
                     <strong class="text-primary font-weight-bold" id="urlPreview" style="font-size: 14px;">http://fitlife.workout.id</strong>
                   </div>
-                  <span class="badge badge-success px-2 py-1 font-weight-bold">Live URL</span>
+                  <span class="badge badge-success px-2 py-1 font-weight-bold">Tautan Aktif</span>
                 </div>
               </div>
             </div>
@@ -153,7 +153,7 @@
               </div>
 
               <div class="form-group mb-0">
-                <label for="logo" class="font-weight-bold text-dark small">Upload Logo Brand Gym (Opsional)</label>
+                <label for="logo" class="font-weight-bold text-dark small">Unggah Logo Brand Gym (Opsional)</label>
                 <input type="file" id="logo" name="logo" class="form-control-file border p-2 bg-light rounded" accept="image/*" style="border-radius: 8px;">
                 <small class="text-muted">Format: PNG, JPG, WEBP. Maksimal 2MB.</small>
               </div>
@@ -162,7 +162,7 @@
             <!-- Submit Button -->
             <div class="pt-3 border-top text-center">
               <button type="submit" class="btn btn-primary btn-lg font-weight-bold px-5 py-3 shadow" style="border-radius: 30px; font-size: 16px;">
-                🚀 Selesaikan Setup & Buka Website Gym
+                Selesaikan Pengaturan & Buka Website Gym
               </button>
               <p class="text-muted small mt-2 mb-0">
                 Sistem akan mengalokasikan ruang data dan halaman landing publik untuk gym Anda secara otomatis.
@@ -177,7 +177,7 @@
   </main>
 
   <footer class="bg-white border-top py-3 text-center text-muted small mt-auto">
-    &copy; {{ date('Y') }} PetGym SaaS Management System. All rights reserved.
+    &copy; {{ date('Y') }} PetGym SaaS Management System. Hak cipta dilindungi undang-undang.
   </footer>
 
   <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>

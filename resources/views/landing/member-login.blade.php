@@ -123,11 +123,11 @@
 
             <div class="form-group mb-3">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label for="password" class="text-dark font-weight-bold small mb-0">Password</label>
-                <a href="{{ route('password.request') }}" class="small font-weight-bold" style="color: var(--brand);">Lupa password?</a>
+                <label for="password" class="text-dark font-weight-bold small mb-0">Kata Sandi</label>
+                <a href="{{ route('password.request') }}" class="small font-weight-bold" style="color: var(--brand);">Lupa kata sandi?</a>
               </div>
               <div class="input-group">
-                <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password Anda" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
+                <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan kata sandi Anda" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
                 <div class="input-group-append">
                   <button class="btn btn-outline-secondary border-left-0 bg-white text-muted" type="button" id="togglePasswordBtn" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: #ced4da;">
                     <i class="icon-eye" id="toggleIcon"></i>

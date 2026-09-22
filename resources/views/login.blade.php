@@ -2,7 +2,7 @@
 <html lang="id">
 
 <head>
-  <title>Login Portal — Pet Gym Management System</title>
+  <title>Masuk ke Portal — Sistem Manajemen PetGym</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -44,8 +44,8 @@
 
         <div class="row justify-content-center text-center mb-4" data-aos="fade-up">
           <div class="col-md-8 section-heading mb-2">
-            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym SaaS Platform</span>
-            <h2 class="heading mb-2 text-dark font-weight-bold">Login Portal Pengelola Gym</h2>
+            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform SaaS PetGym</span>
+            <h2 class="heading mb-2 text-dark font-weight-bold">Masuk ke Portal Pengelola Gym</h2>
             <p class="text-muted">Masuk ke portal akun Pemilik Gym (Owner), Staf Operasional, Manager, atau Superadmin.</p>
           </div>
         </div>
@@ -70,11 +70,11 @@
 
               <div class="form-group mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                  <label for="password" class="text-dark font-weight-bold small mb-0">Password</label>
-                  <a href="{{ route('password.request') }}" class="text-primary small font-weight-bold">Lupa password?</a>
+                  <label for="password" class="text-dark font-weight-bold small mb-0">Kata Sandi</label>
+                  <a href="{{ route('password.request') }}" class="text-primary small font-weight-bold">Lupa kata sandi?</a>
                 </div>
                 <div class="input-group">
-                  <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password Anda" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
+                  <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan kata sandi Anda" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
                   <div class="input-group-append">
                     <button class="btn btn-outline-secondary border-left-0 bg-white text-muted" type="button" id="togglePasswordBtn" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: #ced4da;">
                       <i class="icon-eye" id="toggleIcon"></i>
@@ -120,7 +120,7 @@
         <h3 class="text-white mb-2">Pet Gym SaaS Management</h3>
         <p class="text-white-50 mb-3 small">Platform terpadu kendali operasional, presensi member, POS kasir, dan manajemen kelas gym Anda.</p>
         <p class="mb-0 text-white-50 small">
-          Copyright &copy; <script>document.write(new Date().getFullYear());</script> All rights reserved | Pet Gym Management System
+          Hak Cipta &copy; <script>document.write(new Date().getFullYear());</script> Hak cipta dilindungi undang-undang | Sistem Manajemen PetGym
         </p>
       </div>
     </footer>

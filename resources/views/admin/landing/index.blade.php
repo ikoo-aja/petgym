@@ -16,12 +16,6 @@
 <div class="row">
   <div class="col-md-8">
 
-    @if(session('success'))
-    <div class="alert alert-success py-2" role="alert">
-      <small class="font-weight-bold"><i class="icon-check-circle mr-1"></i> {{ session('success') }}</small>
-    </div>
-    @endif
-
     <form action="{{ route('admin.landing.update') }}" method="POST" enctype="multipart/form-data">
       @csrf
 

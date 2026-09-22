@@ -63,13 +63,13 @@ class EmailVerificationController extends Controller
         if (Auth::check() && Auth::id() === $user->id) {
             if ($user->must_change_password) {
                 return redirect()->route('password.change')
-                    ->with('success', 'Email berhasil diverifikasi. Silakan ubah password default Anda.');
+                    ->with('success', 'Email berhasil diverifikasi. Silakan ubah kata sandi bawaan Anda.');
             }
             return redirect()->route($user->dashboardRoute())
                 ->with('success', 'Email berhasil diverifikasi!');
         }
 
-        // Jika admin login klik link verifikasi staf → kembali ke dashboard admin
+        // Jika admin login klik tautan verifikasi staf → kembali ke dashboard admin
         if (Auth::check()) {
             return redirect()->route(Auth::user()->dashboardRoute())
                 ->with('success', "Email akun {$user->name} berhasil diverifikasi.");
@@ -77,11 +77,11 @@ class EmailVerificationController extends Controller
 
         // Belum login → ke halaman login
         return redirect()->route('login')
-            ->with('success', 'Email berhasil diverifikasi. Silakan login.');
+            ->with('success', 'Email berhasil diverifikasi. Silakan masuk.');
     }
 
     /**
-     * Mengirim ulang link verifikasi (khusus user yang sudah login, dengan throttle).
+     * Mengirim ulang tautan verifikasi (khusus user yang sudah login, dengan throttle).
      */
     public function resend(Request $request)
     {
@@ -97,6 +97,6 @@ class EmailVerificationController extends Controller
 
         $user->sendEmailVerificationNotification();
 
-        return back()->with('success', 'Link verifikasi baru telah dikirim ke email Anda.');
+        return back()->with('success', 'Tautan verifikasi baru telah dikirim ke email Anda.');
     }
 }

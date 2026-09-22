@@ -13,10 +13,10 @@
       <h5 class="font-weight-bold text-dark mb-1">Check-In Kode Akses (PIN)</h5>
       <p class="text-muted mb-3" style="font-size: 12.5px;">Masukkan 6 digit Kode PIN Unik Member</p>
 
-      <form action="{{ route('admin.checkin.process') }}" method="POST" id="checkinForm">
+      <form action="{{ route('receptionist.checkin.process') }}" method="POST" id="checkinForm">
         @csrf
         <div class="form-group mb-3">
-          <input type="text" name="access_code" id="pinDisplay" class="form-control text-center font-weight-bold text-primary" placeholder="------" readonly style="font-size: 28px; letter-spacing: 6px; height: 56px; border-radius: 12px; background: #f8fafc;">
+          <input type="password" name="access_code" id="pinDisplay" class="form-control text-center font-weight-bold text-primary" placeholder="••••••" readonly style="font-size: 28px; letter-spacing: 8px; height: 56px; border-radius: 12px; background: #f8fafc;">
         </div>
 
         <!-- Virtual Numpad -->
@@ -44,18 +44,21 @@
 
       <!-- Manual Entry Fallback -->
       <h6 class="font-weight-bold text-dark mb-2 text-left" style="font-size: 13.5px;">Manual Entry oleh Admin (Cadangan)</h6>
-      <form action="{{ route('admin.checkin.manual') }}" method="POST">
+      <form action="{{ route('receptionist.checkin.manual') }}" method="POST">
         @csrf
-        <div class="form-group mb-2">
-          <select name="member_id" class="form-control" required style="border-radius: 8px;">
-            <option value="">-- Cari Nama Member --</option>
-            @foreach($allActiveMembers as $mem)
-              <option value="{{ $mem->id }}">{{ $mem->name }} (PIN: {{ \App\Helpers\PrivacyHelper::maskCode($mem->access_code) }})</option>
-            @endforeach
-          </select>
+        <div class="form-group mb-2 position-relative" id="checkinMemberSearchWrapper">
+          <input type="hidden" name="member_id" id="manualCheckinMemberId" required>
+          <div class="input-group">
+            <input type="text" id="manualMemberSearchInput" class="form-control" placeholder="Ketik nama atau no. HP member..." autocomplete="off" style="border-radius: 8px;">
+            <div class="input-group-append" id="manualClearMemberBtnGroup" style="display: none;">
+              <button class="btn btn-outline-secondary font-weight-bold" type="button" id="manualBtnClearMember" title="Hapus Pilihan">&times;</button>
+            </div>
+          </div>
+          <div id="manualMemberSearchResults" class="list-group shadow position-absolute w-100 mt-1" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1050; border-radius: 8px; text-align: left; left: 0;">
+          </div>
         </div>
-        <button type="submit" class="btn btn-block btn-outline-primary font-weight-bold" style="border-radius: 8px;">
-          Check-In Manual Name
+        <button type="submit" id="btnManualSubmit" class="btn btn-block btn-outline-primary font-weight-bold" style="border-radius: 8px;" disabled>
+          Check-In Manual Member
         </button>
       </form>
     </div>
@@ -76,7 +79,7 @@
             <tr>
               <th>Jam</th>
               <th>Member</th>
-              <th>Kode PIN</th>
+              <th>Kontak</th>
               <th>Metode</th>
               <th class="text-right">Aksi</th>
             </tr>
@@ -91,21 +94,19 @@
                   <div class="font-weight-bold text-dark">{{ $ci->member ? $ci->member->name : 'Member Unknown' }}</div>
                   <small class="text-muted">Expired: {{ ($ci->member && $ci->member->expired_at) ? $ci->member->expired_at->format('d M Y') : '-' }}</small>
                 </td>
-                <td>
-                  <span class="badge badge-secondary" style="font-size: 12px; letter-spacing: 1px;">
-                    {{ \App\Helpers\PrivacyHelper::maskCode($ci->access_code) }}
-                  </span>
+                <td style="font-size: 13px;" class="text-dark">
+                  {{ $ci->member && $ci->member->phone ? \App\Helpers\PrivacyHelper::maskPhone($ci->member->phone) : '-' }}
                 </td>
                 <td>
                   @if($ci->check_in_method === 'code')
-                    <span class="badge badge-success">PIN Code</span>
+                    <span class="badge badge-success">Kode Akses (PIN)</span>
                   @else
                     <span class="badge badge-info">Manual Admin</span>
                   @endif
                 </td>
                 <td class="text-right">
                   @if(!Auth::user() || !Auth::user()->isOwner())
-                  <form action="{{ route('admin.checkin.destroy', $ci->id) }}" method="POST" class="d-inline" data-confirm="Batalkan presensi kunjungan ini?">
+                  <form action="{{ route('receptionist.checkin.destroy', $ci->id) }}" method="POST" class="d-inline" data-confirm="Batalkan presensi kunjungan ini?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Batalkan</button>
@@ -145,5 +146,75 @@
     var val = $('#pinDisplay').val();
     $('#pinDisplay').val(val.substring(0, val.length - 1));
   }
+
+  // Live search untuk manual checkin member
+  var checkinMemberList = [
+    @foreach($allActiveMembers as $mem)
+      {
+        id: {{ $mem->id }},
+        name: "{{ addslashes($mem->name) }}",
+        phone: "{{ $mem->phone ?? '' }}",
+        status: "Aktif"
+      },
+    @endforeach
+  ];
+
+  $(document).ready(function() {
+    var $input = $('#manualMemberSearchInput');
+    var $results = $('#manualMemberSearchResults');
+    var $idInput = $('#manualCheckinMemberId');
+    var $clearBtn = $('#manualClearMemberBtnGroup');
+    var $submitBtn = $('#btnManualSubmit');
+
+    function renderCheckinSearchResults(query) {
+      $results.empty();
+      query = (query || '').trim().toLowerCase();
+
+      var matches = checkinMemberList.filter(function(item) {
+        if (!query) return true;
+        return item.name.toLowerCase().indexOf(query) !== -1 || item.phone.toLowerCase().indexOf(query) !== -1;
+      });
+
+      if (matches.length > 0) {
+        $.each(matches.slice(0, 15), function(i, item) {
+          var el = $('<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">')
+            .html('<div><strong class="text-dark">' + item.name + '</strong></div><span class="badge badge-success">' + item.status + '</span>')
+            .on('click', function(e) {
+              e.preventDefault();
+              $idInput.val(item.id);
+              $input.val(item.name + ' — ' + item.status).prop('readonly', true);
+              $clearBtn.show();
+              $submitBtn.prop('disabled', false);
+              $results.hide();
+            });
+          $results.append(el);
+        });
+      } else {
+        $results.append('<div class="list-group-item text-muted py-2 text-center" style="font-size: 13px;">Member tidak ditemukan</div>');
+      }
+
+      $results.show();
+    }
+
+    $input.on('focus input', function() {
+      if (!$input.prop('readonly')) {
+        renderCheckinSearchResults($(this).val());
+      }
+    });
+
+    $('#manualBtnClearMember').on('click', function() {
+      $idInput.val('');
+      $input.val('').prop('readonly', false).focus();
+      $clearBtn.hide();
+      $submitBtn.prop('disabled', true);
+      renderCheckinSearchResults('');
+    });
+
+    $(document).on('click', function(e) {
+      if (!$(e.target).closest('#checkinMemberSearchWrapper').length) {
+        $results.hide();
+      }
+    });
+  });
 </script>
 @endsection

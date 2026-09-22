@@ -91,7 +91,7 @@
         <div class="col-md-8">
           <span class="text-uppercase font-weight-bold small" style="color: var(--brand); letter-spacing: 1.5px;">Portal Member</span>
           <h2 class="font-weight-bold text-dark mt-1 mb-2">Verifikasi Email {{ $tenantName }}</h2>
-          <p class="text-muted small">Sebelum mengakses dashboard member, silakan verifikasi alamat email Anda terlebih dahulu.</p>
+          <p class="text-muted small">Sebelum mengakses dasbor anggota, silakan verifikasi alamat email Anda terlebih dahulu.</p>
         </div>
       </div>
 
@@ -107,30 +107,30 @@
 
             <div class="text-center mb-4">
               <span class="icon-envelope-o d-inline-flex align-items-center justify-content-center" style="font-size: 48px; color: var(--brand);"></span>
-              <h5 class="font-weight-bold text-dark mt-3 mb-1">Cek Inbox Email Anda</h5>
+              <h5 class="font-weight-bold text-dark mt-3 mb-1">Periksa Kotak Masuk Email Anda</h5>
               <p class="text-muted small mb-0">
-                Link verifikasi telah dikirimkan ke alamat email:<br>
+                Tautan verifikasi telah dikirimkan ke alamat email:<br>
                 <strong class="text-dark" style="font-size: 14px;">{{ $user->email }}</strong>
               </p>
             </div>
 
             <div class="alert alert-info py-3 mb-4 rounded" role="alert" style="background-color: #e0f2fe; color: #0369a1; font-size: 13px; border: none;">
               <i class="icon-exclamation-circle mr-1"></i>
-              Link verifikasi telah dikirim ke Mailpit / Inbox email Anda. Silakan buka email dari <strong>{{ $tenantName }}</strong> dan klik tombol <strong>Verifikasi Email Member</strong>.
+              Tautan verifikasi telah dikirim ke kotak masuk email Anda. Silakan buka email dari <strong>{{ $tenantName }}</strong> dan klik tombol <strong>Verifikasi Email Member</strong>.
             </div>
 
             <form action="{{ route('verification.send') }}" method="POST" class="mb-3">
               @csrf
               <button type="submit" class="btn btn-brand btn-block">
-                <i class="icon-envelope-o mr-1"></i> Kirim Ulang Link Verifikasi
+                <i class="icon-envelope-o mr-1"></i> Kirim Ulang Tautan Verifikasi
               </button>
             </form>
 
             <div class="text-center mt-4 pt-3 border-top d-flex justify-content-between align-items-center" style="font-size: 13px;">
-              <a href="{{ $tenantLoginUrl }}" style="color: var(--brand);" class="font-weight-bold">Sudah verifikasi? Masuk / Login</a>
+              <a href="{{ $tenantLoginUrl }}" style="color: var(--brand);" class="font-weight-bold">Sudah verifikasi? Masuk</a>
               <form action="{{ route('logout') }}" method="POST" class="d-inline">
                 @csrf
-                <button type="submit" class="btn btn-link text-muted p-0 font-weight-bold" style="font-size: 13px; text-decoration: none;">Keluar / Logout</button>
+                <button type="submit" class="btn btn-link text-muted p-0 font-weight-bold" style="font-size: 13px; text-decoration: none;">Keluar</button>
               </form>
             </div>
 

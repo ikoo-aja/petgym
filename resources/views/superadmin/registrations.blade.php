@@ -11,15 +11,6 @@
     <h4 class="font-weight-bold text-black mb-0">Daftar Pengajuan Calon Penyewa</h4>
   </div>
 
-  @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="border-radius: 10px;">
-      <strong>Sukses!</strong> {{ session('success') }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-  @endif
-
   @if($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius: 10px;">
       <ul class="mb-0 pl-3">
@@ -198,14 +189,14 @@
                           <input type="email" name="email" class="form-control" value="{{ $reg->email }}" required>
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                          <label class="font-weight-bold text-dark small">Password Login Awal <span class="text-danger">*</span></label>
+                          <label class="font-weight-bold text-dark small">Kata Sandi Masuk Awal <span class="text-danger">*</span></label>
                           <div class="input-group">
                             <input type="text" name="password" id="passInput{{ $reg->id }}" class="form-control font-weight-bold" value="1234" required>
                             <div class="input-group-append">
                               <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('passInput{{ $reg->id }}').value = Math.random().toString(36).slice(-8);">Acak</button>
                             </div>
                           </div>
-                          <small class="text-muted">Password awal: <strong>1234</strong></small>
+                          <small class="text-muted">Kata sandi awal: <strong>1234</strong></small>
                         </div>
                       </div>
 

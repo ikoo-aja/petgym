@@ -87,13 +87,13 @@
           </div>
         </div>
         <div class="form-group row">
-          <label class="col-sm-4 col-form-label text-black font-weight-bold">SMTP Username</label>
+          <label class="col-sm-4 col-form-label text-black font-weight-bold">Nama Pengguna SMTP</label>
           <div class="col-sm-8">
             <input type="text" class="form-control" name="mail_username" value="ae7dcf0b1bc89a">
           </div>
         </div>
         <div class="form-group row">
-          <label class="col-sm-4 col-form-label text-black font-weight-bold">SMTP Password</label>
+          <label class="col-sm-4 col-form-label text-black font-weight-bold">Kata Sandi SMTP</label>
           <div class="col-sm-8">
             <input type="password" class="form-control" name="mail_password" value="••••••••••••">
           </div>

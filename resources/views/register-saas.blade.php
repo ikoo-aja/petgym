@@ -36,13 +36,13 @@
                 <div class="mb-3">
                   <span class="icon-check_circle display-4 text-success"></span>
                 </div>
-                <h3 class="font-weight-bold text-dark mb-2">🎉 Pendaftaran Berhasil Terkirim!</h3>
+                <h3 class="font-weight-bold text-dark mb-2">Pendaftaran Berhasil Terkirim!</h3>
                 <p class="text-muted mb-4" style="font-size: 15px;">
                   {{ session('success_registration') }}
                 </p>
                 <div class="d-flex justify-content-center" style="gap: 10px;">
                   <a href="/" class="btn btn-outline-secondary font-weight-bold px-4" style="border-radius: 20px;">Kembali ke Beranda</a>
-                  <a href="{{ route('login') }}" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 20px;">Halaman Login</a>
+                  <a href="{{ route('login') }}" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 20px;">Halaman Masuk</a>
                 </div>
               </div>
             </div>
@@ -50,7 +50,7 @@
         @else
           <div class="row justify-content-center text-center mb-4">
             <div class="col-md-8 section-heading mb-2">
-              <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym SaaS Platform</span>
+              <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform SaaS PetGym</span>
               <h2 class="heading mb-2 text-dark font-weight-bold">Formulir Pendaftaran Sewa Web Gym</h2>
               <p class="text-muted">Isi informasi kontak Anda dan pilih paket yang diinginkan. Tim Superadmin kami akan segera menghubungi Anda melalui WhatsApp untuk konsultasi dan aktivasi akun.</p>
             </div>
@@ -94,8 +94,8 @@
                   <label for="plan_name" class="text-dark font-weight-bold small">Pilihan Paket Sewa Web Gym <span class="text-danger">*</span></label>
                   <select name="plan_name" id="plan_name" class="form-control form-control-lg" required style="border-radius: 8px; font-size: 14px;">
                     <option value="Paket Basic" {{ (old('plan_name', $selectedPlan) == 'Paket Basic') ? 'selected' : '' }}>Paket Basic — Rp 500.000 / bulan</option>
-                    <option value="Paket Pro" {{ (old('plan_name', $selectedPlan) == 'Paket Pro' || empty(old('plan_name', $selectedPlan))) ? 'selected' : '' }}>Paket Pro ⭐ — Rp 1.200.000 / bulan</option>
-                    <option value="Paket Enterprise" {{ (old('plan_name', $selectedPlan) == 'Paket Enterprise') ? 'selected' : '' }}>Paket Enterprise 👑 — Rp 2.500.000 / bulan</option>
+                    <option value="Paket Pro" {{ (old('plan_name', $selectedPlan) == 'Paket Pro' || empty(old('plan_name', $selectedPlan))) ? 'selected' : '' }}>Paket Pro — Rp 1.200.000 / bulan</option>
+                    <option value="Paket Enterprise" {{ (old('plan_name', $selectedPlan) == 'Paket Enterprise') ? 'selected' : '' }}>Paket Enterprise — Rp 2.500.000 / bulan</option>
                   </select>
                 </div>
 
@@ -112,7 +112,7 @@
 
                 <div class="text-center mt-3 pt-3 border-top">
                   <span class="text-muted small">Sudah memiliki akun pengelola?</span>
-                  <a href="{{ route('login') }}" class="text-primary small font-weight-bold ml-1">Masuk / Login Di Sini</a>
+                  <a href="{{ route('login') }}" class="text-primary small font-weight-bold ml-1">Masuk di Sini</a>
                 </div>
               </form>
 

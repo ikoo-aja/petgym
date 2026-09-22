@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Guest;
-use App\Models\StaffLog;
 use App\Models\Announcement;
 use Carbon\Carbon;
 
@@ -24,60 +23,28 @@ class AdminController extends Controller
                 'user' => $user,
                 'tenant' => null,
                 'plan' => null,
-                'settings' => null,
-                'completenessPercent' => 0,
                 'websiteVisits' => 0,
                 'visitsGrowth' => 0,
                 'unreadLeadsCount' => 0,
-                'recentLeads' => collect(),
                 'announcements' => collect(),
-                'recentActivities' => collect(),
                 'landingUrl' => '#',
             ]);
         }
 
         $plan = $tenant->plan;
-        $settings = $tenant->landingSettings();
         $landingUrl = $tenant->publicLandingUrl();
 
-        // 1. Hitung Persentase Kelengkapan Konten Website (0 - 100%)
-        $completenessScore = 0;
-        $completenessTotal = 8;
-
-        if (!empty($tenant->logo_url)) $completenessScore++;
-        if (!empty($settings->hero_title)) $completenessScore++;
-        if (!empty($settings->hero_tagline)) $completenessScore++;
-        if (!empty($settings->about_text)) $completenessScore++;
-        if (!empty($settings->address)) $completenessScore++;
-        if (!empty($settings->phone)) $completenessScore++;
-        if (!empty($settings->email)) $completenessScore++;
-        if (!empty($settings->opening_hours)) $completenessScore++;
-
-        $completenessPercent = (int) round(($completenessScore / $completenessTotal) * 100);
-
-        // 2. Metrik Pengunjung Web (Trafik Landing Page)
+        // 1. Metrik Pengunjung Web (Trafik Landing Page)
         $websiteVisits = 1420;
         $visitsGrowth = 12;
 
-        // 3. Pesan Masuk / Leads Calon Klien (Form Kontak Website)
-        $recentLeads = Guest::where('tenant_id', $tenant->id)
-            ->latest()
-            ->take(5)
-            ->get();
-
+        // 2. Pesan Masuk / Leads Calon Klien (Form Kontak Website)
         $unreadLeadsCount = Guest::where('tenant_id', $tenant->id)
             ->whereNull('converted_to_member_id')
             ->count();
 
-        // 4. Pengumuman & Notifikasi dari Superadmin
+        // 3. Pengumuman & Notifikasi dari Superadmin
         $announcements = Announcement::where('status', 'Active')
-            ->latest()
-            ->take(5)
-            ->get();
-
-        // 5. Riwayat Log Aktivitas Pengelolaan Terakhir oleh Admin & Staf
-        $recentActivities = StaffLog::where('tenant_id', $tenant->id)
-            ->with('user')
             ->latest()
             ->take(5)
             ->get();
@@ -86,14 +53,10 @@ class AdminController extends Controller
             'user',
             'tenant',
             'plan',
-            'settings',
-            'completenessPercent',
             'websiteVisits',
             'visitsGrowth',
             'unreadLeadsCount',
-            'recentLeads',
             'announcements',
-            'recentActivities',
             'landingUrl'
         ));
     }

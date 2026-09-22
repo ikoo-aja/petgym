@@ -70,12 +70,12 @@
                 @if($annStatus == 'Active')
                   <span class="badge badge-success px-2 py-1 text-white">Aktif</span>
                 @else
-                  <span class="badge badge-secondary px-2 py-1">Ditarik (Recalled)</span>
+                  <span class="badge badge-secondary px-2 py-1">Ditarik Kembali</span>
                 @endif
               </td>
               <td style="white-space: nowrap;">
-                <button class="btn btn-sm btn-outline-secondary px-2 py-1 mr-1 btn-edit-announcement" data-id="{{ $announcement->id ?? 0 }}" data-title="{{ $annTitle }}" data-message="{{ $annMsg }}" title="Edit">
-                  <span class="icon-pencil"></span> Edit
+                <button class="btn btn-sm btn-outline-secondary px-2 py-1 mr-1 btn-edit-announcement" data-id="{{ $announcement->id ?? 0 }}" data-title="{{ $annTitle }}" data-message="{{ $annMsg }}" title="Ubah">
+                  <span class="icon-pencil"></span> Ubah
                 </button>
                 @if($annStatus == 'Active')
                   <button class="btn btn-sm btn-outline-warning px-2 py-1 mr-1 btn-recall-announcement" title="Tarik Kembali">
@@ -146,8 +146,8 @@
           <td style="max-width: 350px;">${quill.getText().substring(0, 90)}...</td>
           <td><span class="badge badge-success px-2 py-1 text-white">Aktif</span></td>
           <td style="white-space: nowrap;">
-            <button class="btn btn-sm btn-outline-secondary px-2 py-1 mr-1 btn-edit-announcement" data-title="${title}" data-message='${editorHtml}' title="Edit">
-              <span class="icon-pencil"></span> Edit
+            <button class="btn btn-sm btn-outline-secondary px-2 py-1 mr-1 btn-edit-announcement" data-title="${title}" data-message='${editorHtml}' title="Ubah">
+              <span class="icon-pencil"></span> Ubah
             </button>
             <button class="btn btn-sm btn-outline-warning px-2 py-1 mr-1 btn-recall-announcement" title="Tarik Kembali">
               <span class="icon-pause"></span> Tarik

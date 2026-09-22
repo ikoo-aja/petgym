@@ -113,7 +113,7 @@
           <input type="email" name="email" class="form-control" placeholder="rina@fitlife.com" required>
         </div>
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Password *</label>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Kata Sandi *</label>
           <div class="input-group">
             <input type="password" name="password" id="staffPassword" class="form-control" required minlength="4">
             <div class="input-group-append">
@@ -127,20 +127,8 @@
             <label class="custom-control-label text-muted" style="font-size: 12px;" for="autoGenPw">Generate password default otomatis (staf wajib ganti saat login)</label>
           </div>
         </div>
-        @if(Auth::user() && Auth::user()->isManager())
         <div class="alert alert-info border-0 p-3 mb-3 rounded" style="background-color: #e0f2fe; color: #0369a1; font-size: 12.5px;">
-          <i class="icon-info mr-1"></i> <strong>Akses Manager:</strong> Manager Gym menginput dan mengelola akun staf operasional (Resepsionis/Kasir dan Personal Trainer).
-        </div>
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Peran Akun *</label>
-          <select name="role" id="staffRole" class="form-control" required>
-            <option value="receptionist">Resepsionis / Kasir</option>
-            <option value="trainer">Personal Trainer (PT)</option>
-          </select>
-        </div>
-        @else
-        <div class="alert alert-info border-0 p-3 mb-3 rounded" style="background-color: #e0f2fe; color: #0369a1; font-size: 12.5px;">
-          <i class="icon-info mr-1"></i> <strong>Akses Admin:</strong> Admin menginput akun peran tingkat tinggi (Manager & Owner). Akun operasional seperti Personal Trainer (PT) dan Resepsionis/Kasir diinput oleh <strong>Manager Gym</strong>.
+          <i class="icon-info mr-1"></i> <strong>Akses Admin:</strong> Admin menginput akun pengelola tingkat tinggi (Manager Gym & Owner). Akun staf operasional seperti Resepsionis/Kasir dan Personal Trainer dikelola secara mandiri oleh <strong>Manager Gym</strong>.
         </div>
         <div class="form-group mb-0">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Peran Akun *</label>
@@ -148,17 +136,6 @@
             <option value="manager">Manager Gym</option>
             <option value="owner">Pemilik Gym (Owner)</option>
           </select>
-        </div>
-        @endif
-        <div class="form-group mb-0" id="staffPhoneGroup" style="display: none;">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nomor Telepon / WhatsApp Trainer</label>
-          <div class="input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text bg-white border-right-0"><i class="icon-phone text-muted"></i></span>
-            </div>
-            <input type="text" name="phone" id="staffPhone" class="form-control" placeholder="081234567890" maxlength="20">
-          </div>
-          <small class="text-muted">Kontak trainer ini akan tampil di halaman Kelas &amp; Trainer.</small>
         </div>
       </div>
       <div class="modal-footer">

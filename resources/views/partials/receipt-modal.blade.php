@@ -165,7 +165,7 @@
           </tr>
           <tr>
             <td style="font-size:10px; font-weight:normal; color:#444;">Status Pembayaran</td>
-            <td class="text-right text-success" style="font-size:10px; font-weight:bold;">[ LUNAS / PAID ]</td>
+            <td class="text-right text-success" style="font-size:10px; font-weight:bold;">[ LUNAS ]</td>
           </tr>
         </table>
 

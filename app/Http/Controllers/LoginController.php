@@ -107,7 +107,7 @@ class LoginController extends Controller
             // 3c. Akun staf baru wajib ganti password default sebelum ke dashboard
             if ($user->must_change_password) {
                 return redirect()->route('password.change')
-                    ->with('warning', 'Silakan ubah password default Anda sebelum melanjutkan.');
+                    ->with('warning', 'Silakan ubah kata sandi bawaan Anda sebelum melanjutkan.');
             }
 
             if ($user->isSuperadmin()) {
@@ -127,7 +127,17 @@ class LoginController extends Controller
             }
 
             if ($user->isReceptionist()) {
-                return redirect()->intended('/receptionist/dashboard')->with('success', 'Selamat datang di Dashboard Resepsionis!');
+                $hasOpenShift = ReceptionistShift::where('tenant_id', $user->tenant_id)
+                    ->where('user_id', $user->id)
+                    ->where('status', 'open')
+                    ->exists();
+
+                if (!$hasOpenShift) {
+                    return redirect()->route('receptionist.shifts')
+                        ->with('info', 'Selamat datang! Silakan buka shift kasir terlebih dahulu dengan memasukkan nominal kas awal sebelum memulai operasional.');
+                }
+
+                return redirect()->intended('/receptionist/dashboard')->with('success', 'Selamat datang di Beranda Resepsionis!');
             }
 
             if ($user->role === 'trainer') {

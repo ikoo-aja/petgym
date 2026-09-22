@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
-  <title>Pet Gym SaaS Management System</title>
+  <title>Pet Gym — Sistem Manajemen Pengelolaan Gym Modern</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -70,7 +70,7 @@
               Tinggalkan pencatatan manual dan sistem kasir yang berantakan. Kami menghadirkan mesin manajemen gym berbasis <em>cloud</em> (SaaS) yang dirancang khusus untuk mempermudah operasional harian. Dari pendaftaran member, riwayat transaksi, hingga presensi kelas, semuanya terintegrasi dalam satu sistem cerdas yang bisa Anda pantau dari mana saja.
             </p>
             <p class="text-center">
-              <a href="#contact-section" class="nav-link btn btn-outline-white py-3 px-5" style="border-radius: 30px; font-weight: 700;">Mulai Eksekusi Tanpa Ribet - Free Trial 14 Hari</a>
+              <a href="#contact-section" class="nav-link btn btn-outline-white py-3 px-5" style="border-radius: 30px; font-weight: 700;">Mulai Eksekusi Tanpa Ribet — Uji Coba Gratis 14 Hari</a>
             </p>
           </div>
         </div>
@@ -407,7 +407,7 @@
             <p class="text-white-50 small mb-4">Terbuka untuk kerjasama perusahaan dan media.</p>
 
             <div class="mb-3">
-              <small class="text-white-50 d-block font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">PARTNERSHIP</small>
+              <small class="text-white-50 d-block font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">KEMITRAAN</small>
               <a href="mailto:partnership@petgym.com" class="text-white font-weight-bold text-decoration-none">partnership@petgym.com</a>
             </div>
 
@@ -425,7 +425,7 @@
     <div class="row pt-4 text-center border-top border-secondary">
       <div class="col-md-12">
         <p class="text-white-50 small mb-0">
-          Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | Pet Gym Management System
+          Hak Cipta &copy;<script>document.write(new Date().getFullYear());</script> Hak cipta dilindungi undang-undang | Sistem Manajemen PetGym
         </p>
       </div>
     </div>

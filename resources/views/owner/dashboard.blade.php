@@ -102,8 +102,8 @@
   <div class="col-md-7">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Pemantauan Kunjungan Member Terbaru (Presensi Masked)</h6>
-        <a href="{{ route('owner.members') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Buka Data Member &rarr;</a>
+        <h6 class="font-weight-bold text-dark mb-0">Pemantauan Kunjungan Member Terbaru</h6>
+        <span class="badge badge-light border text-muted font-weight-bold px-2 py-1" style="font-size: 11px;">Presensi Hari Ini</span>
       </div>
 
       <div class="table-responsive">

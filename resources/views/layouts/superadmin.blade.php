@@ -199,11 +199,11 @@
     <aside class="admin-sidebar">
       <div class="sidebar-brand d-flex align-items-center justify-content-between">
         <x-brand-logo type="full" theme="dark" size="36" url="/" />
-        <small style="font-size: 9px; color:#9ca3af; font-weight:800; background:#1e293b; padding:2px 6px; border-radius:4px;">SUPERADMIN</small>
+        <small style="font-size: 9px; color:#9ca3af; font-weight:800; background:#1e293b; padding:2px 6px; border-radius:4px;">SUPER ADMIN</small>
       </div>
       <ul class="nav flex-column mt-3">
         <li class="nav-item">
-          <a class="nav-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}" href="{{ route('superadmin.dashboard') }}"><span class="icon-dashboard"></span> Dashboard</a>
+          <a class="nav-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}" href="{{ route('superadmin.dashboard') }}"><span class="icon-dashboard"></span> Beranda</a>
         </li>
         <li class="nav-item">
           @php
@@ -229,14 +229,14 @@
           <a class="nav-link {{ request()->routeIs('superadmin.announcements') ? 'active' : '' }}" href="{{ route('superadmin.announcements') }}"><span class="icon-notifications"></span> Pengumuman</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {{ request()->routeIs('superadmin.logs') ? 'active' : '' }}" href="{{ route('superadmin.logs') }}"><span class="icon-history"></span> System Logs</a>
+          <a class="nav-link {{ request()->routeIs('superadmin.logs') ? 'active' : '' }}" href="{{ route('superadmin.logs') }}"><span class="icon-history"></span> Log Sistem</a>
         </li>
         <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('superadmin.settings') ? 'active' : '' }}" href="{{ route('superadmin.settings') }}"><span class="icon-settings"></span> Pengaturan</a>
         </li>
         <li class="nav-item mt-4">
           <a class="nav-link text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-            <span class="icon-power_settings_new"></span> Logout
+            <span class="icon-power_settings_new"></span> Keluar
           </a>
           <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
             @csrf
@@ -251,7 +251,7 @@
       <!-- Top Header Bar -->
       <header class="admin-header d-flex align-items-center justify-content-between">
         <div>
-          <h4 class="mb-0 font-weight-bold text-black">@yield('page_title', 'Dashboard Ringkasan')</h4>
+          <h4 class="mb-0 font-weight-bold text-black">@yield('page_title', 'Ringkasan Beranda')</h4>
           <small class="text-muted">@yield('page_subtitle', 'Selamat datang kembali!')</small>
         </div>
         <div class="d-flex align-items-center">
@@ -261,9 +261,9 @@
             </button>
             <div class="dropdown-menu dropdown-menu-right">
               <a class="dropdown-item" href="{{ route('superadmin.profile') }}">Profil</a>
-              <a class="dropdown-item" href="{{ route('superadmin.settings') }}">Settings</a>
+              <a class="dropdown-item" href="{{ route('superadmin.settings') }}">Pengaturan</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
+              <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Keluar</a>
             </div>
           </div>
         </div>
@@ -281,78 +281,10 @@
 
   @yield('modals')
 
-  <!-- Toast Notification Container -->
-  <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 12px;"></div>
+  <!-- Toast Notification Container & Standard Flash Toast -->
+  @include('partials.flash-toast')
+  @include('partials.toast-helper')
 
-  <!-- JavaScript Script Loaders -->
-  <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
-  <script src="{{ asset('js/jquery-migrate-3.0.1.min.js') }}"></script>
-  <script src="{{ asset('js/jquery-ui.js') }}"></script>
-  <script src="{{ asset('js/popper.min.js') }}"></script>
-  <script src="{{ asset('js/bootstrap.min.js') }}"></script>
-  <script src="{{ asset('js/owl.carousel.min.js') }}"></script>
-  <script src="{{ asset('js/jquery.stellar.min.js') }}"></script>
-  <script src="{{ asset('js/jquery.countdown.min.js') }}"></script>
-  <script src="{{ asset('js/bootstrap-datepicker.min.js') }}"></script>
-  <script src="{{ asset('js/jquery.easing.1.3.js') }}"></script>
-  <script src="{{ asset('js/aos.js') }}"></script>
-  <script src="{{ asset('js/jquery.fancybox.min.js') }}"></script>
-  <script src="{{ asset('js/jquery.sticky.js') }}"></script>
-  <script src="{{ asset('js/jquery.mb.YTPlayer.min.js') }}"></script>
-
-  <script src="{{ asset('js/main.js') }}"></script>
-
-  <!-- Global Custom Toast Script -->
-  <script>
-    // 1. Toast Notification System
-    function showToast(title, message, type = 'success') {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-
-      let iconClass = 'icon-check';
-      if (type === 'error') iconClass = 'icon-close';
-      if (type === 'warning') iconClass = 'icon-pause';
-      if (type === 'info') iconClass = 'icon-search';
-
-      const toast = document.createElement('div');
-      toast.className = `custom-toast toast-${type}`;
-      toast.innerHTML = `
-        <span class="${iconClass} custom-toast-icon"></span>
-        <div class="custom-toast-content">
-          <div class="custom-toast-title">${title}</div>
-          <div class="custom-toast-message">${message}</div>
-        </div>
-        <button class="custom-toast-close">&times;</button>
-      `;
-
-      container.appendChild(toast);
-
-      // Trigger animation
-      setTimeout(() => toast.classList.add('show'), 50);
-
-      const closeToast = () => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 450);
-      };
-
-      toast.querySelector('.custom-toast-close').addEventListener('click', closeToast);
-
-      // Auto remove after 4.5 seconds
-      setTimeout(closeToast, 4500);
-    }
-
-    // Handle Laravel Session Success/Error
-    @if(session('success'))
-      window.addEventListener('DOMContentLoaded', (event) => {
-        showToast('Sukses', "{{ session('success') }}", 'success');
-      });
-    @endif
-    @if(session('error'))
-      window.addEventListener('DOMContentLoaded', (event) => {
-        showToast('Error', "{{ session('error') }}", 'error');
-      });
-    @endif
-  </script>
   @yield('scripts')
 
 </body>

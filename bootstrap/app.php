@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserRole::class,
             'tenant.setup' => \App\Http\Middleware\EnsureTenantSetup::class,
+            'receptionist.shift' => \App\Http\Middleware\EnsureReceptionistShiftOpen::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

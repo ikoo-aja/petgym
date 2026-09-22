@@ -6,19 +6,6 @@
 
 @section('content')
 
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-  <strong>Berhasil!</strong> {{ session('success') }}
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-</div>
-@endif
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-  <strong>Gagal!</strong> {{ session('error') }}
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-</div>
-@endif
-
 <!-- Legend Status Warna Loker -->
 <div class="card-custom mb-4">
   <div class="d-flex align-items-center flex-wrap" style="gap: 20px;">
@@ -85,8 +72,8 @@
         <tr>
           <th>Loker</th>
           <th>Member</th>
+          <th>Kontak</th>
           <th>Tipe Sewa</th>
-          <th>Access PIN</th>
           <th>Waktu Pinjam</th>
           <th>Berakhir</th>
           <th class="text-right">Aksi</th>
@@ -97,11 +84,9 @@
         <tr>
           <td><span class="badge badge-primary font-weight-bold px-2 py-1" style="font-size:13px;">#{{ $r->locker ? $r->locker->locker_number : '-' }}</span></td>
           <td class="font-weight-bold text-dark">{{ $r->member ? $r->member->name : '-' }}</td>
+          <td style="font-size:13px;" class="text-dark">{{ $r->member && $r->member->phone ? \App\Helpers\PrivacyHelper::maskPhone($r->member->phone) : '-' }}</td>
           <td>
             <span class="badge badge-info font-weight-bold text-uppercase">{{ $r->rental_type ?? 'Harian' }}</span>
-          </td>
-          <td>
-            <span class="badge badge-light border text-dark font-weight-bold" style="font-size:12px; letter-spacing: 2px;">{{ $r->pin_code ?? '-' }}</span>
           </td>
           <td style="font-size:13px;">{{ $r->rented_at ? \Carbon\Carbon::parse($r->rented_at)->format('d M H:i') : '-' }}</td>
           <td style="font-size:13px;">
@@ -141,19 +126,22 @@
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="form-group">
+        <div class="form-group position-relative" id="assignMemberSearchWrapper">
           <label class="font-weight-bold text-dark" style="font-size:13px;">Pilih Member Aktif *</label>
-          <select name="member_id" class="form-control" required>
-            <option value="">-- Pilih Member --</option>
-            @foreach($members as $m)
-              <option value="{{ $m->id }}">{{ $m->name }} (PIN: {{ $m->access_code }})</option>
-            @endforeach
-          </select>
+          <input type="hidden" name="member_id" id="assignLockerMemberId" required>
+          <div class="input-group">
+            <input type="text" id="assignMemberSearchInput" class="form-control" placeholder="Ketik nama atau no. HP member..." autocomplete="off" style="border-radius: 8px;">
+            <div class="input-group-append" id="assignClearMemberBtnGroup" style="display: none;">
+              <button class="btn btn-outline-secondary font-weight-bold" type="button" id="assignBtnClearMember" title="Hapus Pilihan">&times;</button>
+            </div>
+          </div>
+          <div id="assignMemberSearchResults" class="list-group shadow position-absolute w-100 mt-1" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1050; border-radius: 8px; text-align: left; left: 0;">
+          </div>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Berikan Kunci Loker</button>
+        <button type="submit" id="btnAssignLockerSubmit" class="btn btn-primary font-weight-bold" disabled>Berikan Kunci Loker</button>
       </div>
     </form>
   </div>
@@ -182,12 +170,87 @@
 
 @section('scripts')
 <script>
+// Data member aktif untuk pencarian peminjaman loker
+var lockerMemberList = [
+  @foreach($members as $m)
+    {
+      id: {{ $m->id }},
+      name: "{{ addslashes($m->name) }}",
+      phone: "{{ $m->phone ?? '' }}",
+      status: "Aktif"
+    },
+  @endforeach
+];
+
 $(document).ready(function() {
   // Assign modal
   $('#assignModal').on('show.bs.modal', function(e) {
     var btn = $(e.relatedTarget);
     $('#assignLockerId').val(btn.data('locker-id'));
     $('#assignLockerNum').text('#' + btn.data('locker-number'));
+    
+    // Reset member search state
+    $('#assignLockerMemberId').val('');
+    $('#assignMemberSearchInput').val('').prop('readonly', false);
+    $('#assignClearMemberBtnGroup').hide();
+    $('#btnAssignLockerSubmit').prop('disabled', true);
+    $('#assignMemberSearchResults').hide();
+  });
+
+  var $assignInput = $('#assignMemberSearchInput');
+  var $assignResults = $('#assignMemberSearchResults');
+  var $assignId = $('#assignLockerMemberId');
+  var $assignClearBtn = $('#assignClearMemberBtnGroup');
+  var $assignSubmitBtn = $('#btnAssignLockerSubmit');
+
+  function renderAssignSearchResults(query) {
+    $assignResults.empty();
+    query = (query || '').trim().toLowerCase();
+
+    var matches = lockerMemberList.filter(function(item) {
+      if (!query) return true;
+      return item.name.toLowerCase().indexOf(query) !== -1 || item.phone.toLowerCase().indexOf(query) !== -1;
+    });
+
+    if (matches.length > 0) {
+      $.each(matches.slice(0, 15), function(i, item) {
+        var el = $('<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">')
+          .html('<div><strong class="text-dark">' + item.name + '</strong></div><span class="badge badge-success">' + item.status + '</span>')
+          .on('click', function(e) {
+            e.preventDefault();
+            $assignId.val(item.id);
+            $assignInput.val(item.name + ' — ' + item.status).prop('readonly', true);
+            $assignClearBtn.show();
+            $assignSubmitBtn.prop('disabled', false);
+            $assignResults.hide();
+          });
+        $assignResults.append(el);
+      });
+    } else {
+      $assignResults.append('<div class="list-group-item text-muted py-2 text-center" style="font-size: 13px;">Member tidak ditemukan</div>');
+    }
+
+    $assignResults.show();
+  }
+
+  $assignInput.on('focus input', function() {
+    if (!$assignInput.prop('readonly')) {
+      renderAssignSearchResults($(this).val());
+    }
+  });
+
+  $('#assignBtnClearMember').on('click', function() {
+    $assignId.val('');
+    $assignInput.val('').prop('readonly', false).focus();
+    $assignClearBtn.hide();
+    $assignSubmitBtn.prop('disabled', true);
+    renderAssignSearchResults('');
+  });
+
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('#assignMemberSearchWrapper').length) {
+      $assignResults.hide();
+    }
   });
 
   // Return modal

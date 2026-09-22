@@ -2,7 +2,7 @@
 <html lang="id">
 
 <head>
-  <title>Reset Password — Pet Gym Management System</title>
+  <title>Atur Ulang Kata Sandi — Sistem Manajemen PetGym</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -44,9 +44,9 @@
 
         <div class="row justify-content-center text-center mb-4" data-aos="fade-up">
           <div class="col-md-8 section-heading mb-2">
-            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym Platform</span>
-            <h2 class="heading mb-2 text-dark font-weight-bold">Buat Password Baru</h2>
-            <p class="text-muted">Masukkan password baru untuk akun Anda. Link ini berlaku selama 60 menit.</p>
+            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform PetGym</span>
+            <h2 class="heading mb-2 text-dark font-weight-bold">Buat Kata Sandi Baru</h2>
+            <p class="text-muted">Masukkan kata sandi baru untuk akun Anda. Tautan ini berlaku selama 60 menit.</p>
           </div>
         </div>
 
@@ -67,12 +67,12 @@
               @endif
 
               <div class="form-group mb-3">
-                <label for="email" class="text-dark font-weight-bold small">Email Address</label>
+                <label for="email" class="text-dark font-weight-bold small">Alamat Email</label>
                 <input type="email" id="email" value="{{ $email ?? old('email') }}" class="form-control form-control-lg bg-light" readonly style="font-size: 15px;">
               </div>
 
               <div class="form-group mb-3">
-                <label for="password" class="text-dark font-weight-bold small">Password Baru *</label>
+                <label for="password" class="text-dark font-weight-bold small">Kata Sandi Baru *</label>
                 <div class="input-group">
                     <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Minimal 8 karakter" required autofocus style="font-size: 15px;">
                     <div class="input-group-append">
@@ -84,9 +84,9 @@
               </div>
 
               <div class="form-group mb-3">
-                <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Password Baru *</label>
+                <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Kata Sandi Baru *</label>
                 <div class="input-group">
-                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-control form-control-lg" placeholder="Ulangi password baru" required style="font-size: 15px;">
+                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-control form-control-lg" placeholder="Ulangi kata sandi baru" required style="font-size: 15px;">
                     <div class="input-group-append">
                     <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" id="toggleConfirmBtn">
                         <i class="icon-eye text-muted" id="toggleConfirmIcon"></i>
@@ -97,12 +97,12 @@
 
               <div class="form-group mb-3">
                 <button type="submit" class="btn btn-primary py-3 px-5 btn-block font-weight-bold shadow-sm" style="border-radius: 30px; font-size: 16px;">
-                  Simpan Password Baru
+                  Simpan Kata Sandi Baru
                 </button>
               </div>
 
               <div class="text-center mt-4 pt-2 border-top">
-                <a href="{{ route('login') }}" class="text-primary small font-weight-bold">← Kembali ke Halaman Login</a>
+                <a href="{{ route('login') }}" class="text-primary small font-weight-bold">← Kembali ke Halaman Masuk</a>
               </div>
             </form>
           </div>
@@ -117,7 +117,7 @@
         <h3 class="text-white mb-2">Pet Gym SaaS Management</h3>
         <p class="text-white-50 mb-3 small">Platform terpadu kendali operasional, presensi member, POS kasir, dan manajemen kelas gym Anda.</p>
         <p class="mb-0 text-white-50 small">
-          Copyright &copy; <script>document.write(new Date().getFullYear());</script> All rights reserved | Pet Gym Management System
+          Hak Cipta &copy; <script>document.write(new Date().getFullYear());</script> Hak cipta dilindungi undang-undang | Sistem Manajemen PetGym
         </p>
       </div>
     </footer>

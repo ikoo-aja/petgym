@@ -54,6 +54,6 @@ class ChangePasswordController extends Controller
         ]);
 
         return redirect()->route($user->dashboardRoute())
-            ->with('success', 'Password berhasil diubah. Selamat datang, ' . $user->name . '!');
+            ->with('success', 'Kata sandi berhasil diperbarui. Selamat datang, ' . $user->name . '!');
     }
 }

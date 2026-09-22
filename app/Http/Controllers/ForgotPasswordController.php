@@ -47,7 +47,7 @@ class ForgotPasswordController extends Controller
 
             return back()
                 ->with('status', self::SAFE_RESPONSE)
-                ->with('warning', 'Sistem email sedang tidak terhubung, jadi link belum terkirim ke mana pun. Coba lagi setelah server email aktif.');
+                ->with('warning', 'Sistem email sedang tidak terhubung, sehingga tautan belum terkirim. Silakan hubungi administrator.');
         }
 
         // 3. Respons identik mau email terdaftar atau tidak (anti user enumeration)

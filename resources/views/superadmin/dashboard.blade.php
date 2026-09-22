@@ -27,7 +27,7 @@
     <div class="col-md-3 mb-4">
       <div class="stat-card" style="border-left-color: #f59e0b;">
         <span class="text-muted font-weight-bold">Pendaftaran Masuk (Leads)</span>
-        <div class="stat-number">{{ $pendingRegistrationsCount ?? 0 }} <small class="text-warning font-weight-bold" style="font-size: 13px;">Pending</small></div>
+        <div class="stat-number">{{ $pendingRegistrationsCount ?? 0 }} <small class="text-warning font-weight-bold" style="font-size: 13px;">Menunggu Konfirmasi</small></div>
         <small class="text-muted">Siap dihubungi & approve</small>
         <hr class="my-2">
         <a href="{{ route('superadmin.registrations') }}" class="text-warning d-inline-flex align-items-center font-weight-bold" style="font-size: 12px; text-decoration: none;">

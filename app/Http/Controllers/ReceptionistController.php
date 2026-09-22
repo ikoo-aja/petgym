@@ -163,16 +163,14 @@ class ReceptionistController extends Controller
     }
 
     /**
-     * Buku Tamu & Lost Found Page
+     * Buku Tamu (Walk-in Leads)
      */
     public function guests()
     {
         $tenant = Auth::user()->tenant;
-
         $guests = Guest::where('tenant_id', $tenant->id)->latest()->get();
-        $lostFounds = LostFound::where('tenant_id', $tenant->id)->latest()->get();
 
-        return view('receptionist.guests', compact('guests', 'lostFounds'));
+        return view('receptionist.guests', compact('guests'));
     }
 
     /**
@@ -218,11 +216,22 @@ class ReceptionistController extends Controller
             'tenant_id' => $tenant->id,
             'user_id' => Auth::id(),
             'action' => 'Konversi Tamu ke Member',
-            'description' => "Konversi walk-in guest {$guest->name} menjadi member aktif. PIN: {$accessCode}",
+            'description' => "Konversi walk-in guest {$guest->name} menjadi calon member.",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('admin.members.index')->with('success', "Tamu {$guest->name} berhasil dikonversi menjadi member aktif dengan PIN akses: {$accessCode}.");
+        return redirect()->route('manager.members.index')->with('success', "Tamu {$guest->name} berhasil didaftarkan sebagai calon member. Silakan lakukan transaksi pembelian paket keanggotaan di POS Kasir.");
+    }
+
+    /**
+     * Log Barang Tertinggal (Lost & Found)
+     */
+    public function lostFound()
+    {
+        $tenant = Auth::user()->tenant;
+        $lostFounds = LostFound::where('tenant_id', $tenant->id)->latest()->get();
+
+        return view('receptionist.lost-found', compact('lostFounds'));
     }
 
     /**
@@ -239,7 +248,7 @@ class ReceptionistController extends Controller
 
         LostFound::create(array_merge($request->all(), ['tenant_id' => $tenant->id, 'status' => 'tercatat']));
 
-        return redirect()->route('receptionist.guests')->with('success', 'Barang temuan Lost & Found berhasil dicatat.');
+        return redirect()->route('receptionist.lost-found')->with('success', 'Barang temuan Lost & Found berhasil dicatat.');
     }
 
     public function claimLostFound(Request $request, $id)
@@ -257,11 +266,11 @@ class ReceptionistController extends Controller
             'claimed_at' => Carbon::now(),
         ]);
 
-        return redirect()->route('receptionist.guests')->with('success', "Barang {$item->item_name} berhasil diklaim oleh {$request->claimed_by_name}.");
+        return redirect()->route('receptionist.lost-found')->with('success', "Barang {$item->item_name} berhasil diklaim oleh {$request->claimed_by_name}.");
     }
 
     /**
-     * Shift & Keluhan Page
+     * Manajemen Shift Kasir
      */
     public function shifts()
     {
@@ -273,10 +282,44 @@ class ReceptionistController extends Controller
             ->latest()
             ->get();
 
+        $openShift = $shifts->where('status', 'open')->first();
+        $cashSalesDuringShift = 0;
+        $digitalSalesDuringShift = 0;
+        $totalSalesDuringShift = 0;
+
+        if ($openShift) {
+            $shiftTransactions = PosTransaction::where('tenant_id', $tenant->id)
+                ->where('user_id', $user->id)
+                ->where('created_at', '>=', $openShift->opened_at)
+                ->where(function ($q) {
+                    $q->whereNull('void_status')->orWhere('void_status', '!=', 'approved');
+                })
+                ->get();
+
+            $cashSalesDuringShift = $shiftTransactions->where('payment_method', 'cash')->sum('total_amount');
+            $digitalSalesDuringShift = $shiftTransactions->whereIn('payment_method', ['qris', 'transfer', 'debit_card'])->sum('total_amount');
+            $totalSalesDuringShift = $shiftTransactions->sum('total_amount');
+        }
+
+        return view('receptionist.shifts', compact(
+            'shifts',
+            'openShift',
+            'cashSalesDuringShift',
+            'digitalSalesDuringShift',
+            'totalSalesDuringShift'
+        ));
+    }
+
+    /**
+     * Keluhan & Komplain Member
+     */
+    public function complaints()
+    {
+        $tenant = Auth::user()->tenant;
         $complaints = Complaint::where('tenant_id', $tenant->id)->latest()->get();
         $members = Member::where('tenant_id', $tenant->id)->get();
 
-        return view('receptionist.shifts', compact('shifts', 'complaints', 'members'));
+        return view('receptionist.complaints', compact('complaints', 'members'));
     }
 
     /**
@@ -289,6 +332,10 @@ class ReceptionistController extends Controller
 
         $request->validate([
             'start_cash' => 'required|numeric|min:0',
+        ], [
+            'start_cash.required' => 'Nominal uang kas awal wajib diisi.',
+            'start_cash.numeric' => 'Nominal kas awal harus berupa angka.',
+            'start_cash.min' => 'Nominal kas awal tidak boleh minus.',
         ]);
 
         // Cek jika ada shift terbuka
@@ -301,7 +348,7 @@ class ReceptionistController extends Controller
             return redirect()->back()->with('error', 'Anda masih memiliki shift kasir yang terbuka.');
         }
 
-        ReceptionistShift::create([
+        $shift = ReceptionistShift::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
             'start_cash' => $request->start_cash,
@@ -309,7 +356,15 @@ class ReceptionistController extends Controller
             'status' => 'open'
         ]);
 
-        return redirect()->route('receptionist.dashboard')->with('success', 'Shift kasir meja depan berhasil dibuka.');
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Buka Shift Kasir',
+            'description' => "Shift kasir dibuka dengan modal kas awal Rp " . number_format($request->start_cash, 0, ',', '.'),
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('receptionist.dashboard')->with('success', 'Shift kasir meja depan berhasil dibuka. Seluruh fitur operasional kini dapat digunakan.');
     }
 
     public function endShift(Request $request, $id)
@@ -319,6 +374,10 @@ class ReceptionistController extends Controller
 
         $request->validate([
             'end_cash' => 'required|numeric|min:0',
+        ], [
+            'end_cash.required' => 'Nominal setoran fisik kas akhir wajib diisi.',
+            'end_cash.numeric' => 'Nominal kas akhir harus berupa angka.',
+            'end_cash.min' => 'Nominal kas akhir tidak boleh minus.',
         ]);
 
         $shift->update([
@@ -327,7 +386,61 @@ class ReceptionistController extends Controller
             'status' => 'closed'
         ]);
 
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => Auth::id(),
+            'action' => 'Tutup Shift Kasir',
+            'description' => "Shift kasir ditutup dengan setoran fisik Rp " . number_format($request->end_cash, 0, ',', '.'),
+            'ip_address' => $request->ip(),
+        ]);
+
         return redirect()->route('receptionist.shifts')->with('success', 'Shift kasir berhasil ditutup. Setoran fisik sebesar Rp ' . number_format($request->end_cash, 0, ',', '.') . ' telah dicatat.');
+    }
+
+    public function closeShiftAndLogout(Request $request)
+    {
+        $tenant = Auth::user()->tenant;
+        $user = Auth::user();
+
+        $openShift = ReceptionistShift::where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'open')
+            ->first();
+
+        if (!$openShift) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect('/login')->with('success', 'Anda telah berhasil keluar.');
+        }
+
+        $request->validate([
+            'end_cash' => 'required|numeric|min:0',
+        ], [
+            'end_cash.required' => 'Nominal setoran fisik kas akhir wajib diisi.',
+            'end_cash.numeric' => 'Nominal kas akhir harus berupa angka.',
+            'end_cash.min' => 'Nominal kas akhir tidak boleh minus.',
+        ]);
+
+        $openShift->update([
+            'end_cash' => $request->end_cash,
+            'closed_at' => Carbon::now(),
+            'status' => 'closed',
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Tutup Shift & Keluar',
+            'description' => "Penutupan shift kasir dengan setoran uang fisik Rp " . number_format($request->end_cash, 0, ',', '.') . " dan keluar dari sistem.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/login')->with('success', 'Shift kasir berhasil ditutup dengan setoran fisik Rp ' . number_format($request->end_cash, 0, ',', '.') . '. Anda telah berhasil keluar dari sistem.');
     }
 
     /**
@@ -351,7 +464,7 @@ class ReceptionistController extends Controller
             'status' => 'open',
         ]);
 
-        return redirect()->route('receptionist.shifts')->with('success', 'Keluhan member berhasil dicatat dan dikirim ke Manager.');
+        return redirect()->route('receptionist.complaints')->with('success', 'Keluhan member berhasil dicatat dan dikirim ke Manager.');
     }
 
     /**

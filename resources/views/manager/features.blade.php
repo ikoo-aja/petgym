@@ -1,474 +1,219 @@
+@extends('layouts.layout')
+
 @php
-  $activeTab = request()->query('tab', 'class');
-  $tabTitles = [
-      'class' => ['title' => 'Master Kelas', 'desc' => 'Perencanaan kelas dasar, durasi, hari, dan jam mulai.'],
-      'maintenance' => ['title' => 'Aset & Maintenance Alat Gym', 'desc' => 'Inventarisasi mesin, beban, alat gym, dan riwayat pemeliharaan berkala.'],
-      'shift' => ['title' => 'Shift & Cuti Karyawan', 'desc' => 'Pengaturan jadwal shift kerja resepsionis/admin dan approval cuti.'],
-      'approval' => ['title' => 'Sistem Otorisasi Kasir & Void', 'desc' => 'Pemantauan otorisasi void/refund transaksi kasir.'],
-      'promo' => ['title' => 'Manajemen Promo & Harga', 'desc' => 'Pembuatan kode voucher dan program diskon untuk loket pendaftaran.'],
-      'performance' => ['title' => 'Pantauan Kinerja Staf & Target', 'desc' => 'Evaluasi penjualan kasir resepsionis dan jam terbang personal trainer.'],
-      'report' => ['title' => 'Laporan Operasional Taktis', 'desc' => 'Verifikasi rekap kas fisik harian dan analisis tren kepadatan kunjungan member.'],
-      'stock' => ['title' => 'Manajemen Stok & Inventaris Ritel', 'desc' => 'Alert restock barang ritel dengan sisa stok kritis.'],
-      'complaints' => ['title' => 'Manajemen Retensi Member (Complaints)', 'desc' => 'Penyelesaian masukan dan tiket keluhan member gym.'],
-      'vendors' => ['title' => 'Database Vendor & Pihak Ketiga', 'desc' => 'Pusat data kontak teknisi, agen air, jasa kebersihan, dan supplier.'],
+  $featureMeta = [
+    'classes' => [
+      'title' => 'Master Kelas Rencana',
+      'subtitle' => 'Pengaturan jadwal kelas kebugaran rutin dan instruktur pelatih',
+    ],
+    'promo' => [
+      'title' => 'Promo dan Voucher',
+      'subtitle' => 'Pengelolaan kode potongan harga untuk anggota dan kasir',
+    ],
+    'performance' => [
+      'title' => 'Kinerja Karyawan',
+      'subtitle' => 'Pemantauan pencapaian transaksi kasir dan aktivitas instruktur',
+    ],
+    'cash' => [
+      'title' => 'Rekap Kas Keuangan',
+      'subtitle' => 'Ringkasan penerimaan uang kas transaksi kasir harian',
+    ],
+    'vendor' => [
+      'title' => 'Database Vendor Mitra',
+      'subtitle' => 'Daftar kontak penyedia peralatan dan mitra operasional gym',
+    ],
   ];
-  $currentTabInfo = $tabTitles[$activeTab] ?? $tabTitles['class'];
+
+  $currentMeta = $featureMeta[$activeTab] ?? [
+    'title' => 'Manajemen Strategis',
+    'subtitle' => 'Pengelolaan operasional dan perencanaan manajerial gym',
+  ];
 @endphp
 
-@extends('layouts.admin')
-
-@section('title', 'Operasional Manager &mdash; PetGym')
-@section('page_title', 'Operasional Manager: ' . $currentTabInfo['title'])
-@section('page_subtitle', $currentTabInfo['desc'])
+@section('title', $currentMeta['title'] . ' — PetGym')
+@section('page_title', $currentMeta['title'])
+@section('page_subtitle', $currentMeta['subtitle'])
 
 @section('content')
-<div class="card-custom">
+<div class="container-fluid p-0">
+
+  <!-- Tab Contents -->
   <div class="tab-content" id="managerTabContent">
 
-    <!-- 1. PERENCANAAN MASTER KELAS -->
-    <div class="tab-pane fade {{ $activeTab === 'class' ? 'show active' : '' }}" id="class-sec" role="tabpanel">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="font-weight-bold text-dark">Rencana Master Kelas Dasar</h5>
-        <button type="button" class="btn btn-primary font-weight-bold" data-toggle="modal" data-target="#addMasterClassModal">
-          + Rencanakan Kelas Baru
-        </button>
-      </div>
-      <small class="text-muted d-block mb-3">Tanggung jawab Manager adalah mendefinisikan kelas dasar, hari, jam mulai, dan durasi. Admin akan melengkapi alokasi instruktur (trainer), ruangan, dan kuota harian peserta.</small>
-
-      <div class="table-responsive">
-        <table class="table table-hover table-bordered align-middle">
-          <thead class="bg-light text-muted">
-            <tr>
-              <th>Nama Kelas</th>
-              <th>Hari</th>
-              <th>Jam Mulai</th>
-              <th>Durasi Dasar</th>
-              <th>Ruangan (Oleh Admin)</th>
-              <th>Trainer (Oleh Admin)</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($masterClasses as $mc)
-              <tr>
-                <td class="font-weight-bold text-dark">{{ $mc->name }}</td>
-                <td><span class="badge badge-info px-2 py-1">{{ $mc->day }}</span></td>
-                <td>{{ substr($mc->start_time, 0, 5) }} WIB</td>
-                <td>{{ $mc->duration_minutes ?? 60 }} Menit</td>
-                <td><span class="text-muted font-italic">{{ $mc->room ?? 'Belum dialokasikan' }}</span></td>
-                <td>{{ $mc->trainer ? $mc->trainer->name : 'N/A' }}</td>
-                <td>
-                  <button type="button" class="btn btn-sm btn-outline-primary btn-edit-mclass"
-                    data-id="{{ $mc->id }}"
-                    data-name="{{ $mc->name }}"
-                    data-day="{{ $mc->day }}"
-                    data-start_time="{{ substr($mc->start_time, 0, 5) }}"
-                    data-duration_minutes="{{ $mc->duration_minutes ?? 60 }}">Edit</button>
-                  <form action="{{ route('manager.classes.destroy', $mc->id) }}" method="POST" class="d-inline" data-confirm="Hapus master kelas ini?">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
-                  </form>
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="7" class="text-center py-4 text-muted">Belum ada master kelas yang direncanakan.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 2. MANAJEMEN ALAT & MAINTENANCE -->
-    <div class="tab-pane fade" id="maintenance-sec" role="tabpanel">
-      <div class="row">
-        <!-- List Alat Gym -->
-        <div class="col-md-7">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="font-weight-bold text-dark mb-0">Daftar Inventaris Alat Gym</h6>
-            <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#addEquipmentModal">+ Tambah Alat</button>
+    <!-- 1. TAB MASTER KELAS GYM -->
+    <div class="tab-pane fade {{ $activeTab === 'classes' ? 'show active' : '' }}" id="classes-sec" role="tabpanel">
+      <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="font-weight-bold text-dark mb-1">Daftar Master Kelas</h5>
+            <p class="text-muted small mb-0">Atur jadwal kelas kebugaran rutin dan instruktur pelatih yang bertugas.</p>
           </div>
-          <div class="table-responsive">
-            <table class="table table-hover table-bordered">
-              <thead class="bg-light">
+          <button type="button" class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addMasterClassModal">
+            + Tambah Master Kelas
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
+              <tr>
+                <th>Nama Kelas</th>
+                <th>Hari Pelaksanaan</th>
+                <th>Jam Mulai & Selesai</th>
+                <th>Durasi Sesi</th>
+                <th>Instruktur / Trainer</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($masterClasses as $mc)
                 <tr>
-                  <th>Nama Alat</th>
-                  <th>Kategori</th>
-                  <th>Status</th>
-                  <th>Jadwal Servis</th>
-                  <th>Aksi</th>
+                  <td><strong class="text-dark">{{ $mc->name }}</strong></td>
+                  <td><span class="badge badge-info font-weight-bold">{{ $mc->day }}</span></td>
+                  <td>{{ substr($mc->start_time, 0, 5) }} - {{ substr($mc->end_time, 0, 5) }}</td>
+                  <td>{{ $mc->duration_minutes }} Menit</td>
+                  <td>
+                    @if($mc->trainer)
+                      <span class="badge badge-primary font-weight-bold">{{ $mc->trainer->name }}</span>
+                    @else
+                      <span class="text-muted small">Belum Ditugaskan</span>
+                    @endif
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-xs btn-outline-primary btn-edit-mc"
+                      data-id="{{ $mc->id }}"
+                      data-name="{{ $mc->name }}"
+                      data-day="{{ $mc->day }}"
+                      data-start_time="{{ substr($mc->start_time, 0, 5) }}"
+                      data-duration_minutes="{{ $mc->duration_minutes }}">Ubah</button>
+                    <form action="{{ route('manager.master-classes.destroy', $mc->id) }}" method="POST" class="d-inline" data-confirm="Hapus master kelas ini?">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
+                    </form>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                @forelse($equipments as $eq)
-                  <tr>
-                    <td>
-                      <div class="font-weight-bold text-dark">{{ $eq->name }}</div>
-                      <small class="text-muted">{{ $eq->brand ?? '-' }}</small>
-                    </td>
-                    <td>{{ $eq->category }}</td>
-                    <td>
-                      @if($eq->status === 'berfungsi')
-                        <span class="badge badge-success">Berfungsi</span>
-                      @elseif($eq->status === 'perlu_servis')
-                        <span class="badge badge-warning">Perlu Servis</span>
-                      @else
-                        <span class="badge badge-danger">Rusak</span>
-                      @endif
-                    </td>
-                    <td>{{ $eq->next_service_date ? $eq->next_service_date->format('d M Y') : '-' }}</td>
-                    <td>
-                      <button type="button" class="btn btn-xs btn-outline-primary btn-edit-eq"
-                        data-id="{{ $eq->id }}"
-                        data-name="{{ $eq->name }}"
-                        data-category="{{ $eq->category }}"
-                        data-brand="{{ $eq->brand }}"
-                        data-status="{{ $eq->status }}"
-                        data-purchase_date="{{ $eq->purchase_date ? $eq->purchase_date->format('Y-m-d') : '' }}"
-                        data-next_service_date="{{ $eq->next_service_date ? $eq->next_service_date->format('Y-m-d') : '' }}"
-                        data-notes="{{ $eq->notes }}">Edit</button>
-                      <form action="{{ route('manager.equipment.destroy', $eq->id) }}" method="POST" class="d-inline" data-confirm="Hapus alat ini?">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
-                      </form>
-                    </td>
-                  </tr>
-                @empty
-                  <tr>
-                    <td colspan="5" class="text-center text-muted">Belum ada inventaris alat terdaftar.</td>
-                  </tr>
-                @endforelse
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Servis Log -->
-        <div class="col-md-5">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="font-weight-bold text-dark mb-0">Catat Pemeliharaan / Servis Alat</h6>
-          </div>
-          <form action="{{ route('manager.maintenance.store') }}" method="POST" class="p-3 bg-light rounded border mb-3">
-            @csrf
-            <div class="form-group mb-2">
-              <label class="font-weight-bold mb-1" style="font-size:12px;">Pilih Alat *</label>
-              <select name="gym_equipment_id" class="form-control form-control-sm" required>
-                @foreach($equipments as $eq)
-                  <option value="{{ $eq->id }}">{{ $eq->name }} ({{ ucfirst($eq->status) }})</option>
-                @endforeach
-              </select>
-            </div>
-            <div class="form-group mb-2">
-              <label class="font-weight-bold mb-1" style="font-size:12px;">Tindakan Servis *</label>
-              <input type="text" name="action" class="form-control form-control-sm" placeholder="Contoh: Kalibrasi Motor, Ganti Vanbelt" required>
-            </div>
-            <div class="form-group mb-2">
-              <label class="font-weight-bold mb-1" style="font-size:12px;">Keterangan & Sparepart</label>
-              <textarea name="description" class="form-control form-control-sm" rows="2"></textarea>
-            </div>
-            <div class="row">
-              <div class="col-6 form-group mb-2">
-                <label class="font-weight-bold mb-1" style="font-size:12px;">Biaya (Rp) *</label>
-                <input type="number" name="cost" class="form-control form-control-sm" value="0" required>
-              </div>
-              <div class="col-6 form-group mb-2">
-                <label class="font-weight-bold mb-1" style="font-size:12px;">Tanggal Servis *</label>
-                <input type="date" name="serviced_at" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
-              </div>
-            </div>
-            <div class="form-group mb-3">
-              <label class="font-weight-bold mb-1" style="font-size:12px;">Jadwal Servis Berikutnya</label>
-              <input type="date" name="next_service_date" class="form-control form-control-sm">
-            </div>
-            <button type="submit" class="btn btn-sm btn-primary btn-block font-weight-bold">Simpan & Reset Status Alat</button>
-          </form>
-
-          <h6 class="font-weight-bold text-dark mt-4 mb-2">Riwayat Pemeliharaan Terbaru</h6>
-          <div style="max-height: 250px; overflow-y: auto;">
-            @forelse($maintenanceLogs as $ml)
-              <div class="p-2 border-bottom bg-white">
-                <div class="d-flex justify-content-between">
-                  <strong>{{ $ml->equipment->name }}</strong>
-                  <span class="text-success font-weight-bold">Rp {{ number_format($ml->cost, 0, ',', '.') }}</span>
-                </div>
-                <small class="text-muted d-block">{{ $ml->action }} - {{ $ml->serviced_at->format('d M Y') }}</small>
-                @if($ml->description)
-                  <small class="text-dark">{{ $ml->description }}</small>
-                @endif
-              </div>
-            @empty
-              <p class="text-muted text-center py-3">Belum ada riwayat servis.</p>
-            @endforelse
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. JADWAL & SHIFT KARYAWAN -->
-    <div class="tab-pane fade" id="shift-sec" role="tabpanel">
-      <div class="row">
-        <!-- Plotting Shift Staf -->
-        <div class="col-md-7">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="font-weight-bold text-dark mb-0">Plotting Shift Staf (Resepsionis & Admin)</h6>
-            <button type="button" class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addShiftModal">+ Tambah Shift</button>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover table-bordered">
-              <thead class="bg-light">
+              @empty
                 <tr>
-                  <th>Tanggal</th>
-                  <th>Staf</th>
-                  <th>Shift</th>
-                  <th>Jam Kerja</th>
-                  <th>Aksi</th>
+                  <td colspan="6" class="text-center py-4 text-muted">Belum ada perencanaan master kelas.</td>
                 </tr>
-              </thead>
-              <tbody>
-                @forelse($staffShifts as $sh)
-                  <tr>
-                    <td>{{ $sh->shift_date->format('d M Y') }}</td>
-                    <td class="font-weight-bold">{{ $sh->user->name }}</td>
-                    <td><span class="badge badge-info px-2">{{ $sh->shift_name }}</span></td>
-                    <td style="font-size:12.5px;">{{ substr($sh->start_time, 0, 5) }} - {{ substr($sh->end_time, 0, 5) }}</td>
-                    <td>
-                      <button type="button" class="btn btn-xs btn-outline-primary btn-edit-shift"
-                        data-id="{{ $sh->id }}"
-                        data-user_id="{{ $sh->user_id }}"
-                        data-shift_date="{{ $sh->shift_date->format('Y-m-d') }}"
-                        data-shift_name="{{ $sh->shift_name }}"
-                        data-start_time="{{ substr($sh->start_time, 0, 5) }}"
-                        data-end_time="{{ substr($sh->end_time, 0, 5) }}"
-                        data-notes="{{ $sh->notes }}">Edit</button>
-                      <form action="{{ route('manager.shifts.destroy', $sh->id) }}" method="POST" class="d-inline" data-confirm="Hapus shift ini?">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
-                      </form>
-                    </td>
-                  </tr>
-                @empty
-                  <tr>
-                    <td colspan="5" class="text-center text-muted">Belum ada plotting shift kerja.</td>
-                  </tr>
-                @endforelse
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="col-md-5">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="font-weight-bold text-dark mb-0">Cuti & Izin Pekerja</h6>
-            <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#addLeaveModal">+ Input Cuti Pekerja</button>
-          </div>
-          <div style="max-height: 500px; overflow-y: auto;">
-            @forelse($leaveRequests as $lr)
-              <div class="p-3 border rounded bg-white mb-2 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <strong class="text-dark">{{ $lr->user->name }}</strong>
-                  @if($lr->status === 'pending')
-                    <span class="badge badge-warning">Pending</span>
-                  @elseif($lr->status === 'approved')
-                    <span class="badge badge-success">Approved</span>
-                  @else
-                    <span class="badge badge-danger">Rejected</span>
-                  @endif
-                </div>
-                <div class="text-muted" style="font-size:12.5px;">Tanggal: {{ $lr->start_date->format('d M') }} s/d {{ $lr->end_date->format('d M Y') }}</div>
-                <p class="my-2 bg-light p-2 rounded" style="font-size: 13px;">"{{ $lr->reason }}"</p>
-
-                @if($lr->status === 'pending')
-                  <div class="d-flex justify-content-end">
-                    <form action="{{ route('manager.leave.reject', $lr->id) }}" method="POST" class="mr-1">
-                      @csrf
-                      <button type="submit" class="btn btn-xs btn-danger font-weight-bold px-3">Tolak</button>
-                    </form>
-                    <form action="{{ route('manager.leave.approve', $lr->id) }}" method="POST">
-                      @csrf
-                      <button type="submit" class="btn btn-xs btn-success font-weight-bold px-3">Setujui</button>
-                    </form>
-                  </div>
-                @else
-                  <small class="text-muted d-block text-right">Diproses oleh: {{ $lr->approver ? $lr->approver->name : 'Manager' }}</small>
-                @endif
-              </div>
-            @empty
-              <p class="text-muted text-center py-4 bg-light rounded">Tidak ada pengajuan cuti masuk.</p>
-            @endforelse
-          </div>
+              @endforelse
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- 4. SISTEM OTORISASI & OTORITAS TRANSAKSI (VOID / KASIR) -->
-    <div class="tab-pane fade" id="approval-sec" role="tabpanel">
-      <h5 class="font-weight-bold text-dark mb-2">Otorisasi & Persetujuan Void (Pembatalan Transaksi)</h5>
-      <p class="text-muted" style="font-size:13.5px;">Gunakan panel ini untuk menyetujui atau menolak permohonan pembatalan transaksi kasir (void) yang diajukan oleh Resepsionis.</p>
+    <!-- 2. TAB PROMO & VOUCHER -->
+    <div class="tab-pane fade {{ $activeTab === 'promo' ? 'show active' : '' }}" id="promo-sec" role="tabpanel">
+      <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="font-weight-bold text-dark mb-1">Daftar Voucher Promo</h5>
+            <p class="text-muted small mb-0">Kelola voucher potongan harga untuk pendaftaran anggota dan transaksi kasir.</p>
+          </div>
+          <button type="button" class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addPromoModal">
+            + Tambah Voucher Promo
+          </button>
+        </div>
 
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-          <thead class="bg-light">
-            <tr>
-              <th>No. Invoice</th>
-              <th>Tgl Pengajuan</th>
-              <th>Kasir</th>
-              <th>Pelanggan</th>
-              <th>Total</th>
-              <th>Alasan Batal</th>
-              <th>Status</th>
-              <th class="text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($voidTransactions as $vt)
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
               <tr>
-                <td class="font-weight-bold text-dark">{{ $vt->invoice_number }}</td>
-                <td style="font-size:12px;">{{ $vt->updated_at->format('d M Y H:i') }}</td>
-                <td>{{ $vt->user ? $vt->user->name : 'System' }}</td>
-                <td>{{ $vt->member ? $vt->member->name : 'Pelanggan Umum' }}</td>
-                <td class="font-weight-bold text-dark">Rp {{ number_format($vt->total_amount, 0, ',', '.') }}</td>
-                <td style="font-size:12.5px;" class="text-muted">"{{ $vt->void_reason ?? '-' }}"</td>
-                <td>
-                  @if($vt->void_status === 'pending')
-                    <span class="badge badge-warning text-dark font-weight-bold">Menunggu Persetujuan</span>
-                  @elseif($vt->void_status === 'approved')
-                    <span class="badge badge-success font-weight-bold">Disetujui (Voided)</span>
-                  @else
-                    <span class="badge badge-danger font-weight-bold">Ditolak</span>
-                  @endif
-                </td>
-                <td class="text-center">
-                  @if($vt->void_status === 'pending')
-                    <div class="d-flex justify-content-center">
-                      <form action="{{ route('manager.leave.reject', $vt->id) }}" method="POST" class="mr-1" data-confirm="Tolak permohonan void ini?">
-                        @csrf
-                        <!-- We will define manager.void.reject route soon -->
-                      </form>
-                      <form action="/manager/void/{{ $vt->id }}/approve" method="POST" class="d-inline mr-1" data-confirm="Setujui pembatalan transaksi ini?">
-                        @csrf
-                        <button type="submit" class="btn btn-xs btn-success font-weight-bold px-2 py-1">Setujui</button>
-                      </form>
-                      <form action="/manager/void/{{ $vt->id }}/reject" method="POST" class="d-inline" data-confirm="Tolak pembatalan transaksi ini?">
-                        @csrf
-                        <button type="submit" class="btn btn-xs btn-danger font-weight-bold px-2 py-1">Tolak</button>
-                      </form>
-                    </div>
-                  @else
-                    <span class="text-muted font-italic" style="font-size:12px;">Selesai</span>
-                  @endif
-                </td>
+                <th>Kode Voucher</th>
+                <th>Nilai Diskon</th>
+                <th>Minimal Belanja</th>
+                <th>Batas Penggunaan</th>
+                <th>Masa Berlaku</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
-            @empty
-              <tr>
-                <td colspan="8" class="text-center py-4 text-muted">Belum ada pengajuan pembatalan void transaksi dari kasir.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @forelse($promoCodes as $promo)
+                <tr>
+                  <td>
+                    <span class="badge badge-secondary px-2 py-1 font-weight-bold" style="letter-spacing: 1px; font-size: 13px;">{{ $promo->code }}</span>
+                    @if($promo->description)
+                      <small class="d-block text-muted">{{ $promo->description }}</small>
+                    @endif
+                  </td>
+                  <td class="font-weight-bold text-success">
+                    @if($promo->discount_type === 'percentage')
+                      {{ $promo->discount_value }}%
+                    @else
+                      Rp {{ number_format($promo->discount_value, 0, ',', '.') }}
+                    @endif
+                  </td>
+                  <td>Rp {{ number_format($promo->min_purchase, 0, ',', '.') }}</td>
+                  <td>{{ $promo->used_count }} / {{ $promo->max_uses }} kali</td>
+                  <td><small>{{ $promo->valid_from->format('d M Y') }} s/d {{ $promo->valid_until->format('d M Y') }}</small></td>
+                  <td>
+                    @if($promo->is_active && $promo->valid_until->isFuture() && $promo->used_count < $promo->max_uses)
+                      <span class="badge badge-success">Aktif</span>
+                    @else
+                      <span class="badge badge-secondary">Kedaluwarsa / Nonaktif</span>
+                    @endif
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-xs btn-outline-primary btn-edit-promo"
+                      data-id="{{ $promo->id }}"
+                      data-code="{{ $promo->code }}"
+                      data-description="{{ $promo->description }}"
+                      data-discount_type="{{ $promo->discount_type }}"
+                      data-discount_value="{{ $promo->discount_value }}"
+                      data-min_purchase="{{ $promo->min_purchase }}"
+                      data-max_uses="{{ $promo->max_uses }}"
+                      data-valid_from="{{ $promo->valid_from->format('Y-m-d') }}"
+                      data-valid_until="{{ $promo->valid_until->format('Y-m-d') }}"
+                      data-is_active="{{ $promo->is_active ? '1' : '0' }}">Ubah</button>
+                    <form action="{{ route('manager.promo.destroy', $promo->id) }}" method="POST" class="d-inline" data-confirm="Hapus voucher promo ini?">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
+                    </form>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted">Belum ada voucher promo yang dibuat.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- 5. MANAJEMEN PROMO & HARGA -->
-    <div class="tab-pane fade" id="promo-sec" role="tabpanel">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="font-weight-bold text-dark mb-0">Manajemen Kode Promo & Voucher Diskon</h5>
-        <button type="button" class="btn btn-primary font-weight-bold" data-toggle="modal" data-target="#addPromoModal">+ Tambah Voucher Promo</button>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-hover table-bordered">
-          <thead class="bg-light text-muted">
-            <tr>
-              <th>Kode Promo</th>
-              <th>Deskripsi / Syarat</th>
-              <th>Tipe Diskon</th>
-              <th>Nilai Potongan</th>
-              <th>Masa Berlaku</th>
-              <th>Pemakaian</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($promoCodes as $promo)
-              <tr>
-                <td class="font-weight-bold text-success" style="font-size: 15px; letter-spacing: 0.5px;">{{ $promo->code }}</td>
-                <td>
-                  <div>{{ $promo->description ?? '-' }}</div>
-                  <small class="text-muted">Min. Pembelian: Rp {{ number_format($promo->min_purchase, 0, ',', '.') }}</small>
-                </td>
-                <td>{{ $promo->discount_type === 'percentage' ? 'Persentase (%)' : 'Nominal Tetap (Rp)' }}</td>
-                <td class="font-weight-bold">
-                  {{ $promo->discount_type === 'percentage' ? $promo->discount_value . '%' : 'Rp ' . number_format($promo->discount_value, 0, ',', '.') }}
-                </td>
-                <td style="font-size:12px;">{{ $promo->valid_from->format('d M Y') }} s/d {{ $promo->valid_until->format('d M Y') }}</td>
-                <td>{{ $promo->used_count }} / {{ $promo->max_uses }} kali</td>
-                <td>
-                  @if($promo->isValid())
-                    <span class="badge badge-success">Aktif / Valid</span>
-                  @else
-                    <span class="badge badge-secondary">Tidak Valid / Expired</span>
-                  @endif
-                </td>
-                <td>
-                  <button type="button" class="btn btn-sm btn-outline-primary btn-edit-promo"
-                    data-id="{{ $promo->id }}"
-                    data-code="{{ $promo->code }}"
-                    data-description="{{ $promo->description }}"
-                    data-discount_type="{{ $promo->discount_type }}"
-                    data-discount_value="{{ $promo->discount_value }}"
-                    data-min_purchase="{{ $promo->min_purchase }}"
-                    data-max_uses="{{ $promo->max_uses }}"
-                    data-valid_from="{{ $promo->valid_from->format('Y-m-d') }}"
-                    data-valid_until="{{ $promo->valid_until->format('Y-m-d') }}"
-                    data-is_active="{{ $promo->is_active ? 1 : 0 }}">Edit</button>
-                  <form action="{{ route('manager.promo.destroy', $promo->id) }}" method="POST" class="d-inline" data-confirm="Hapus voucher promo ini?">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
-                  </form>
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="8" class="text-center py-4 text-muted">Belum ada promo terdaftar.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 6. PANTAUAN KINERJA STAF & TARGET -->
-    <div class="tab-pane fade" id="performance-sec" role="tabpanel">
+    <!-- 3. TAB KINERJA KARYAWAN -->
+    <div class="tab-pane fade {{ $activeTab === 'performance' ? 'show active' : '' }}" id="performance-sec" role="tabpanel">
       <div class="row">
-        <!-- Resepsionis Leaderboard -->
-        <div class="col-md-6 mb-3">
-          <div class="p-3 bg-white rounded border">
-            <h6 class="font-weight-bold text-dark mb-3"><span class="icon-people"></span> Evaluasi Penjualan Resepsionis (Bulan Ini)</h6>
+        <!-- Evaluasi Kasir Resepsionis -->
+        <div class="col-lg-6 mb-4">
+          <div class="card-custom p-4 h-100">
+            <h5 class="font-weight-bold text-dark mb-1"><i class="icon-shopping-cart text-primary mr-1"></i> Penjualan Kasir Bulan Ini</h5>
+            <p class="text-muted small mb-3">Total omset dan volume transaksi penjualan yang diproses staf kasir.</p>
+
             <div class="table-responsive">
-              <table class="table table-hover table-bordered">
-                <thead class="bg-light text-muted">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
                   <tr>
-                    <th>Resepsionis</th>
-                    <th class="text-center">Trx</th>
-                    <th class="text-right">Total Penjualan</th>
+                    <th>Staf Kasir</th>
+                    <th>Jumlah Transaksi</th>
+                    <th>Total Omset</th>
                   </tr>
                 </thead>
                 <tbody>
                   @forelse($receptionistPerformance as $rp)
                     <tr>
-                      <td class="font-weight-bold text-dark">{{ $rp->user ? $rp->user->name : 'Sistem/Unknown' }}</td>
-                      <td class="text-center">{{ $rp->total_transactions }}</td>
-                      <td class="text-right font-weight-bold text-success">Rp {{ number_format($rp->total_sales, 0, ',', '.') }}</td>
+                      <td><strong class="text-dark">{{ $rp->user->name ?? 'Kasir #' . $rp->user_id }}</strong></td>
+                      <td><span class="badge badge-info font-weight-bold">{{ $rp->total_transactions }} Transaksi</span></td>
+                      <td><span class="font-weight-bold text-success">Rp {{ number_format($rp->total_sales, 0, ',', '.') }}</span></td>
                     </tr>
                   @empty
                     <tr>
-                      <td colspan="3" class="text-center text-muted py-3">Belum ada transaksi bulan ini.</td>
+                      <td colspan="3" class="text-center py-4 text-muted">Belum ada data transaksi kasir bulan ini.</td>
                     </tr>
                   @endforelse
                 </tbody>
@@ -477,27 +222,31 @@
           </div>
         </div>
 
-        <!-- PT Leaderboard -->
-        <div class="col-md-6 mb-3">
-          <div class="p-3 bg-white rounded border">
-            <h6 class="font-weight-bold text-dark mb-3"><span class="icon-calendar"></span> Jam Terbang & Jumlah Kelas Trainer</h6>
+        <!-- Evaluasi Trainer / Instruktur -->
+        <div class="col-lg-6 mb-4">
+          <div class="card-custom p-4 h-100">
+            <h5 class="font-weight-bold text-dark mb-1"><i class="icon-people text-success mr-1"></i> Keaktifan Instruktur Kelas</h5>
+            <p class="text-muted small mb-3">Jumlah kelas kebugaran yang dipimpin oleh instruktur pelatih.</p>
+
             <div class="table-responsive">
-              <table class="table table-hover table-bordered">
-                <thead class="bg-light text-muted">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
                   <tr>
-                    <th>Personal Trainer</th>
-                    <th class="text-center">Kelas Mengajar</th>
+                    <th>Nama Instruktur</th>
+                    <th>Spesialisasi</th>
+                    <th>Kelas Dipimpin</th>
                   </tr>
                 </thead>
                 <tbody>
                   @forelse($trainerPerformance as $tp)
                     <tr>
-                      <td class="font-weight-bold text-dark">{{ $tp->trainer ? $tp->trainer->name : 'N/A' }}</td>
-                      <td class="text-center font-weight-bold text-primary" style="font-size:15px;">{{ $tp->total_classes }} Kelas</td>
+                      <td><strong class="text-dark">{{ $tp->trainer->name ?? 'Trainer #' . $tp->trainer_id }}</strong></td>
+                      <td>{{ $tp->trainer->specialization ?? 'Pelatih Kebugaran' }}</td>
+                      <td><span class="badge badge-success font-weight-bold">{{ $tp->total_classes }} Kelas Aktif</span></td>
                     </tr>
                   @empty
                     <tr>
-                      <td colspan="2" class="text-center text-muted py-3">Belum ada penugasan kelas trainer.</td>
+                      <td colspan="3" class="text-center py-4 text-muted">Belum ada alokasi kelas untuk instruktur.</td>
                     </tr>
                   @endforelse
                 </tbody>
@@ -508,645 +257,247 @@
       </div>
     </div>
 
-    <!-- 7. LAPORAN OPERASIONAL TAKTIS (REKAP KAS & TREN KEHADIRAN) -->
-    <div class="tab-pane fade" id="report-sec" role="tabpanel">
-      <div class="row">
-        <!-- Rekap Kas Fisik Harian -->
-        <div class="col-md-6 mb-4">
-          <div class="p-3 bg-light rounded border h-100">
-            <h6 class="font-weight-bold text-dark mb-3">Verifikasi Rekap Kas & Laci Kasir Hari Ini</h6>
-            <div class="alert alert-info py-2" style="font-size:12.5px;">
-              <strong>Info:</strong> Verifikasi kesesuaian angka laci kasir di sistem dengan setoran fisik resepsionis.
+    <!-- 4. TAB REKAP KAS KEUANGAN -->
+    <div class="tab-pane fade {{ $activeTab === 'cash' ? 'show active' : '' }}" id="cash-sec" role="tabpanel">
+      <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="font-weight-bold text-dark mb-1">Rekap Transaksi Kas Harian</h5>
+            <p class="text-muted small mb-0">Rincian transaksi kasir hari ini berdasarkan metode pembayaran.</p>
+          </div>
+          <span class="badge badge-info px-3 py-2 font-weight-bold">
+            Total Transaksi: {{ $dailyCashRecap->count() }}
+          </span>
+        </div>
+
+        @php
+          $totalToday = $dailyCashRecap->sum('total_amount');
+          $cashTotal = $dailyCashRecap->where('payment_method', 'cash')->sum('total_amount');
+          $qrisTotal = $dailyCashRecap->where('payment_method', 'qris')->sum('total_amount');
+          $transferTotal = $dailyCashRecap->where('payment_method', 'transfer')->sum('total_amount');
+          $cardTotal = $dailyCashRecap->where('payment_method', 'debit_card')->sum('total_amount');
+        @endphp
+
+        <div class="row mb-4">
+          <div class="col-md-3 mb-2 mb-md-0">
+            <div class="p-3 bg-light rounded border text-center">
+              <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Total Omset Hari Ini</small>
+              <h4 class="font-weight-bold text-primary mt-1 mb-0">Rp {{ number_format($totalToday, 0, ',', '.') }}</h4>
             </div>
-
-            @php
-              $totalSystemCash = $dailyCashRecap->where('payment_method', 'cash')->sum('total_amount');
-              $totalSystemNonCash = $dailyCashRecap->where('payment_method', '!=', 'cash')->sum('total_amount');
-            @endphp
-
-            <div class="p-3 bg-white border rounded">
-              <div class="d-flex justify-content-between mb-2">
-                <span class="text-muted">Total Transaksi Hari Ini:</span>
-                <span class="font-weight-bold text-dark">{{ count($dailyCashRecap) }} Trx</span>
-              </div>
-              <div class="d-flex justify-content-between mb-2 border-top pt-2">
-                <span class="text-muted">Setoran Tunai (Sistem):</span>
-                <span class="font-weight-bold text-success">Rp {{ number_format($totalSystemCash, 0, ',', '.') }}</span>
-              </div>
-              <div class="d-flex justify-content-between mb-2">
-                <span class="text-muted">Transaksi Non-Tunai (Sistem):</span>
-                <span class="font-weight-bold text-primary">Rp {{ number_format($totalSystemNonCash, 0, ',', '.') }}</span>
-              </div>
-              <div class="d-flex justify-content-between mb-0 border-top pt-2" style="font-size:16px;">
-                <span class="font-weight-bold text-dark">Total Omset Harian:</span>
-                <span class="font-weight-bold text-dark">Rp {{ number_format($totalSystemCash + $totalSystemNonCash, 0, ',', '.') }}</span>
-              </div>
+          </div>
+          <div class="col-md-3 mb-2 mb-md-0">
+            <div class="p-3 bg-light rounded border text-center">
+              <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Uang Tunai</small>
+              <h4 class="font-weight-bold text-success mt-1 mb-0">Rp {{ number_format($cashTotal, 0, ',', '.') }}</h4>
+            </div>
+          </div>
+          <div class="col-md-3 mb-2 mb-md-0">
+            <div class="p-3 bg-light rounded border text-center">
+              <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Pembayaran Digital</small>
+              <h4 class="font-weight-bold text-info mt-1 mb-0">Rp {{ number_format($qrisTotal, 0, ',', '.') }}</h4>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded border text-center">
+              <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Transfer dan Debit</small>
+              <h4 class="font-weight-bold text-dark mt-1 mb-0">Rp {{ number_format($transferTotal + $cardTotal, 0, ',', '.') }}</h4>
             </div>
           </div>
         </div>
 
-        <!-- Tren Kehadiran Member -->
-        <div class="col-md-6 mb-4">
-          <div class="p-3 bg-light rounded border h-100">
-            <h6 class="font-weight-bold text-dark mb-3">Tren Jam Sibuk Kunjungan Member</h6>
-            <p class="text-muted" style="font-size:12.5px;">Statistik jam sibuk kunjungan member untuk efisiensi pendingin AC dan plotting tambahan staf jaga resepsionis.</p>
-            <div class="p-3 bg-white border rounded text-center">
-              <h5 class="text-dark font-weight-bold mb-2">Estimasi Jam Terpadat</h5>
-              <div class="display-4 font-weight-bold text-warning mb-2" style="font-size: 28px;">17:00 - 20:00 WIB</div>
-              <small class="text-muted">Kepadatan meningkat 65% pada sore/malam hari selepas jam kantor.</small>
-            </div>
-          </div>
+        <h6 class="font-weight-bold text-dark mb-3 border-top pt-3">Rincian Transaksi Kasir Hari Ini</h6>
+        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
+              <tr>
+                <th>Invoice</th>
+                <th>Waktu</th>
+                <th>Kasir</th>
+                <th>Pelanggan</th>
+                <th>Metode Bayar</th>
+                <th>Nominal</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($dailyCashRecap as $tx)
+                <tr>
+                  <td class="font-weight-bold text-dark">{{ $tx->invoice_number }}</td>
+                  <td>{{ $tx->created_at->format('H:i:s') }}</td>
+                  <td>{{ $tx->user->name ?? 'Kasir Staf' }}</td>
+                  <td>{{ $tx->member->name ?? 'Pelanggan Umum' }}</td>
+                  <td><span class="badge badge-secondary font-weight-bold" style="text-transform: uppercase;">{{ $tx->payment_method }}</span></td>
+                  <td class="font-weight-bold text-success">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="6" class="text-center py-3 text-muted">Belum ada transaksi kasir hari ini.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- 8. MANAJEMEN STOK & INVENTARIS RITEL (STOCK OPNAME) & LOKER -->
-    <div class="tab-pane fade" id="stock-sec" role="tabpanel">
-      <h5 class="font-weight-bold text-dark mb-2">Pemantauan Inventaris Ritel & Loker Gym</h5>
-      <p class="text-muted" style="font-size:13.5px;">Monitoring stok produk suplemen/merchandise dan okupansi loker gym secara real-time.</p>
-
-      <!-- KPI Cards Loker -->
-      <div class="row mb-4">
-        <div class="col-md-4">
-          <div class="card-custom text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
-            <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Tersedia</small>
-            <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $availableLockers }} Loker</h3>
-            <small class="text-white-50">Siap digunakan</small>
+    <!-- 5. TAB DATABASE VENDOR -->
+    <div class="tab-pane fade {{ $activeTab === 'vendor' ? 'show active' : '' }}" id="vendor-sec" role="tabpanel">
+      <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="font-weight-bold text-dark mb-1">Daftar Rekanan Vendor</h5>
+            <p class="text-muted small mb-0">Informasi kontak penyedia alat kebugaran, suplemen, kebersihan, dan teknisi servis.</p>
           </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card-custom text-white" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
-            <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Sedang Terpakai</small>
-            <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $occupiedLockers }} Loker</h3>
-            <small class="text-white-50">Sedang disewa/dipakai</small>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card-custom text-white" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-            <small class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Rusak / Blokir</small>
-            <h3 class="font-weight-bold text-white mb-0 mt-1">{{ $brokenLockers }} Loker</h3>
-            <small class="text-white-50">Perlu perbaikan</small>
-          </div>
-        </div>
-      </div>
-
-      <!-- Alert Stok: hanya jika ada barang (allProducts > 0) -->
-      @if(count($allProducts) > 0)
-        @if(count($lowStockProducts) > 0)
-          <div class="alert alert-warning mb-3">
-            <strong>Peringatan Restock!</strong> Terdapat {{ count($lowStockProducts) }} barang retail yang persediaannya hampir habis (stok &le; 10 unit). Harap segera restock ke supplier.
-          </div>
-        @else
-          <div class="alert alert-success mb-3">
-            <strong>Stok Aman!</strong> Seluruh barang inventaris retail saat ini dalam kondisi stok aman (di atas 10 unit).
-          </div>
-        @endif
-      @endif
-
-      <div class="row">
-        <!-- Stok Produk Ritel Kasir -->
-        <div class="col-md-7">
-          <div class="card-custom">
-            <h6 class="font-weight-bold text-dark mb-3">Inventaris Stok Produk Ritel Kasir</h6>
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-                  <tr>
-                    <th>Nama Produk</th>
-                    <th>Kategori</th>
-                    <th>Harga Jual</th>
-                    <th>Sisa Stok</th>
-                    <th>Status Stok</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @forelse($allProducts as $p)
-                    <tr>
-                      <td class="font-weight-bold text-dark" style="font-size: 12.5px;">{{ $p->name }}</td>
-                      <td style="font-size: 12px;" class="text-muted">{{ $p->category ?? 'Ritel' }}</td>
-                      <td class="font-weight-bold text-success" style="font-size: 12.5px;">Rp {{ number_format($p->price, 0, ',', '.') }}</td>
-                      <td class="font-weight-bold text-dark" style="font-size: 13px;">{{ $p->stock }} {{ $p->unit ?? 'pcs' }}</td>
-                      <td>
-                        @if($p->stock <= 5)
-                          <span class="badge badge-danger px-2 py-1">Stok Kritis</span>
-                        @elseif($p->stock <= 15)
-                          <span class="badge badge-warning px-2 py-1">Menipis</span>
-                        @else
-                          <span class="badge badge-success px-2 py-1">Aman</span>
-                        @endif
-                      </td>
-                    </tr>
-                  @empty
-                    <tr>
-                      <td colspan="5" class="text-center py-4 text-muted">Belum ada data produk ritel kasir.</td>
-                    </tr>
-                  @endforelse
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <button type="button" class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addVendorModal">
+            + Tambah Kontak Vendor
+          </button>
         </div>
 
-        <!-- Master Loker Gym -->
-        <div class="col-md-5">
-          <div class="card-custom">
-            <h6 class="font-weight-bold text-dark mb-3">Master Loker Gym</h6>
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-                  <tr>
-                    <th>No. Loker</th>
-                    <th>Area/Kategori</th>
-                    <th>Status Okupansi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @forelse($lockers as $l)
-                    <tr>
-                      <td class="font-weight-bold text-dark" style="font-size: 12.5px;">Loker #{{ $l->locker_number }}</td>
-                      <td style="font-size: 12px;" class="text-muted">{{ $l->gender_type ?? 'Umum' }}</td>
-                      <td>
-                        @if($l->status == 'tersedia')
-                          <span class="badge badge-success px-2 py-1">Tersedia</span>
-                        @elseif($l->status == 'terpakai')
-                          <span class="badge badge-primary px-2 py-1">Terpakai</span>
-                        @else
-                          <span class="badge badge-danger px-2 py-1">Rusak/Blokir</span>
-                        @endif
-                      </td>
-                    </tr>
-                  @empty
-                    <tr>
-                      <td colspan="3" class="text-center py-4 text-muted">Belum ada data master loker.</td>
-                    </tr>
-                  @endforelse
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 9. RETENSI MEMBER (COMPLAINTS TICKETING) -->
-    <div class="tab-pane fade" id="complaints-sec" role="tabpanel">
-      <h5 class="font-weight-bold text-dark mb-3">Tiket Komplain & Masukan Member</h5>
-      <div class="table-responsive">
-        <table class="table table-hover table-bordered">
-          <thead class="bg-light text-muted">
-            <tr>
-              <th>Tanggal Masuk</th>
-              <th>Member</th>
-              <th>Keluhan / Tiket</th>
-              <th>Status Tiket</th>
-              <th>Solusi / Resolusi</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($complaints as $comp)
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
               <tr>
-                <td>{{ $comp->created_at->format('d M Y H:i') }}</td>
-                <td>
-                  <div class="font-weight-bold">{{ $comp->member ? $comp->member->name : 'N/A' }}</div>
-                  <small class="text-muted">HP: {{ $comp->member ? $comp->member->phone : '-' }}</small>
-                </td>
-                <td>
-                  <div class="font-weight-bold text-dark">{{ $comp->title }}</div>
-                  <p class="mb-0 text-muted" style="font-size:12.5px;">{{ $comp->description }}</p>
-                </td>
-                <td>
-                  @if($comp->status === 'open')
-                    <span class="badge badge-danger">Open</span>
-                  @elseif($comp->status === 'in_progress')
-                    <span class="badge badge-warning">In Progress</span>
-                  @elseif($comp->status === 'resolved')
-                    <span class="badge badge-success">Resolved</span>
-                  @else
-                    <span class="badge badge-secondary">Closed</span>
-                  @endif
-                </td>
-                <td style="font-size: 13px;">{{ $comp->resolution ?? 'Belum ada tanggapan.' }}</td>
-                <td>
-                  <button type="button" class="btn btn-sm btn-outline-primary btn-edit-complaint"
-                    data-id="{{ $comp->id }}"
-                    data-title="{{ $comp->title }}"
-                    data-status="{{ $comp->status }}"
-                    data-resolution="{{ $comp->resolution }}">Proses Tiket</button>
-                </td>
+                <th>Nama Vendor / Perusahaan</th>
+                <th>Kategori Layanan</th>
+                <th>Nomor Telepon / WA</th>
+                <th>Email</th>
+                <th>Alamat</th>
+                <th>Aksi</th>
               </tr>
-            @empty
-              <tr>
-                <td colspan="6" class="text-center py-4 text-muted">Belum ada keluhan atau masukan member terdaftar.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 10. DATABASE VENDOR & PIHAK KETIGA -->
-    <div class="tab-pane fade" id="vendors-sec" role="tabpanel">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="font-weight-bold text-dark mb-0">Buku Kontak Vendor & Pihak Ketiga</h5>
-        <button type="button" class="btn btn-primary font-weight-bold" data-toggle="modal" data-target="#addVendorModal">+ Tambah Kontak Vendor</button>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-hover table-bordered">
-          <thead class="bg-light text-muted">
-            <tr>
-              <th>Nama Vendor / Kontak</th>
-              <th>Kategori Layanan</th>
-              <th>Kontak (HP/Email)</th>
-              <th>Alamat</th>
-              <th>Keterangan / Notes</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($vendors as $ven)
-              <tr>
-                <td class="font-weight-bold text-dark">{{ $ven->name }}</td>
-                <td><span class="badge badge-secondary">{{ $ven->category }}</span></td>
-                <td>
-                  <div>{{ $ven->phone ?? '-' }}</div>
-                  <small class="text-muted">{{ $ven->email ?? '-' }}</small>
-                </td>
-                <td style="font-size:12.5px;">{{ $ven->address ?? '-' }}</td>
-                <td style="font-size:12.5px;">{{ $ven->notes ?? '-' }}</td>
-                <td>
-                  <button type="button" class="btn btn-sm btn-outline-primary btn-edit-vendor"
-                    data-id="{{ $ven->id }}"
-                    data-name="{{ $ven->name }}"
-                    data-phone="{{ $ven->phone }}"
-                    data-email="{{ $ven->email }}"
-                    data-category="{{ $ven->category }}"
-                    data-address="{{ $ven->address }}"
-                    data-notes="{{ $ven->notes }}">Edit</button>
-                  <form action="{{ route('manager.vendors.destroy', $ven->id) }}" method="POST" class="d-inline" data-confirm="Hapus kontak vendor ini?">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
-                  </form>
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="6" class="text-center py-4 text-muted">Belum ada kontak vendor tersimpan.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @forelse($vendors as $v)
+                <tr>
+                  <td>
+                    <strong class="text-dark">{{ $v->name }}</strong>
+                    @if($v->notes)
+                      <small class="d-block text-muted">{{ $v->notes }}</small>
+                    @endif
+                  </td>
+                  <td><span class="badge badge-secondary">{{ $v->category }}</span></td>
+                  <td class="font-weight-bold">{{ $v->phone ?? '-' }}</td>
+                  <td>{{ $v->email ?? '-' }}</td>
+                  <td style="max-width: 200px;" class="small text-muted">{{ $v->address ?? '-' }}</td>
+                  <td>
+                    <button type="button" class="btn btn-xs btn-outline-primary btn-edit-vendor"
+                      data-id="{{ $v->id }}"
+                      data-name="{{ $v->name }}"
+                      data-category="{{ $v->category }}"
+                      data-phone="{{ $v->phone }}"
+                      data-email="{{ $v->email }}"
+                      data-address="{{ $v->address }}"
+                      data-notes="{{ $v->notes }}">Ubah</button>
+                    <form action="{{ route('manager.vendors.destroy', $v->id) }}" method="POST" class="d-inline" data-confirm="Hapus vendor ini?">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
+                    </form>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="6" class="text-center py-4 text-muted">Belum ada buku kontak vendor mitra.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
   </div>
+
 </div>
 
-<!-- ==================== MODALS IN MANAGER FEATURES ==================== -->
+<!-- ========================================== -->
+<!-- MODALS -->
+<!-- ========================================== -->
 
 <!-- Modal Tambah Master Class -->
 <div class="modal fade" id="addMasterClassModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form action="{{ route('manager.classes.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form action="{{ route('manager.master-classes.store') }}" method="POST" class="modal-content shadow border-0">
       @csrf
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Rencanakan Master Kelas Baru</h5>
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Rencanakan Master Kelas Baru</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body p-4">
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Kelas *</label>
-          <input type="text" name="name" class="form-control" placeholder="Contoh: Yoga Vinyasa, Zumba Blast, HIIT" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Hari *</label>
-          <select name="day" class="form-control" required>
-            <option value="Senin">Senin</option>
-            <option value="Selasa">Selasa</option>
-            <option value="Rabu">Rabu</option>
-            <option value="Kamis">Kamis</option>
-            <option value="Jumat">Jumat</option>
-            <option value="Sabtu">Sabtu</option>
-            <option value="Minggu">Minggu</option>
-          </select>
+          <label class="font-weight-bold text-dark small mb-1">Nama Kelas Kebugaran *</label>
+          <input type="text" name="name" class="form-control" placeholder="Contoh: Yoga Morning, Zumba Aerobic" required>
         </div>
         <div class="row">
-          <div class="col-md-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Mulai *</label>
-            <input type="time" name="start_time" class="form-control" value="08:00" required>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Hari Pelaksanaan *</label>
+            <select name="day" class="form-control" required>
+              <option value="Senin">Senin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Kamis">Kamis</option>
+              <option value="Jumat">Jumat</option>
+              <option value="Sabtu">Sabtu</option>
+              <option value="Minggu">Minggu</option>
+            </select>
           </div>
-          <div class="col-md-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Durasi (Menit) *</label>
-            <input type="number" name="duration_minutes" class="form-control" value="60" required min="1">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Durasi (Menit) *</label>
+            <input type="number" name="duration_minutes" class="form-control" value="60" min="15" required>
           </div>
         </div>
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark small mb-1">Jam Mulai *</label>
+          <input type="time" name="start_time" class="form-control" value="08:00" required>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Rencanakan Kelas</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Rencana Kelas</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Modal Edit Master Class -->
+<!-- Modal Ubah Master Class -->
 <div class="modal fade" id="editMasterClassModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="editMasterClassForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form id="editMasterClassForm" method="POST" class="modal-content shadow border-0">
       @csrf
       @method('PUT')
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Edit Rencana Master Kelas</h5>
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Ubah Rencana Master Kelas</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body p-4">
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Kelas *</label>
-          <input type="text" name="name" id="editMClassName" class="form-control" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Hari *</label>
-          <select name="day" id="editMClassDay" class="form-control" required>
-            <option value="Senin">Senin</option>
-            <option value="Selasa">Selasa</option>
-            <option value="Rabu">Rabu</option>
-            <option value="Kamis">Kamis</option>
-            <option value="Jumat">Jumat</option>
-            <option value="Sabtu">Sabtu</option>
-            <option value="Minggu">Minggu</option>
-          </select>
+          <label class="font-weight-bold text-dark small mb-1">Nama Kelas Kebugaran *</label>
+          <input type="text" name="name" id="editMcName" class="form-control" required>
         </div>
         <div class="row">
-          <div class="col-md-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Mulai *</label>
-            <input type="time" name="start_time" id="editMClassStartTime" class="form-control" required>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Hari Pelaksanaan *</label>
+            <select name="day" id="editMcDay" class="form-control" required>
+              <option value="Senin">Senin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Kamis">Kamis</option>
+              <option value="Jumat">Jumat</option>
+              <option value="Sabtu">Sabtu</option>
+              <option value="Minggu">Minggu</option>
+            </select>
           </div>
-          <div class="col-md-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Durasi (Menit) *</label>
-            <input type="number" name="duration_minutes" id="editMClassDuration" class="form-control" required min="1">
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Rencana</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Tambah Alat Gym -->
-<div class="modal fade" id="addEquipmentModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form action="{{ route('manager.equipment.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Tambah Inventaris Alat Gym</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Alat *</label>
-          <input type="text" name="name" class="form-control" placeholder="Contoh: Treadmill Lifesport A, Dumbbell Set 5kg" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Kategori *</label>
-          <select name="category" class="form-control" required>
-            <option value="Alat Berat">Alat Berat (Mesin/Beban)</option>
-            <option value="Cardio">Alat Kardio</option>
-            <option value="Aksesoris">Aksesoris & Matras</option>
-          </select>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Merek / Brand</label>
-          <input type="text" name="brand" class="form-control" placeholder="Contoh: Lifefitness, Kettler">
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Status Awal *</label>
-          <select name="status" class="form-control" required>
-            <option value="berfungsi">Berfungsi Penuh</option>
-            <option value="perlu_servis">Perlu Servis</option>
-            <option value="rusak">Rusak</option>
-          </select>
-        </div>
-        <div class="row">
-          <div class="col-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Beli</label>
-            <input type="date" name="purchase_date" class="form-control">
-          </div>
-          <div class="col-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Rencana Servis</label>
-            <input type="date" name="next_service_date" class="form-control">
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold">Simpan Alat</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Edit Alat Gym -->
-<div class="modal fade" id="editEquipmentModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="editEquipmentForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      @method('PUT')
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Edit Inventaris Alat Gym</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Alat *</label>
-          <input type="text" name="name" id="editEqName" class="form-control" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Kategori *</label>
-          <select name="category" id="editEqCategory" class="form-control" required>
-            <option value="Alat Berat">Alat Berat (Mesin/Beban)</option>
-            <option value="Cardio">Alat Kardio</option>
-            <option value="Aksesoris">Aksesoris & Matras</option>
-          </select>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Merek / Brand</label>
-          <input type="text" name="brand" id="editEqBrand" class="form-control">
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Status *</label>
-          <select name="status" id="editEqStatus" class="form-control" required>
-            <option value="berfungsi">Berfungsi Penuh</option>
-            <option value="perlu_servis">Perlu Servis</option>
-            <option value="rusak">Rusak</option>
-          </select>
-        </div>
-        <div class="row">
-          <div class="col-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Beli</label>
-            <input type="date" name="purchase_date" id="editEqPurchaseDate" class="form-control">
-          </div>
-          <div class="col-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Rencana Servis</label>
-            <input type="date" name="next_service_date" id="editEqNextService" class="form-control">
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Alat</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Tambah Shift Staf -->
-<div class="modal fade" id="addShiftModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form action="{{ route('manager.shifts.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Plotting Shift Staf</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Karyawan / Staf *</label>
-          <select name="user_id" class="form-control" required>
-            @foreach($shiftStaffUsers as $st)
-              <option value="{{ $st->id }}">{{ $st->name }} ({{ ucfirst($st->role) }})</option>
-            @endforeach
-          </select>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Shift *</label>
-          <input type="date" name="shift_date" class="form-control" value="{{ date('Y-m-d') }}" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Shift *</label>
-          <select name="shift_name" class="form-control" required>
-            <option value="Pagi">Shift Pagi</option>
-            <option value="Siang">Shift Siang</option>
-            <option value="Malam">Shift Malam</option>
-          </select>
-        </div>
-        <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Mulai *</label>
-            <input type="time" name="start_time" class="form-control" value="08:00" required>
-          </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Selesai *</label>
-            <input type="time" name="end_time" class="form-control" value="16:00" required>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Durasi (Menit) *</label>
+            <input type="number" name="duration_minutes" id="editMcDuration" class="form-control" required>
           </div>
         </div>
         <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Catatan Shift</label>
-          <input type="text" name="notes" class="form-control" placeholder="Contoh: Mengisi laci kasir awal">
+          <label class="font-weight-bold text-dark small mb-1">Jam Mulai *</label>
+          <input type="time" name="start_time" id="editMcStart" class="form-control" required>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Shift</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Input Cuti Pekerja -->
-<div class="modal fade" id="addLeaveModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form action="{{ route('manager.leave.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Input Cuti Pekerja / Staf</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Pekerja / Staf *</label>
-          <select name="user_id" class="form-control" required>
-            @foreach($staffUsers as $st)
-              <option value="{{ $st->id }}">{{ $st->name }} ({{ ucfirst($st->role) }})</option>
-            @endforeach
-          </select>
-        </div>
-        <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Mulai *</label>
-            <input type="date" name="start_date" class="form-control" value="{{ date('Y-m-d') }}" required>
-          </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Selesai *</label>
-            <input type="date" name="end_date" class="form-control" value="{{ date('Y-m-d') }}" required>
-          </div>
-        </div>
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Alasan Cuti / Keterangan *</label>
-          <textarea name="reason" class="form-control" rows="3" placeholder="Contoh: Cuti tahunan / izin sakit periksa dokter" required></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold">Simpan Cuti Pekerja</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Edit Shift Staf -->
-<div class="modal fade" id="editShiftModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="editShiftForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      @method('PUT')
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Edit Plotting Shift</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Karyawan / Staf *</label>
-          <select name="user_id" id="editShUserId" class="form-control" required>
-            @foreach($staffUsers as $st)
-              <option value="{{ $st->id }}">{{ $st->name }} ({{ ucfirst($st->role) }})</option>
-            @endforeach
-          </select>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Shift *</label>
-          <input type="date" name="shift_date" id="editShDate" class="form-control" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Shift *</label>
-          <select name="shift_name" id="editShName" class="form-control" required>
-            <option value="Pagi">Shift Pagi</option>
-            <option value="Siang">Shift Siang</option>
-            <option value="Malam">Shift Malam</option>
-          </select>
-        </div>
-        <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Mulai *</label>
-            <input type="time" name="start_time" id="editShStart" class="form-control" required>
-          </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Jam Selesai *</label>
-            <input type="time" name="end_time" id="editShEnd" class="form-control" required>
-          </div>
-        </div>
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Catatan Shift</label>
-          <input type="text" name="notes" id="editShNotes" class="form-control">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Shift</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
       </div>
     </form>
   </div>
@@ -1154,160 +505,124 @@
 
 <!-- Modal Tambah Promo -->
 <div class="modal fade" id="addPromoModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form action="{{ route('manager.promo.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form action="{{ route('manager.promo.store') }}" method="POST" class="modal-content shadow border-0">
       @csrf
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Buat Voucher Promo Baru</h5>
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Buat Voucher Promo Baru</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body p-4">
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Kode Promo *</label>
-          <input type="text" name="code" class="form-control" placeholder="Contoh: FITAGUSTUS" required style="text-transform: uppercase;">
+          <label class="font-weight-bold text-dark small mb-1">Kode Voucher Promo (Huruf Kapital & Angka) *</label>
+          <input type="text" name="code" class="form-control text-uppercase font-weight-bold" placeholder="Contoh: MERDEKA50, PROMOFIT" required>
         </div>
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Deskripsi / Keterangan</label>
-          <input type="text" name="description" class="form-control" placeholder="Contoh: Potongan 15% khusus paket tahunan">
+          <label class="font-weight-bold text-dark small mb-1">Keterangan / Judul Promo</label>
+          <input type="text" name="description" class="form-control" placeholder="Contoh: Diskon pendaftaran member awal bulan">
         </div>
         <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Tipe Diskon *</label>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Tipe Diskon *</label>
             <select name="discount_type" class="form-control" required>
               <option value="percentage">Persentase (%)</option>
               <option value="fixed">Nominal Tetap (Rp)</option>
             </select>
           </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Nilai Diskon *</label>
-            <input type="number" name="discount_value" class="form-control" placeholder="Contoh: 15 / 50000" required>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Nilai Diskon *</label>
+            <input type="number" name="discount_value" class="form-control" placeholder="Contoh: 15 atau 20000" required>
           </div>
         </div>
         <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Min. Belanja (Rp) *</label>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Minimal Belanja (Rp) *</label>
             <input type="number" name="min_purchase" class="form-control" value="0" required>
           </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Maksimal Pemakaian *</label>
-            <input type="number" name="max_uses" class="form-control" value="100" required>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Batas Maksimal Klaim *</label>
+            <input type="number" name="max_uses" class="form-control" value="100" min="1" required>
           </div>
         </div>
         <div class="row">
-          <div class="col-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Berlaku Dari *</label>
+          <div class="col-md-6 form-group mb-0">
+            <label class="font-weight-bold text-dark small mb-1">Mulai Berlaku *</label>
             <input type="date" name="valid_from" class="form-control" value="{{ date('Y-m-d') }}" required>
           </div>
-          <div class="col-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Berlaku Sampai *</label>
+          <div class="col-md-6 form-group mb-0">
+            <label class="font-weight-bold text-dark small mb-1">Berakhir Pada *</label>
             <input type="date" name="valid_until" class="form-control" value="{{ date('Y-m-d', strtotime('+30 days')) }}" required>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold">Simpan Promo</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Voucher</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Modal Edit Promo -->
+<!-- Modal Ubah Promo -->
 <div class="modal fade" id="editPromoModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="editPromoForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form id="editPromoForm" method="POST" class="modal-content shadow border-0">
       @csrf
       @method('PUT')
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Edit Voucher Promo</h5>
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Ubah Voucher Promo</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body p-4">
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Kode Promo *</label>
-          <input type="text" name="code" id="editPromoCode" class="form-control" required style="text-transform: uppercase;">
+          <label class="font-weight-bold text-dark small mb-1">Kode Voucher Promo *</label>
+          <input type="text" name="code" id="editPromoCode" class="form-control text-uppercase font-weight-bold" required>
         </div>
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Deskripsi / Keterangan</label>
-          <input type="text" name="description" id="editPromoDesc" class="form-control">
+          <label class="font-weight-bold text-dark small mb-1">Keterangan / Judul Promo</label>
+          <input type="text" name="description" id="editPromoDescription" class="form-control">
         </div>
         <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Tipe Diskon *</label>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Tipe Diskon *</label>
             <select name="discount_type" id="editPromoType" class="form-control" required>
               <option value="percentage">Persentase (%)</option>
               <option value="fixed">Nominal Tetap (Rp)</option>
             </select>
           </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Nilai Diskon *</label>
-            <input type="number" name="discount_value" id="editPromoVal" class="form-control" required>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Nilai Diskon *</label>
+            <input type="number" name="discount_value" id="editPromoValue" class="form-control" required>
           </div>
         </div>
         <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Min. Belanja (Rp) *</label>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Minimal Belanja (Rp) *</label>
             <input type="number" name="min_purchase" id="editPromoMin" class="form-control" required>
           </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Maksimal Pemakaian *</label>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Batas Maksimal Klaim *</label>
             <input type="number" name="max_uses" id="editPromoMax" class="form-control" required>
           </div>
         </div>
         <div class="row mb-3">
-          <div class="col-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Berlaku Dari *</label>
+          <div class="col-md-6 form-group mb-0">
+            <label class="font-weight-bold text-dark small mb-1">Mulai Berlaku *</label>
             <input type="date" name="valid_from" id="editPromoFrom" class="form-control" required>
           </div>
-          <div class="col-6 form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Berlaku Sampai *</label>
+          <div class="col-md-6 form-group mb-0">
+            <label class="font-weight-bold text-dark small mb-1">Berakhir Pada *</label>
             <input type="date" name="valid_until" id="editPromoUntil" class="form-control" required>
           </div>
         </div>
-        <div class="form-group mb-0 border-top pt-2">
-          <div class="custom-control custom-checkbox">
-            <input type="checkbox" name="is_active" value="1" class="custom-control-input" id="editPromoActive">
-            <label class="custom-control-label font-weight-bold text-dark" for="editPromoActive">Voucher Aktif & Dapat Digunakan</label>
-          </div>
+        <div class="custom-control custom-checkbox">
+          <input type="checkbox" name="is_active" value="1" class="custom-control-input" id="editPromoActive">
+          <label class="custom-control-label font-weight-bold text-dark" for="editPromoActive">Voucher Aktif & Dapat Digunakan</label>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Promo</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Proses Complaint -->
-<div class="modal fade" id="editComplaintModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="editComplaintForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      @method('PUT')
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Proses Keluhan Member</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="font-weight-bold text-dark mb-1" id="complaintTitleLabel"></p>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Status Keluhan *</label>
-          <select name="status" id="editCompStatus" class="form-control" required>
-            <option value="open">Open</option>
-            <option value="in_progress">In Progress</option>
-            <option value="resolved">Resolved (Terselesaikan)</option>
-            <option value="closed">Closed (Ditutup)</option>
-          </select>
-        </div>
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Solusi / Resolusi Keluhan *</label>
-          <textarea name="resolution" id="editCompResolution" class="form-control" rows="4" placeholder="Tuliskan tindakan/solusi pemecahan masalah di sini..." required></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Solusi</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
       </div>
     </form>
   </div>
@@ -1315,90 +630,90 @@
 
 <!-- Modal Tambah Vendor -->
 <div class="modal fade" id="addVendorModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form action="{{ route('manager.vendors.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form action="{{ route('manager.vendors.store') }}" method="POST" class="modal-content shadow border-0">
       @csrf
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Tambah Kontak Vendor Baru</h5>
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Tambah Buku Kontak Vendor</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body p-4">
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Vendor / Kontak Person *</label>
-          <input type="text" name="name" class="form-control" placeholder="Contoh: Bpk Budi (Teknisi Treadmill)" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Kategori Layanan *</label>
-          <input type="text" name="category" class="form-control" placeholder="Contoh: Teknisi Alat / Supplier Suplemen / Kebersihan" required>
+          <label class="font-weight-bold text-dark small mb-1">Nama Vendor / Perusahaan *</label>
+          <input type="text" name="name" class="form-control" placeholder="Contoh: PT Fitness Jaya Abadi" required>
         </div>
         <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">No. Telepon / HP</label>
-            <input type="text" name="phone" class="form-control" placeholder="0812...">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Kategori Layanan *</label>
+            <input type="text" name="category" class="form-control" placeholder="Contoh: Sparepart, Suplemen, Laundry" required>
           </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Email</label>
-            <input type="email" name="email" class="form-control" placeholder="vendor@mail.com">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Nomor Telepon / WhatsApp</label>
+            <input type="text" name="phone" class="form-control" placeholder="08123456789">
           </div>
         </div>
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Alamat Kantor</label>
-          <input type="text" name="address" class="form-control" placeholder="Alamat lengkap vendor">
+          <label class="font-weight-bold text-dark small mb-1">Email Vendor</label>
+          <input type="email" name="email" class="form-control" placeholder="kontak@vendor.com">
+        </div>
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark small mb-1">Alamat Kantor / Toko</label>
+          <textarea name="address" class="form-control" rows="2" placeholder="Alamat lengkap supplier..."></textarea>
         </div>
         <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Catatan Tambahan</label>
-          <textarea name="notes" class="form-control" rows="2" placeholder="Catatan tambahan kontak"></textarea>
+          <label class="font-weight-bold text-dark small mb-1">Catatan Tambahan</label>
+          <input type="text" name="notes" class="form-control" placeholder="Contoh: PIC Pak Budi, Garansi 1 tahun">
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold">Simpan Kontak</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Vendor</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Modal Edit Vendor -->
+<!-- Modal Ubah Vendor -->
 <div class="modal fade" id="editVendorModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="editVendorForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form id="editVendorForm" method="POST" class="modal-content shadow border-0">
       @csrf
       @method('PUT')
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Edit Kontak Vendor</h5>
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Ubah Kontak Vendor</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body p-4">
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Vendor / Kontak Person *</label>
-          <input type="text" name="name" id="editVenName" class="form-control" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Kategori Layanan *</label>
-          <input type="text" name="category" id="editVenCategory" class="form-control" required>
+          <label class="font-weight-bold text-dark small mb-1">Nama Vendor / Perusahaan *</label>
+          <input type="text" name="name" id="editVendorName" class="form-control" required>
         </div>
         <div class="row">
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">No. Telepon / HP</label>
-            <input type="text" name="phone" id="editVenPhone" class="form-control">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Kategori Layanan *</label>
+            <input type="text" name="category" id="editVendorCategory" class="form-control" required>
           </div>
-          <div class="col-6 form-group mb-3">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Email</label>
-            <input type="email" name="email" id="editVenEmail" class="form-control">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Nomor Telepon / WhatsApp</label>
+            <input type="text" name="phone" id="editVendorPhone" class="form-control">
           </div>
         </div>
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Alamat Kantor</label>
-          <input type="text" name="address" id="editVenAddress" class="form-control">
+          <label class="font-weight-bold text-dark small mb-1">Email Vendor</label>
+          <input type="email" name="email" id="editVendorEmail" class="form-control">
+        </div>
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark small mb-1">Alamat Kantor / Toko</label>
+          <textarea name="address" id="editVendorAddress" class="form-control" rows="2"></textarea>
         </div>
         <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Catatan Tambahan</label>
-          <textarea name="notes" id="editVenNotes" class="form-control" rows="2"></textarea>
+          <label class="font-weight-bold text-dark small mb-1">Catatan Tambahan</label>
+          <input type="text" name="notes" id="editVendorNotes" class="form-control">
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Kontak</button>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
       </div>
     </form>
   </div>
@@ -1406,98 +721,48 @@
 
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
   $(document).ready(function() {
-    // 1. Edit Master Class
-    $('.btn-edit-mclass').on('click', function() {
-      var id = $(this).data('id');
-      $('#editMClassName').val($(this).data('name'));
-      $('#editMClassDay').val($(this).data('day'));
-      $('#editMClassStartTime').val($(this).data('start_time'));
-      $('#editMClassDuration').val($(this).data('duration_minutes'));
-      $('#editMasterClassForm').attr('action', '/manager/classes/' + id);
+    // 1. Edit Master Class Modal
+    $('.btn-edit-mc').on('click', function() {
+      const id = $(this).data('id');
+      $('#editMasterClassForm').attr('action', '/manager/master-classes/' + id);
+      $('#editMcName').val($(this).data('name'));
+      $('#editMcDay').val($(this).data('day'));
+      $('#editMcStart').val($(this).data('start_time'));
+      $('#editMcDuration').val($(this).data('duration_minutes'));
       $('#editMasterClassModal').modal('show');
     });
 
-    // 2. Edit Equipment
-    $('.btn-edit-eq').on('click', function() {
-      var id = $(this).data('id');
-      $('#editEqName').val($(this).data('name'));
-      $('#editEqCategory').val($(this).data('category'));
-      $('#editEqBrand').val($(this).data('brand'));
-      $('#editEqStatus').val($(this).data('status'));
-      $('#editEqPurchaseDate').val($(this).data('purchase_date'));
-      $('#editEqNextService').val($(this).data('next_service_date'));
-      $('#editEquipmentForm').attr('action', '/manager/equipment/' + id);
-      $('#editEquipmentModal').modal('show');
-    });
-
-    // 3. Edit Shift
-    $('.btn-edit-shift').on('click', function() {
-      var id = $(this).data('id');
-      $('#editShUserId').val($(this).data('user_id'));
-      $('#editShDate').val($(this).data('shift_date'));
-      $('#editShName').val($(this).data('shift_name'));
-      $('#editShStart').val($(this).data('start_time'));
-      $('#editShEnd').val($(this).data('end_time'));
-      $('#editShNotes').val($(this).data('notes'));
-      $('#editShiftForm').attr('action', '/manager/shifts/' + id);
-      $('#editShiftModal').modal('show');
-    });
-
-    // 4. Edit Promo
+    // 2. Edit Promo Modal
     $('.btn-edit-promo').on('click', function() {
-      var id = $(this).data('id');
+      const id = $(this).data('id');
+      $('#editPromoForm').attr('action', '/manager/promo/' + id);
       $('#editPromoCode').val($(this).data('code'));
-      $('#editPromoDesc').val($(this).data('description'));
+      $('#editPromoDescription').val($(this).data('description'));
       $('#editPromoType').val($(this).data('discount_type'));
-      $('#editPromoVal').val($(this).data('discount_value'));
+      $('#editPromoValue').val($(this).data('discount_value'));
       $('#editPromoMin').val($(this).data('min_purchase'));
       $('#editPromoMax').val($(this).data('max_uses'));
       $('#editPromoFrom').val($(this).data('valid_from'));
       $('#editPromoUntil').val($(this).data('valid_until'));
       $('#editPromoActive').prop('checked', $(this).data('is_active') == 1);
-      $('#editPromoForm').attr('action', '/manager/promo/' + id);
       $('#editPromoModal').modal('show');
     });
 
-    // 8. Edit Complaint
-    $('.btn-edit-complaint').on('click', function() {
-      var id = $(this).data('id');
-      $('#complaintTitleLabel').text('Judul: ' + $(this).data('title'));
-      $('#editCompStatus').val($(this).data('status'));
-      $('#editCompResolution').val($(this).data('resolution'));
-      $('#editComplaintForm').attr('action', '/manager/complaints/' + id);
-      $('#editComplaintModal').modal('show');
-    });
-
-    // 10. Edit Vendor
+    // 3. Edit Vendor Modal
     $('.btn-edit-vendor').on('click', function() {
-      var id = $(this).data('id');
-      $('#editVenName').val($(this).data('name'));
-      $('#editVenCategory').val($(this).data('category'));
-      $('#editVenPhone').val($(this).data('phone'));
-      $('#editVenEmail').val($(this).data('email'));
-      $('#editVenAddress').val($(this).data('address'));
-      $('#editVenNotes').val($(this).data('notes'));
+      const id = $(this).data('id');
       $('#editVendorForm').attr('action', '/manager/vendors/' + id);
+      $('#editVendorName').val($(this).data('name'));
+      $('#editVendorCategory').val($(this).data('category'));
+      $('#editVendorPhone').val($(this).data('phone'));
+      $('#editVendorEmail').val($(this).data('email'));
+      $('#editVendorAddress').val($(this).data('address'));
+      $('#editVendorNotes').val($(this).data('notes'));
       $('#editVendorModal').modal('show');
     });
-
-    // Aktifkan tab-pane berdasarkan parameter URL query ?tab=...
-    var activeTab = "{{ $activeTab }}";
-    $('.tab-pane').removeClass('show active');
-    if (activeTab === 'class') $('#class-sec').addClass('show active');
-    else if (activeTab === 'maintenance') $('#maintenance-sec').addClass('show active');
-    else if (activeTab === 'shift') $('#shift-sec').addClass('show active');
-    else if (activeTab === 'approval') $('#approval-sec').addClass('show active');
-    else if (activeTab === 'promo') $('#promo-sec').addClass('show active');
-    else if (activeTab === 'performance') $('#performance-sec').addClass('show active');
-    else if (activeTab === 'report') $('#report-sec').addClass('show active');
-    else if (activeTab === 'stock') $('#stock-sec').addClass('show active');
-    else if (activeTab === 'complaints') $('#complaints-sec').addClass('show active');
-    else if (activeTab === 'vendors') $('#vendors-sec').addClass('show active');
   });
 </script>
-@endsection
+@endpush

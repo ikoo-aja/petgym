@@ -13,15 +13,6 @@
     <button class="btn btn-primary btn-sm px-3" data-toggle="modal" data-target="#createPlanModal">+ Buat Paket Baru</button>
   </div>
 
-  @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-      <strong>Sukses!</strong> {{ session('success') }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-  @endif
-
   <div class="row">
     @php
       $masterFeatures = [
@@ -262,10 +253,10 @@
       .then(data => {
         if (data.status === 'success') {
           if (data.new_status === 'active') {
-            badge.removeClass('badge-secondary').addClass('badge-success').text('Active');
+            badge.removeClass('badge-secondary').addClass('badge-success').text('Aktif');
             showToast('Paket Diaktifkan', `Status paket "${planName}" berhasil diaktifkan di database.`, 'success');
           } else {
-            badge.removeClass('badge-success').addClass('badge-secondary').text('Archived');
+            badge.removeClass('badge-success').addClass('badge-secondary').text('Diarsipkan');
             showToast('Paket Diarsipkan', `Status paket "${planName}" diarsipkan di database.`, 'warning');
           }
         }

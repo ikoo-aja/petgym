@@ -198,6 +198,18 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
+            // Akun Supervisor (Pengawas Lapangan & Kasir)
+            $spvUser = User::updateOrCreate(
+                ['email' => 'supervisor@fitlife.com'],
+                [
+                    'name' => 'Slamet Supervisor',
+                    'password' => Hash::make('1234'),
+                    'role' => 'supervisor',
+                    'tenant_id' => $fitlife->id,
+                    'email_verified_at' => now(),
+                ]
+            );
+
             $recUser = User::updateOrCreate(
                 ['email' => 'resepsionis@fitlife.com'],
                 [

@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard Admin — PetGym')
 @section('page_title', 'Dashboard Website & Pengelolaan')
-@section('page_subtitle', 'Pantau performa website gym, status masa sewa SaaS, pesan prospek, dan kendali cepat landing page')
+@section('page_subtitle', 'Pantau performa website gym, status masa sewa SaaS, dan pengumuman dari Superadmin')
 
 @section('content')
 <div class="container-fluid py-4">
@@ -142,179 +142,33 @@
         </div>
     </div>
 
-    <!-- 2. KONTEN UTAMA: 2 BAGIAN SEIMBANG -->
+    <!-- 2. PENGUMUMAN & NOTIFIKASI SUPERADMIN (FULL WIDTH HORIZONTAL) -->
     <div class="row">
-        
-        <!-- ========================================== -->
-        <!-- SISI KIRI: KENDALI CEPAT WEBSITE & PESAN MASUK -->
-        <!-- ========================================== -->
-        <div class="col-lg-6 mb-4 mb-lg-0">
-            
-            <!-- Card Akses Cepat Pengelolaan Halaman -->
-            <div class="card border-0 shadow-sm mb-4 bg-white" style="border-radius: 14px;">
-                <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="font-weight-bold text-dark mb-0">Akses Cepat Pengelolaan Website</h6>
-                        <small class="text-muted">Kendali ringkas pembaruan konten dan tampilan website publik</small>
-                    </div>
-                    <a href="{{ $landingUrl }}" target="_blank" class="btn btn-sm btn-outline-primary font-weight-bold px-3" style="border-radius: 8px;">
-                        <i class="icon-external-link mr-1"></i> Buka Website
-                    </a>
-                </div>
-                <div class="card-body p-4">
-                    
-                    <!-- Indikator Kelengkapan Data Web -->
-                    <div class="p-3 bg-light rounded border mb-4" style="border-radius: 10px;">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="font-weight-bold text-dark small">Kelengkapan Konten Website</span>
-                            <span class="badge {{ $completenessPercent >= 80 ? 'badge-success' : 'badge-primary' }} font-weight-bold px-2 py-1" style="border-radius: 6px;">
-                                {{ $completenessPercent }}% Lengkap
-                            </span>
-                        </div>
-                        <div class="progress mb-2" style="height: 8px; border-radius: 4px; background-color: #e2e8f0;">
-                            <div class="progress-bar {{ $completenessPercent >= 80 ? 'bg-success' : 'bg-primary' }}" role="progressbar" style="width: {{ $completenessPercent }}%;"></div>
-                        </div>
-                        <small class="text-muted d-block" style="font-size: 11.5px;">
-                            <i class="icon-info mr-1 text-primary"></i> Lengkapi logo, profil, alamat, dan kontak agar calon member lebih percaya.
-                        </small>
-                    </div>
-
-                    <!-- Tombol Pintas Pengelolaan Bagian -->
-                    <label class="font-weight-bold text-dark small mb-2 d-block text-uppercase text-muted" style="letter-spacing: 0.5px; font-size: 11px;">
-                        Pintas Pengaturan Konten
-                    </label>
-                    <div class="row" style="gap: 10px 0;">
-                        <div class="col-sm-6 mb-2">
-                            <a href="{{ route('admin.landing.edit') }}#section-hero" class="btn btn-light border btn-block text-left py-2 px-3 d-flex align-items-center justify-content-between shadow-none hover-shadow" style="border-radius: 8px;">
-                                <div class="d-flex align-items-center">
-                                    <span class="icon-image text-primary mr-2" style="font-size: 16px;"></span>
-                                    <span class="font-weight-bold text-dark small">Edit Banner Utama</span>
-                                </div>
-                                <i class="icon-chevron-right text-muted small"></i>
-                            </a>
-                        </div>
-                        <div class="col-sm-6 mb-2">
-                            <a href="{{ route('admin.landing.edit') }}#section-contact" class="btn btn-light border btn-block text-left py-2 px-3 d-flex align-items-center justify-content-between shadow-none hover-shadow" style="border-radius: 8px;">
-                                <div class="d-flex align-items-center">
-                                    <span class="icon-phone text-primary mr-2" style="font-size: 16px;"></span>
-                                    <span class="font-weight-bold text-dark small">Ubah Kontak & Alamat</span>
-                                </div>
-                                <i class="icon-chevron-right text-muted small"></i>
-                            </a>
-                        </div>
-                        <div class="col-sm-6 mb-2">
-                            <a href="{{ route('admin.landing.edit') }}#section-visibility" class="btn btn-light border btn-block text-left py-2 px-3 d-flex align-items-center justify-content-between shadow-none hover-shadow" style="border-radius: 8px;">
-                                <div class="d-flex align-items-center">
-                                    <span class="icon-sliders text-primary mr-2" style="font-size: 16px;"></span>
-                                    <span class="font-weight-bold text-dark small">Atur Tampilan Section</span>
-                                </div>
-                                <i class="icon-chevron-right text-muted small"></i>
-                            </a>
-                        </div>
-                        <div class="col-sm-6 mb-2">
-                            <a href="{{ route('admin.landing.edit') }}#gym-identity" class="btn btn-light border btn-block text-left py-2 px-3 d-flex align-items-center justify-content-between shadow-none hover-shadow" style="border-radius: 8px;">
-                                <div class="d-flex align-items-center">
-                                    <span class="icon-tag text-primary mr-2" style="font-size: 16px;"></span>
-                                    <span class="font-weight-bold text-dark small">Logo & Identitas Gym</span>
-                                </div>
-                                <i class="icon-chevron-right text-muted small"></i>
-                            </a>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Card Pesan Masuk Terbaru (Form Kontak Landing Page) -->
+        <div class="col-12">
             <div class="card border-0 shadow-sm bg-white" style="border-radius: 14px;">
-                <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="font-weight-bold text-dark mb-0">Pesan Masuk Terbaru</h6>
-                        <small class="text-muted">Daftar calon klien dari formulir kontak website</small>
-                    </div>
-                    <span class="badge badge-light border text-muted font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 11px;">
-                        {{ count($recentLeads) }} Kontak Terkini
-                    </span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="px-4 py-3 text-dark font-weight-bold small">Nama Pengirim</th>
-                                    <th class="py-3 text-dark font-weight-bold small">Kontak</th>
-                                    <th class="py-3 text-dark font-weight-bold small">Pesan / Catatan</th>
-                                    <th class="px-4 py-3 text-right text-dark font-weight-bold small">Waktu</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentLeads as $lead)
-                                    <tr>
-                                        <td class="px-4 font-weight-bold text-dark small">
-                                            {{ $lead->name }}
-                                            @if(!$lead->converted_to_member_id)
-                                                <span class="badge badge-warning text-dark ml-1 font-weight-bold" style="font-size: 10px; border-radius: 4px;">Baru</span>
-                                            @else
-                                                <span class="badge badge-success ml-1 font-weight-bold" style="font-size: 10px; border-radius: 4px;">Member</span>
-                                            @endif
-                                        </td>
-                                        <td class="small text-muted">
-                                            <div><i class="icon-phone mr-1 text-primary"></i> {{ $lead->phone ?: '-' }}</div>
-                                            @if($lead->email)
-                                                <div style="font-size: 11px;"><i class="icon-mail mr-1"></i> {{ $lead->email }}</div>
-                                            @endif
-                                        </td>
-                                        <td class="small text-muted" style="max-width: 200px;">
-                                            <span class="d-inline-block text-truncate" style="max-width: 190px;">
-                                                {{ $lead->notes ?: 'Ingin informasi keanggotaan gym.' }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 text-right small text-muted">
-                                            {{ $lead->created_at ? $lead->created_at->diffForHumans() : '-' }}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted small">
-                                            <span class="icon-inbox h4 d-block mb-1 text-muted"></span>
-                                            Belum ada pesan masuk baru dari formulir kontak website.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ========================================== -->
-        <!-- SISI KANAN: HUBUNGAN SUPERADMIN & RIWAYAT -->
-        <!-- ========================================== -->
-        <div class="col-lg-6">
-            
-            <!-- Card Pengumuman Superadmin -->
-            <div class="card border-0 shadow-sm mb-4 bg-white" style="border-radius: 14px;">
                 <div class="card-header bg-white border-bottom pt-4 px-4 pb-3">
                     <h6 class="font-weight-bold text-dark mb-0">Pengumuman &amp; Notifikasi Superadmin</h6>
                     <small class="text-muted">Pemberitahuan resmi jadwal pemeliharaan dan pembaruan sistem</small>
                 </div>
                 <div class="card-body p-4">
                     @if(count($announcements) > 0)
-                        @foreach($announcements as $anc)
-                            <div class="p-3 mb-3 border-left border-primary bg-light rounded" style="border-left-width: 4px !important; border-radius: 8px;">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="font-weight-bold text-dark" style="font-size: 13.5px;">{{ $anc->title }}</span>
-                                    <small class="text-muted font-weight-bold" style="font-size: 11px;">
-                                        {{ $anc->created_at ? $anc->created_at->format('d M Y') : '' }}
-                                    </small>
+                        <div class="row">
+                            @foreach($announcements as $anc)
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="p-3 border-left border-primary bg-light rounded h-100" style="border-left-width: 4px !important; border-radius: 8px;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="font-weight-bold text-dark" style="font-size: 13.5px;">{{ $anc->title }}</span>
+                                            <small class="text-muted font-weight-bold" style="font-size: 11px;">
+                                                {{ $anc->created_at ? $anc->created_at->format('d M Y') : '' }}
+                                            </small>
+                                        </div>
+                                        <div class="text-muted small" style="line-height: 1.5;">
+                                            {!! $anc->message !!}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="text-muted small" style="line-height: 1.5;">
-                                    {!! $anc->message !!}
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     @else
                         <div class="text-center py-4 text-muted small">
                             <span class="icon-bell-off h4 d-block mb-1 text-muted"></span>
@@ -323,64 +177,8 @@
                     @endif
                 </div>
             </div>
-
-            <!-- Card Aktivitas Pengelolaan Terakhir -->
-            <div class="card border-0 shadow-sm bg-white" style="border-radius: 14px;">
-                <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="font-weight-bold text-dark mb-0">Aktivitas Pengelolaan Terakhir</h6>
-                        <small class="text-muted">Catatan audit log perubahan website dan pengaturan sistem</small>
-                    </div>
-                    <a href="{{ route('admin.logs.index') }}" class="btn btn-sm btn-link text-primary font-weight-bold p-0 text-decoration-none">
-                        Lihat Semua &rarr;
-                    </a>
-                </div>
-                <div class="card-body p-4">
-                    @if(count($recentActivities) > 0)
-                        <div class="timeline-activity">
-                            @foreach($recentActivities as $act)
-                                <div class="d-flex align-items-start pb-3 mb-3 border-bottom" style="gap: 12px;">
-                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary font-weight-bold" style="width: 36px; height: 36px; min-width: 36px; font-size: 13px;">
-                                        <i class="icon-activity"></i>
-                                    </div>
-                                    <div class="w-100">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="font-weight-bold text-dark small">{{ $act->action }}</span>
-                                            <small class="text-muted" style="font-size: 11px;">
-                                                {{ $act->created_at ? $act->created_at->diffForHumans() : '-' }}
-                                            </small>
-                                        </div>
-                                        <div class="text-muted small mt-1" style="font-size: 12px;">
-                                            {{ $act->description }}
-                                        </div>
-                                        <div class="text-muted small mt-1" style="font-size: 11px;">
-                                            <i class="icon-user mr-1 text-primary"></i> Oleh: <strong>{{ $act->user->name ?? 'Admin' }}</strong>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-4 text-muted small">
-                            <span class="icon-history h4 d-block mb-1 text-muted"></span>
-                            Belum ada riwayat aktivitas pengelolaan terbaru.
-                        </div>
-                    @endif
-                </div>
-            </div>
-
         </div>
-
     </div>
 
 </div>
-
-<style>
-    .hover-shadow:hover {
-        background-color: #f8fafc !important;
-        border-color: #cbd5e1 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
-    }
-</style>
 @endsection
-

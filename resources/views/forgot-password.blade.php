@@ -2,7 +2,7 @@
 <html lang="id">
 
 <head>
-  <title>Lupa Password — Pet Gym Management System</title>
+  <title>Lupa Kata Sandi — Sistem Manajemen PetGym</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -44,9 +44,9 @@
 
         <div class="row justify-content-center text-center mb-4" data-aos="fade-up">
           <div class="col-md-8 section-heading mb-2">
-            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Pet Gym Platform</span>
-            <h2 class="heading mb-2 text-dark font-weight-bold">Lupa Password?</h2>
-            <p class="text-muted">Masukkan email akun Anda, kami akan mengirimkan link untuk mengatur ulang password.</p>
+            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform PetGym</span>
+            <h2 class="heading mb-2 text-dark font-weight-bold">Lupa Kata Sandi?</h2>
+            <p class="text-muted">Masukkan email akun Anda, kami akan mengirimkan tautan untuk mengatur ulang kata sandi.</p>
           </div>
         </div>
 
@@ -70,18 +70,18 @@
               @endif
 
               <div class="form-group mb-3">
-                <label for="email" class="text-dark font-weight-bold small">Email Address *</label>
-                <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control form-control-lg" placeholder="Enter your email" required autofocus style="font-size: 15px;">
+                <label for="email" class="text-dark font-weight-bold small">Alamat Email *</label>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control form-control-lg" placeholder="Masukkan alamat email Anda" required autofocus style="font-size: 15px;">
               </div>
 
               <div class="form-group mb-3">
                 <button type="submit" class="btn btn-primary py-3 px-5 btn-block font-weight-bold shadow-sm" style="border-radius: 30px; font-size: 16px;">
-                  Kirim Link Reset Password
+                  Kirim Tautan Atur Ulang Kata Sandi
                 </button>
               </div>
 
               <div class="text-center mt-4 pt-2 border-top">
-                <a href="{{ route('login') }}" class="text-primary small font-weight-bold">← Kembali ke Halaman Login</a>
+                <a href="{{ route('login') }}" class="text-primary small font-weight-bold">← Kembali ke Halaman Masuk</a>
               </div>
             </form>
           </div>
@@ -96,7 +96,7 @@
         <h3 class="text-white mb-2">Pet Gym SaaS Management</h3>
         <p class="text-white-50 mb-3 small">Platform terpadu kendali operasional, presensi member, POS kasir, dan manajemen kelas gym Anda.</p>
         <p class="mb-0 text-white-50 small">
-          Copyright &copy; <script>document.write(new Date().getFullYear());</script> All rights reserved | Pet Gym Management System
+          Hak Cipta &copy; <script>document.write(new Date().getFullYear());</script> Hak cipta dilindungi undang-undang | Sistem Manajemen PetGym
         </p>
       </div>
     </footer>

@@ -98,22 +98,25 @@
 
   <!-- Right Side: Order Summary & Checkout -->
   <div class="col-md-5">
-    <form action="{{ route('admin.pos.checkout') }}" method="POST" class="card-custom">
+    <form action="{{ route('receptionist.pos.checkout') }}" method="POST" class="card-custom">
       @csrf
       <h6 class="font-weight-bold text-dark mb-3">Keranjang Transaksi</h6>
 
-      <div class="form-group mb-3">
-        <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Member (Opsional jika retail)</label>
-        <select name="member_id" class="form-control" style="border-radius: 8px;">
-          <option value="">-- Non-Member / Pembeli Umum --</option>
-          @foreach($members as $m)
-            @php
-              $expiredAt = $m->expired_at ? \Carbon\Carbon::parse($m->expired_at) : null;
-              $memberStatus = !$expiredAt ? 'Belum Aktif' : ($expiredAt->isPast() ? 'Expired' : 'Aktif');
-            @endphp
-            <option value="{{ $m->id }}">{{ $m->name }} (PIN: {{ \App\Helpers\PrivacyHelper::maskCode($m->access_code) }}) — {{ $memberStatus }}</option>
-          @endforeach
-        </select>
+      <div class="form-group mb-3 position-relative" id="posMemberSearchWrapper">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label class="font-weight-bold text-dark mb-0" style="font-size: 13px;">Pilih Member (Perpanjangan / Ritel)</label>
+          <a href="{{ route('manager.members.index') }}" class="text-primary font-weight-bold" style="font-size: 12px;">+ Member Baru</a>
+        </div>
+        <input type="hidden" name="member_id" id="posSelectedMemberId" value="">
+        <div class="input-group">
+          <input type="text" id="posMemberSearchInput" class="form-control" placeholder="Ketik nama atau no. HP member..." autocomplete="off" style="border-radius: 8px;">
+          <div class="input-group-append" id="posClearMemberBtnGroup" style="display: none;">
+            <button class="btn btn-outline-secondary font-weight-bold" type="button" id="posBtnClearMember" title="Hapus Pilihan">&times;</button>
+          </div>
+        </div>
+        <div id="posMemberSearchResults" class="list-group shadow position-absolute w-100 mt-1" style="display: none; max-height: 220px; overflow-y: auto; z-index: 1050; border-radius: 8px; left: 0;">
+        </div>
+        <small class="text-muted d-block mt-1" id="posMemberSearchHelp">Ketik nama atau nomor HP member untuk mencari.</small>
       </div>
 
       <!-- Items List -->
@@ -285,13 +288,96 @@
     $('#durationMonthsInput').val(maxMonths);
   }
 
-  @if(session('print_transaction_id'))
-    $(document).ready(function() {
-      openInvoiceReceiptModal({{ session('print_transaction_id') }});
-    });
-  @endif
+  // List Member untuk Pencarian Autocomplete POS
+  var posMemberList = [
+    @foreach($members as $m)
+      @php
+        $expiredAt = $m->expired_at ? \Carbon\Carbon::parse($m->expired_at) : null;
+        $memberStatus = !$expiredAt ? 'Belum Aktif' : ($expiredAt->isPast() ? 'Expired' : 'Aktif');
+        $statusBadgeClass = !$expiredAt ? 'badge-secondary' : ($expiredAt->isPast() ? 'badge-danger' : 'badge-success');
+      @endphp
+      {
+        id: {{ $m->id }},
+        name: "{{ addslashes($m->name) }}",
+        phone: "{{ $m->phone ?? '' }}",
+        status: "{{ $memberStatus }}",
+        statusBadge: "{{ $statusBadgeClass }}"
+      },
+    @endforeach
+  ];
 
   $(document).ready(function() {
+    var $searchInput = $('#posMemberSearchInput');
+    var $resultsContainer = $('#posMemberSearchResults');
+    var $selectedId = $('#posSelectedMemberId');
+    var $clearBtnGroup = $('#posClearMemberBtnGroup');
+
+    function renderPosSearchResults(query) {
+      $resultsContainer.empty();
+      query = (query || '').trim().toLowerCase();
+
+      var matches = posMemberList.filter(function(item) {
+        if (!query) return true;
+        var nameMatch = item.name.toLowerCase().indexOf(query) !== -1;
+        var phoneMatch = item.phone.toLowerCase().indexOf(query) !== -1;
+        return nameMatch || phoneMatch;
+      });
+
+      // Opsi Non-Member / Pembeli Umum
+      var generalItem = $('<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">')
+        .html('<div><strong class="text-dark">Pembeli Umum / Non-Member</strong></div><span class="badge badge-light border">Umum</span>')
+        .on('click', function(e) {
+          e.preventDefault();
+          $selectedId.val('');
+          $searchInput.val('Pembeli Umum / Non-Member').prop('readonly', true);
+          $clearBtnGroup.show();
+          $resultsContainer.hide();
+        });
+      $resultsContainer.append(generalItem);
+
+      if (matches.length > 0) {
+        $.each(matches.slice(0, 15), function(i, item) {
+          var itemEl = $('<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">')
+            .html('<div><strong class="text-dark">' + item.name + '</strong></div><span class="badge ' + item.statusBadge + '">' + item.status + '</span>')
+            .on('click', function(e) {
+              e.preventDefault();
+              $selectedId.val(item.id);
+              $searchInput.val(item.name + ' — ' + item.status).prop('readonly', true);
+              $clearBtnGroup.show();
+              $resultsContainer.hide();
+            });
+          $resultsContainer.append(itemEl);
+        });
+      } else {
+        $resultsContainer.append('<div class="list-group-item text-muted py-2 text-center" style="font-size: 13px;">Member tidak ditemukan</div>');
+      }
+
+      $resultsContainer.show();
+    }
+
+    $searchInput.on('focus input', function() {
+      if (!$searchInput.prop('readonly')) {
+        renderPosSearchResults($(this).val());
+      }
+    });
+
+    $('#posBtnClearMember').on('click', function() {
+      $selectedId.val('');
+      $searchInput.val('').prop('readonly', false).focus();
+      $clearBtnGroup.hide();
+      renderPosSearchResults('');
+    });
+
+    $(document).on('click', function(e) {
+      if (!$(e.target).closest('#posMemberSearchWrapper').length) {
+        $resultsContainer.hide();
+      }
+    });
+
+    @if(session('print_transaction_id'))
+      openInvoiceReceiptModal({{ session('print_transaction_id') }});
+    @endif
+
     $('.btn-edit-prod').on('click', function(e) {
       e.stopPropagation();
       var id = $(this).data('id');
@@ -299,7 +385,7 @@
       $('#editProdCategory').val($(this).data('category'));
       $('#editProdPrice').val($(this).data('price'));
       $('#editProdStock').val($(this).data('stock'));
-      $('#editProdForm').attr('action', '/admin/products/' + id);
+      $('#editProdForm').attr('action', '/receptionist/products/' + id);
       $('#editProductModal').modal('show');
     });
   });
@@ -308,7 +394,7 @@
 <!-- Modal Tambah Produk -->
 <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document">
-    <form action="{{ route('admin.products.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
+    <form action="{{ route('receptionist.products.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
       @csrf
       <div class="modal-header">
         <h5 class="modal-title font-weight-bold">Form Tambah Produk Inventaris</h5>
@@ -351,7 +437,7 @@
       @csrf
       @method('PUT')
       <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Edit Produk Inventaris</h5>
+        <h5 class="modal-title font-weight-bold">Ubah Produk Inventaris</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">

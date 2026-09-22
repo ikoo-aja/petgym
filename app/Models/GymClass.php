@@ -30,4 +30,22 @@ class GymClass extends Model
     {
         return $this->belongsTo(Trainer::class);
     }
+
+    public function classRsvps()
+    {
+        return $this->hasMany(ClassRsvp::class);
+    }
+
+    public function getTimeAttribute()
+    {
+        if ($this->start_time && $this->end_time) {
+            return substr($this->start_time, 0, 5) . ' - ' . substr($this->end_time, 0, 5);
+        }
+        return substr($this->start_time, 0, 5) ?: '-';
+    }
+
+    public function getCapacityAttribute()
+    {
+        return $this->max_capacity ?? 20;
+    }
 }

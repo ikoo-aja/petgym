@@ -2,6 +2,7 @@
   $pgFlashSuccess = session('success');
   $pgFlashError = session('error');
   $pgFlashWarning = session('warning');
+  $pgFlashInfo = session('info');
 @endphp
 
 <div id="pg-toast-container" aria-live="polite" aria-atomic="true"></div>
@@ -174,6 +175,14 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     pgShowToast('Perhatian', @json($pgFlashWarning), 'warning');
+  });
+</script>
+@endif
+
+@if($pgFlashInfo)
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    pgShowToast('Informasi', @json($pgFlashInfo), 'info');
   });
 </script>
 @endif

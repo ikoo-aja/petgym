@@ -77,20 +77,7 @@
         </div>
     </div>
 
-    <!-- Alert Flash Notifications -->
-    @if(session('success'))
-        <div class="alert alert-success border-0 shadow-sm p-3 mb-4 rounded-lg d-flex align-items-center" style="border-radius: 12px; background-color: #d1e7dd; color: #0f5132;">
-            <span class="icon-check-circle h4 mb-0 mr-3"></span>
-            <div>{{ session('success') }}</div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger border-0 shadow-sm p-3 mb-4 rounded-lg d-flex align-items-center" style="border-radius: 12px;">
-            <span class="icon-alert-triangle h4 mb-0 mr-3"></span>
-            <div>{{ session('error') }}</div>
-        </div>
-    @endif
+    <!-- Form Validation Errors (if any) -->
 
     @if($errors->any())
         <div class="alert alert-danger border-0 shadow-sm p-3 mb-4 rounded-lg" style="border-radius: 12px;">

@@ -1,115 +1,138 @@
 @extends('layouts.layout')
 
-@section('title', 'Dashboard Trainer')
-@section('page_title', 'Dashboard Personal Trainer')
-@section('page_subtitle', 'Jadwal booking sesi PT member dan daftar peserta kelas kebugaran Anda.')
+@section('title', 'Beranda Pelatih &mdash; PetGym')
+@section('page_title', 'Beranda Personal Trainer')
+@section('page_subtitle', 'Ringkasan jadwal sesi latihan privat, penugasan kelas, dan absensi peserta')
 
 @section('content')
+<!-- Ringkasan Statistik Trainer -->
 <div class="row mb-4">
-  <!-- Trainer Profile Summary Card -->
-  <div class="col-md-4 mb-4 mb-md-0">
-    <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Profil Personal Trainer</h6>
-      <div class="p-3 bg-light rounded mb-3 text-center">
-        <div class="font-weight-bold text-dark" style="font-size: 17px;">{{ $user->name }}</div>
-        <small class="text-muted d-block mb-2">{{ $user->email }}</small>
-        <span class="badge badge-success px-3 py-1 font-weight-bold">Status: Trainer Aktif</span>
+  <div class="col-md-3 mb-3 mb-md-0">
+    <div class="card-custom bg-white border-0 shadow-sm p-3 d-flex align-items-center" style="border-radius: 12px;">
+      <div class="mr-3 d-flex align-items-center justify-content-center bg-primary text-white rounded-circle" style="width: 48px; height: 48px; font-size: 20px;">
+        <span class="icon-person"></span>
       </div>
-
-      <div style="font-size: 13px;">
-        <div class="mb-2">
-          <span class="text-muted d-block font-weight-bold" style="font-size: 11px; text-transform: uppercase;">Spesialisasi:</span>
-          <span class="font-weight-bold text-dark">{{ $trainerProfile->specialization ?? 'Fitness Coach' }}</span>
-        </div>
-        <div class="mb-2">
-          <span class="text-muted d-block font-weight-bold" style="font-size: 11px; text-transform: uppercase;">Total Booking Sesi PT:</span>
-          <span class="font-weight-bold text-primary">{{ count($myPtBookings) }} Sesi Terjadwal</span>
-        </div>
-        <div>
-          <span class="text-muted d-block font-weight-bold" style="font-size: 11px; text-transform: uppercase;">Total RSVP Kelas:</span>
-          <span class="font-weight-bold text-success">{{ count($myClassRsvps) }} Peserta Terdaftar</span>
-        </div>
+      <div>
+        <small class="text-muted text-uppercase font-weight-bold" style="font-size: 11px;">Sesi PT Aktif</small>
+        <h4 class="font-weight-bold text-dark mb-0">{{ $activePtCount }}</h4>
       </div>
     </div>
   </div>
 
-  <!-- Right Side: Scheduled PT Bookings from Members -->
-  <div class="col-md-8 mb-4">
-    <div class="card-custom h-100">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Booking Sesi PT dari Member</h6>
-        <span class="badge badge-primary font-weight-bold px-3 py-2">{{ count($myPtBookings) }} Sesi</span>
+  <div class="col-md-3 mb-3 mb-md-0">
+    <div class="card-custom bg-white border-0 shadow-sm p-3 d-flex align-items-center" style="border-radius: 12px;">
+      <div class="mr-3 d-flex align-items-center justify-content-center bg-success text-white rounded-circle" style="width: 48px; height: 48px; font-size: 20px;">
+        <span class="icon-check"></span>
       </div>
+      <div>
+        <small class="text-muted text-uppercase font-weight-bold" style="font-size: 11px;">Sesi PT Selesai</small>
+        <h4 class="font-weight-bold text-dark mb-0">{{ $completedPtCount }}</h4>
+      </div>
+    </div>
+  </div>
 
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-            <tr>
-              <th>Member</th>
-              <th>Kontak</th>
-              <th>Tanggal Booking</th>
-              <th>Jam Sesi</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($myPtBookings as $b)
-              <tr>
-                <td class="font-weight-bold text-dark">{{ $b->member ? $b->member->name : '-' }}</td>
-                <td style="font-size: 13px;">{{ $b->member ? $b->member->phone : '-' }}</td>
-                <td style="font-size: 13px;" class="text-dark">{{ \Carbon\Carbon::parse($b->booking_date)->format('d M Y') }}</td>
-                <td class="font-weight-bold text-primary">{{ $b->booking_time }}</td>
-                <td>
-                  @if($b->status == 'scheduled')
-                    <span class="badge badge-success">Terjadwal</span>
-                  @elseif($b->status == 'completed')
-                    <span class="badge badge-secondary">Selesai</span>
-                  @else
-                    <span class="badge badge-danger">Batal</span>
-                  @endif
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="5" class="text-center py-4 text-muted small">Belum ada booking sesi PT dari member.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+  <div class="col-md-3 mb-3 mb-md-0">
+    <div class="card-custom bg-white border-0 shadow-sm p-3 d-flex align-items-center" style="border-radius: 12px;">
+      <div class="mr-3 d-flex align-items-center justify-content-center bg-info text-white rounded-circle" style="width: 48px; height: 48px; font-size: 20px;">
+        <span class="icon-calendar"></span>
+      </div>
+      <div>
+        <small class="text-muted text-uppercase font-weight-bold" style="font-size: 11px;">Kelas Mengajar</small>
+        <h4 class="font-weight-bold text-dark mb-0">{{ count($myClasses) }}</h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3 mb-md-0">
+    <div class="card-custom bg-white border-0 shadow-sm p-3 d-flex align-items-center" style="border-radius: 12px;">
+      <div class="mr-3 d-flex align-items-center justify-content-center bg-warning text-dark rounded-circle" style="width: 48px; height: 48px; font-size: 20px;">
+        <span class="icon-people"></span>
+      </div>
+      <div>
+        <small class="text-muted text-uppercase font-weight-bold" style="font-size: 11px;">Total RSVP Peserta</small>
+        <h4 class="font-weight-bold text-dark mb-0">{{ count($myClassRsvps) }}</h4>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Menu Navigasi Cepat -->
+<div class="row mb-4">
+  <div class="col-md-4 mb-3 mb-md-0">
+    <a href="{{ route('trainer.pt-sessions') }}" class="card-custom d-flex flex-column justify-content-center align-items-center text-center text-decoration-none h-100 bg-primary text-white py-4" style="border-radius: 12px; transition: transform 0.2s ease;">
+      <span class="icon-person mb-2" style="font-size: 28px;"></span>
+      <h6 class="font-weight-bold text-white mb-1">Booking Sesi PT</h6>
+      <small class="text-white-50">Kelola jadwal privat member</small>
+    </a>
+  </div>
+  <div class="col-md-4 mb-3 mb-md-0">
+    <a href="{{ route('trainer.classes') }}" class="card-custom d-flex flex-column justify-content-center align-items-center text-center text-decoration-none h-100 bg-info text-white py-4" style="border-radius: 12px; transition: transform 0.2s ease;">
+      <span class="icon-calendar mb-2" style="font-size: 28px;"></span>
+      <h6 class="font-weight-bold text-white mb-1">Penugasan Kelas</h6>
+      <small class="text-white-50">Jadwal mengajar mingguan</small>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ route('trainer.rsvps') }}" class="card-custom d-flex flex-column justify-content-center align-items-center text-center text-decoration-none h-100 bg-secondary text-white py-4" style="border-radius: 12px; transition: transform 0.2s ease;">
+      <span class="icon-people mb-2" style="font-size: 28px;"></span>
+      <h6 class="font-weight-bold text-white mb-1">Peserta RSVP Kelas</h6>
+      <small class="text-white-50">Presensi & kehadiran kelas</small>
+    </a>
+  </div>
+</div>
+
+<!-- Agenda Hari Ini -->
 <div class="row">
-  <!-- My Gym Classes & Enrolled RSVPs -->
+  <!-- Sesi Latihan PT Hari Ini -->
   <div class="col-md-6 mb-4">
     <div class="card-custom h-100">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Penugasan Kelas Mengajar</h6>
-        <span class="badge badge-info font-weight-bold">{{ count($myClasses) }} Kelas</span>
+        <div>
+          <h6 class="font-weight-bold text-dark mb-0">Sesi Latihan PT Hari Ini</h6>
+          <small class="text-muted">{{ \Carbon\Carbon::today()->format('d M Y') }}</small>
+        </div>
+        <a href="{{ route('trainer.pt-sessions') }}" class="btn btn-xs btn-outline-primary font-weight-bold" style="border-radius: 6px;">Lihat Semua</a>
       </div>
+
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
             <tr>
-              <th>Hari</th>
-              <th>Nama Kelas</th>
+              <th>Member</th>
               <th>Jam</th>
-              <th>Kapasitas</th>
+              <th>Status</th>
+              <th class="text-right">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            @forelse($myClasses as $c)
+            @forelse($todayPtBookings as $b)
               <tr>
-                <td><span class="badge badge-primary">{{ $c->day }}</span></td>
-                <td class="font-weight-bold text-dark">{{ $c->name }}</td>
-                <td style="font-size: 12.5px;">{{ substr($c->start_time, 0, 5) }} - {{ substr($c->end_time, 0, 5) }} WIB</td>
-                <td style="font-size: 12.5px;">{{ $c->max_capacity }} Maks</td>
+                <td class="font-weight-bold text-dark">{{ $b->member ? $b->member->name : '-' }}</td>
+                <td class="font-weight-bold text-primary" style="font-size: 13px;">{{ $b->booking_time }}</td>
+                <td>
+                  @if($b->status === 'scheduled')
+                    <span class="badge badge-success px-2 py-1">Terjadwal</span>
+                  @elseif($b->status === 'completed')
+                    <span class="badge badge-secondary px-2 py-1">Selesai</span>
+                  @else
+                    <span class="badge badge-danger px-2 py-1">Batal</span>
+                  @endif
+                </td>
+                <td class="text-right">
+                  @if($b->status === 'scheduled')
+                    <form action="{{ route('trainer.pt-sessions.status', $b->id) }}" method="POST" class="d-inline" data-confirm="Tandai sesi latihan PT bersama member ini telah selesai?">
+                      @csrf
+                      <input type="hidden" name="status" value="completed">
+                      <button type="submit" class="btn btn-sm btn-outline-success font-weight-bold" style="border-radius: 6px;">Selesai</button>
+                    </form>
+                  @else
+                    <span class="text-muted small">-</span>
+                  @endif
+                </td>
               </tr>
             @empty
               <tr>
-                <td colspan="4" class="text-center py-4 text-muted small">Belum ada kelas gym ditugaskan.</td>
+                <td colspan="4" class="text-center py-4 text-muted small">Tidak ada jadwal sesi latihan PT untuk hari ini.</td>
               </tr>
             @endforelse
           </tbody>
@@ -118,42 +141,43 @@
     </div>
   </div>
 
-  <!-- Member RSVPs List for My Classes -->
+  <!-- Jadwal Kelas Mengajar Hari Ini -->
   <div class="col-md-6 mb-4">
     <div class="card-custom h-100">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Daftar Peserta RSVP Kelas</h6>
-        <span class="badge badge-success font-weight-bold">{{ count($myClassRsvps) }} Peserta</span>
+        <div>
+          <h6 class="font-weight-bold text-dark mb-0">Kelas Mengajar Hari Ini</h6>
+          <small class="text-muted">Hari {{ \Carbon\Carbon::now()->translatedFormat('l') ?? 'Ini' }}</small>
+        </div>
+        <a href="{{ route('trainer.classes') }}" class="btn btn-xs btn-outline-info font-weight-bold" style="border-radius: 6px;">Lihat Jadwal Lengkap</a>
       </div>
+
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
             <tr>
-              <th>Member</th>
               <th>Kelas</th>
-              <th>Tanggal</th>
-              <th>Status</th>
+              <th>Jam</th>
+              <th>Ruangan</th>
+              <th>Peserta RSVP</th>
             </tr>
           </thead>
           <tbody>
-            @forelse($myClassRsvps as $cr)
+            @forelse($todayClasses as $c)
               <tr>
-                <td class="font-weight-bold text-dark">{{ $cr->member ? $cr->member->name : '-' }}</td>
-                <td class="text-dark">{{ $cr->gymClass ? $cr->gymClass->name : '-' }}</td>
-                <td style="font-size: 12.5px;">{{ \Carbon\Carbon::parse($cr->class_date)->format('d M Y') }}</td>
                 <td>
-                  @if($cr->status == 'confirmed')
-                    <span class="badge badge-success">Dikonfirmasi</span>
-                  @elseif($cr->status == 'waitlist')
-                    <span class="badge badge-warning">Waitlist #{{ $cr->queue_position }}</span>
-                  @else
-                    <span class="badge badge-secondary">{{ ucfirst($cr->status) }}</span>
-                  @endif
+                  <div class="font-weight-bold text-dark">{{ $c->name }}</div>
+                  <small class="text-muted">Kapasitas: {{ $c->capacity }} orang</small>
+                </td>
+                <td class="font-weight-bold text-dark" style="font-size: 13px;">{{ $c->time }}</td>
+                <td style="font-size: 13px;">{{ $c->room ?? 'Studio Utama' }}</td>
+                <td>
+                  <span class="badge badge-info px-2 py-1">{{ count($c->classRsvps ?? []) }} Terdaftar</span>
                 </td>
               </tr>
             @empty
               <tr>
-                <td colspan="4" class="text-center py-4 text-muted small">Belum ada peserta terdaftar di kelas Anda.</td>
+                <td colspan="4" class="text-center py-4 text-muted small">Tidak ada jadwal kelas mengajar untuk hari ini.</td>
               </tr>
             @endforelse
           </tbody>

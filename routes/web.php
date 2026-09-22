@@ -6,6 +6,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\TenantLandingController;
+use App\Http\Controllers\SupervisorController;
 
 // Landing Page Publik per-Tenant lewat subdomain (demo: fitlife.localhost, powerhouse.localhost, dll)
 // WAJIB didaftarkan sebelum route '/' utama supaya request subdomain tidak jatuh ke welcome page.
@@ -63,6 +64,11 @@ Route::middleware('auth')->group(function () {
     // Ubah Password Wajib (untuk staf baru)
     Route::get('/change-password', [\App\Http\Controllers\ChangePasswordController::class, 'show'])->name('password.change');
     Route::post('/change-password', [\App\Http\Controllers\ChangePasswordController::class, 'update'])->name('password.change.update');
+
+    // Pengaturan Akun (Profil & Ganti Password)
+    Route::get('/account/settings', [\App\Http\Controllers\AccountSettingController::class, 'index'])->name('account.settings');
+    Route::post('/account/profile', [\App\Http\Controllers\AccountSettingController::class, 'updateProfile'])->name('account.profile.update');
+    Route::post('/account/password', [\App\Http\Controllers\AccountSettingController::class, 'updatePassword'])->name('account.password.update');
 });
 
 // Link verifikasi bertanda tangan (signed URL) — bisa dibuka langsung dari email tanpa login
@@ -71,15 +77,17 @@ Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 've
 use App\Http\Controllers\SuperadminController;
 use App\Http\Controllers\TenantOnboardingController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AdminMemberController;
-use App\Http\Controllers\AdminPosController;
-use App\Http\Controllers\AdminClassController;
-use App\Http\Controllers\AdminLockerController;
-use App\Http\Controllers\AdminCheckInController;
 use App\Http\Controllers\AdminStaffController;
 use App\Http\Controllers\AdminSettingController;
-use App\Http\Controllers\AdminLogController;
-use App\Http\Controllers\AdminReportController;
+use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\ManagerMemberController;
+use App\Http\Controllers\ManagerClassController;
+use App\Http\Controllers\ManagerStaffController;
+use App\Http\Controllers\ReceptionistController;
+use App\Http\Controllers\ReceptionistCheckInController;
+use App\Http\Controllers\ReceptionistPosController;
+use App\Http\Controllers\ReceptionistLockerController;
+use App\Http\Controllers\TrainerController;
 
 // Group Onboarding Setup Website (Khusus Admin yang belum punya website)
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('onboarding')->group(function () {
@@ -116,156 +124,166 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::post('/clear-cache', [SuperadminController::class, 'clearCache'])->name('superadmin.clear-cache');
 });
 
-// Group Admin Tenant (Hanya bisa diakses jika sudah login)
-Route::middleware(['auth', 'verified', 'role:admin,manager,receptionist,trainer'])->prefix('admin')->group(function () {
+// Group Admin Tenant (Hanya fokus pada Pengelolaan Web SaaS & Hubungan Superadmin)
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(function () {
     // 1. Dashboard Admin
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
-    // 2. Member Management
-    Route::get('/members', [AdminMemberController::class, 'index'])->name('admin.members.index');
-    Route::post('/members', [AdminMemberController::class, 'store'])->name('admin.members.store');
-    Route::put('/members/{id}', [AdminMemberController::class, 'update'])->name('admin.members.update');
-    Route::post('/members/{id}/approve', [AdminMemberController::class, 'approve'])->name('admin.members.approve');
-    Route::delete('/members/{id}', [AdminMemberController::class, 'destroy'])->name('admin.members.destroy');
-    Route::get('/members/{id}/history', [AdminMemberController::class, 'history'])->name('admin.members.history');
-
-    // 3. POS Kasir, Struk & Katalog Produk
-    Route::get('/pos', [AdminPosController::class, 'index'])->name('admin.pos.index');
-    Route::post('/pos/checkout', [AdminPosController::class, 'checkout'])->name('admin.pos.checkout');
-    Route::get('/pos/invoice/{id}', [AdminPosController::class, 'invoiceData'])->name('admin.pos.invoice');
-    Route::post('/pos/void/{id}', [AdminPosController::class, 'requestVoid'])->name('admin.pos.void');
-    Route::post('/products', [AdminPosController::class, 'storeProduct'])->name('admin.products.store');
-    Route::put('/products/{id}', [AdminPosController::class, 'updateProduct'])->name('admin.products.update');
-    Route::delete('/products/{id}', [AdminPosController::class, 'destroyProduct'])->name('admin.products.destroy');
-
-    // Master Loker (Khusus Admin)
-    Route::get('/lockers', [AdminLockerController::class, 'index'])->name('admin.lockers.index');
-    Route::post('/lockers', [AdminLockerController::class, 'store'])->name('admin.lockers.store');
-    Route::put('/lockers/{id}', [AdminLockerController::class, 'update'])->name('admin.lockers.update');
-    Route::delete('/lockers/{id}', [AdminLockerController::class, 'destroy'])->name('admin.lockers.destroy');
-
-    // 4. Kelas & Trainer
-    Route::get('/classes', [AdminClassController::class, 'index'])->name('admin.classes.index');
-    Route::post('/classes', [AdminClassController::class, 'storeClass'])->name('admin.classes.store');
-    Route::put('/classes/{id}', [AdminClassController::class, 'updateClass'])->name('admin.classes.update');
-    Route::delete('/classes/{id}', [AdminClassController::class, 'destroyClass'])->name('admin.classes.destroy');
-    Route::post('/trainers', [AdminClassController::class, 'storeTrainer'])->name('admin.classes.store-trainer');
-    Route::put('/trainers/{id}', [AdminClassController::class, 'updateTrainer'])->name('admin.classes.update-trainer');
-    Route::delete('/trainers/{id}', [AdminClassController::class, 'destroyTrainer'])->name('admin.classes.destroy-trainer');
-
-    // 5. Check-In Absensi
-    Route::get('/checkin', [AdminCheckInController::class, 'index'])->name('admin.checkin.index');
-    Route::post('/checkin/process', [AdminCheckInController::class, 'processCheckIn'])->name('admin.checkin.process');
-    Route::post('/checkin/manual', [AdminCheckInController::class, 'manualCheckIn'])->name('admin.checkin.manual');
-    Route::delete('/checkin/{id}', [AdminCheckInController::class, 'destroyCheckIn'])->name('admin.checkin.destroy');
-
-    // 6. Akun Staf (RBAC)
+    // 2. Akun Staf (RBAC - Manager & Owner)
     Route::get('/staff', [AdminStaffController::class, 'index'])->name('admin.staff.index');
     Route::post('/staff', [AdminStaffController::class, 'store'])->name('admin.staff.store');
     Route::post('/staff/{id}/send-verification', [AdminStaffController::class, 'sendVerification'])->name('admin.staff.send-verification');
     Route::delete('/staff/{id}', [AdminStaffController::class, 'destroy'])->name('admin.staff.destroy');
 
-    // 7. Pengaturan Gym
+    // 3. Pengaturan Gym
     Route::get('/settings', [AdminSettingController::class, 'index'])->name('admin.settings.index');
     Route::post('/settings', [AdminSettingController::class, 'update'])->name('admin.settings.update');
 
-    // 8. Audit Trail Log
-    Route::get('/logs', [AdminLogController::class, 'index'])->name('admin.logs.index');
-    Route::delete('/logs/clear', [AdminLogController::class, 'clear'])->name('admin.logs.clear');
-
-    // 9. Ekspor Laporan
-    Route::get('/reports', [AdminReportController::class, 'index'])->name('admin.reports.index');
-    Route::get('/reports/export-members', [AdminReportController::class, 'exportMembers'])->name('admin.reports.export-members');
-    Route::get('/reports/export-checkins', [AdminReportController::class, 'exportCheckIns'])->name('admin.reports.export-checkins');
-    Route::get('/reports/export-transactions', [AdminReportController::class, 'exportTransactions'])->name('admin.reports.export-transactions');
-
-    // 10. Landing Page Publik Tenant (kustomisasi sesuai paket langganan)
+    // 4. Landing Page Publik Tenant (kustomisasi sesuai paket langganan)
     Route::get('/landing', [TenantLandingController::class, 'edit'])->name('admin.landing.edit');
     Route::post('/landing', [TenantLandingController::class, 'update'])->name('admin.landing.update');
 
-    // 11. Pembayaran & Melanjutkan Penyewaan Web ke Superadmin
+    // 5. Pembayaran & Melanjutkan Penyewaan Web ke Superadmin
     Route::get('/subscription', [\App\Http\Controllers\AdminSubscriptionController::class, 'index'])->name('admin.subscription.index');
     Route::post('/subscription/pay', [\App\Http\Controllers\AdminSubscriptionController::class, 'pay'])->name('admin.subscription.pay');
 });
 
-use App\Http\Controllers\ManagerController;
-use App\Http\Controllers\ReceptionistController;
-use App\Http\Controllers\TrainerController;
+// Group Manager Gym & Akses Bersama Staf Operasional
+Route::middleware(['auth', 'verified', 'role:manager,receptionist,trainer'])->prefix('manager')->group(function () {
+    // 1. Member Management (Manager approval, Receptionist registration, Trainer view)
+    Route::get('/members', [ManagerMemberController::class, 'index'])->name('manager.members.index');
+    Route::post('/members', [ManagerMemberController::class, 'store'])->name('manager.members.store');
+    Route::put('/members/{id}', [ManagerMemberController::class, 'update'])->name('manager.members.update');
+    Route::post('/members/{id}/approve', [ManagerMemberController::class, 'approve'])->name('manager.members.approve');
+    Route::delete('/members/{id}', [ManagerMemberController::class, 'destroy'])->name('manager.members.destroy');
+    Route::get('/members/{id}/history', [ManagerMemberController::class, 'history'])->name('manager.members.history');
 
-// Group Manager Gym
+    // 2. Kelas & Trainer (Manager edit, Trainer view)
+    Route::get('/classes', [ManagerClassController::class, 'index'])->name('manager.classes.index');
+    Route::post('/classes', [ManagerClassController::class, 'storeClass'])->name('manager.classes.store');
+    Route::put('/classes/{id}', [ManagerClassController::class, 'updateClass'])->name('manager.classes.update');
+    Route::delete('/classes/{id}', [ManagerClassController::class, 'destroyClass'])->name('manager.classes.destroy');
+    Route::post('/trainers', [ManagerClassController::class, 'storeTrainer'])->name('manager.classes.store-trainer');
+    Route::put('/trainers/{id}', [ManagerClassController::class, 'updateTrainer'])->name('manager.classes.update-trainer');
+    Route::delete('/trainers/{id}', [ManagerClassController::class, 'destroyTrainer'])->name('manager.classes.destroy-trainer');
+});
+
+// Group Manager Khusus (Fitur Manajerial Strategis & Dashboard Manager)
 Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->group(function () {
     Route::get('/dashboard', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
     Route::get('/features', [ManagerController::class, 'features'])->name('manager.features');
 
-    // 1. Equipment & Maintenance CRUD
-    Route::post('/equipment', [ManagerController::class, 'storeEquipment'])->name('manager.equipment.store');
-    Route::put('/equipment/{id}', [ManagerController::class, 'updateEquipment'])->name('manager.equipment.update');
-    Route::delete('/equipment/{id}', [ManagerController::class, 'destroyEquipment'])->name('manager.equipment.destroy');
-    Route::post('/maintenance-log', [ManagerController::class, 'storeMaintenanceLog'])->name('manager.maintenance.store');
-
-    // 2. Staff Shifts & Leaves
-    Route::post('/shifts', [ManagerController::class, 'storeShift'])->name('manager.shifts.store');
-    Route::put('/shifts/{id}', [ManagerController::class, 'updateShift'])->name('manager.shifts.update');
-    Route::delete('/shifts/{id}', [ManagerController::class, 'destroyShift'])->name('manager.shifts.destroy');
-    Route::post('/leave', [ManagerController::class, 'storeLeave'])->name('manager.leave.store');
-    Route::post('/leave/{id}/approve', [ManagerController::class, 'approveLeave'])->name('manager.leave.approve');
-    Route::post('/leave/{id}/reject', [ManagerController::class, 'rejectLeave'])->name('manager.leave.reject');
-
-    // 3. Void Otorisasi
-    Route::post('/void/{id}/approve', [ManagerController::class, 'approveVoid'])->name('manager.void.approve');
-    Route::post('/void/{id}/reject', [ManagerController::class, 'rejectVoid'])->name('manager.void.reject');
-
-    // 4. Promo Codes
+    // Promo & Voucher Diskon
     Route::post('/promo', [ManagerController::class, 'storePromo'])->name('manager.promo.store');
     Route::put('/promo/{id}', [ManagerController::class, 'updatePromo'])->name('manager.promo.update');
     Route::delete('/promo/{id}', [ManagerController::class, 'destroyPromo'])->name('manager.promo.destroy');
 
-    // 8. Complaints Ticketing
-    Route::put('/complaints/{id}', [ManagerController::class, 'updateComplaint'])->name('manager.complaints.update');
+    // Perencanaan Master Kelas
+    Route::post('/master-classes', [ManagerController::class, 'storeMasterClass'])->name('manager.master-classes.store');
+    Route::put('/master-classes/{id}', [ManagerController::class, 'updateMasterClass'])->name('manager.master-classes.update');
+    Route::delete('/master-classes/{id}', [ManagerController::class, 'destroyMasterClass'])->name('manager.master-classes.destroy');
 
-    // 9. Perencanaan Master Kelas
-    Route::post('/classes', [ManagerController::class, 'storeMasterClass'])->name('manager.classes.store');
-    Route::put('/classes/{id}', [ManagerController::class, 'updateMasterClass'])->name('manager.classes.update');
-    Route::delete('/classes/{id}', [ManagerController::class, 'destroyMasterClass'])->name('manager.classes.destroy');
-
-    // 10. Vendors Database
+    // Vendors Database
     Route::post('/vendors', [ManagerController::class, 'storeVendor'])->name('manager.vendors.store');
     Route::put('/vendors/{id}', [ManagerController::class, 'updateVendor'])->name('manager.vendors.update');
     Route::delete('/vendors/{id}', [ManagerController::class, 'destroyVendor'])->name('manager.vendors.destroy');
 
-    // 11. Akun Operasional (PT, Resepsionis, Staf)
-    Route::post('/operational-staff', [ManagerController::class, 'storeOperationalStaff'])->name('manager.staff.store');
+    // Akun Staf Operasional (Supervisor, Resepsionis/Kasir, dan Personal Trainer)
+    Route::get('/staff', [ManagerStaffController::class, 'index'])->name('manager.staff.index');
+    Route::post('/staff', [ManagerStaffController::class, 'store'])->name('manager.staff.store');
+    Route::post('/staff/{id}/send-verification', [ManagerStaffController::class, 'sendVerification'])->name('manager.staff.send-verification');
+    Route::delete('/staff/{id}', [ManagerStaffController::class, 'destroy'])->name('manager.staff.destroy');
 });
 
-// Group Resepsionis / Frontdesk
-Route::middleware(['auth', 'verified', 'role:receptionist'])->prefix('receptionist')->group(function () {
+// Group Supervisor (Pengawas Operasional Lapangan Gym)
+Route::middleware(['auth', 'verified', 'role:supervisor'])->prefix('supervisor')->group(function () {
+    Route::get('/dashboard', [SupervisorController::class, 'dashboard'])->name('supervisor.dashboard');
+    Route::get('/features', [SupervisorController::class, 'features'])->name('supervisor.features');
+
+    // Otorisasi & Void Kasir
+    Route::post('/void/{id}/approve', [SupervisorController::class, 'approveVoid'])->name('supervisor.void.approve');
+    Route::post('/void/{id}/reject', [SupervisorController::class, 'rejectVoid'])->name('supervisor.void.reject');
+
+    // Penjadwalan Shift & Cuti Staf
+    Route::post('/shifts', [SupervisorController::class, 'storeShift'])->name('supervisor.shifts.store');
+    Route::put('/shifts/{id}', [SupervisorController::class, 'updateShift'])->name('supervisor.shifts.update');
+    Route::delete('/shifts/{id}', [SupervisorController::class, 'destroyShift'])->name('supervisor.shifts.destroy');
+    Route::post('/leave', [SupervisorController::class, 'storeLeave'])->name('supervisor.leave.store');
+    Route::post('/leave/{id}/approve', [SupervisorController::class, 'approveLeave'])->name('supervisor.leave.approve');
+    Route::post('/leave/{id}/reject', [SupervisorController::class, 'rejectLeave'])->name('supervisor.leave.reject');
+
+    // Aset & Pemeliharaan Alat Gym
+    Route::post('/equipment', [SupervisorController::class, 'storeEquipment'])->name('supervisor.equipment.store');
+    Route::put('/equipment/{id}', [SupervisorController::class, 'updateEquipment'])->name('supervisor.equipment.update');
+    Route::delete('/equipment/{id}', [SupervisorController::class, 'destroyEquipment'])->name('supervisor.equipment.destroy');
+    Route::post('/maintenance-log', [SupervisorController::class, 'storeMaintenanceLog'])->name('supervisor.maintenance.store');
+
+    // Penanganan Komplain Member
+    Route::put('/complaints/{id}', [SupervisorController::class, 'updateComplaint'])->name('supervisor.complaints.update');
+});
+
+// Group Resepsionis / Frontdesk (Operasional Kasir, Checkin, Loker)
+Route::middleware(['auth', 'verified', 'role:receptionist,manager', 'receptionist.shift'])->prefix('receptionist')->group(function () {
     Route::get('/dashboard', [ReceptionistController::class, 'dashboard'])->name('receptionist.dashboard');
 
-    // 7. Loker & Peminjaman
+    // 1. POS Kasir, Struk & Katalog Produk
+    Route::get('/pos', [ReceptionistPosController::class, 'index'])->name('receptionist.pos.index');
+    Route::post('/pos/checkout', [ReceptionistPosController::class, 'checkout'])->name('receptionist.pos.checkout');
+    Route::get('/pos/invoice/{id}', [ReceptionistPosController::class, 'invoiceData'])->name('receptionist.pos.invoice');
+    Route::post('/pos/void/{id}', [ReceptionistPosController::class, 'requestVoid'])->name('receptionist.pos.void');
+    Route::post('/products', [ReceptionistPosController::class, 'storeProduct'])->name('receptionist.products.store');
+    Route::put('/products/{id}', [ReceptionistPosController::class, 'updateProduct'])->name('receptionist.products.update');
+    Route::delete('/products/{id}', [ReceptionistPosController::class, 'destroyProduct'])->name('receptionist.products.destroy');
+
+    // 2. Check-In Absensi
+    Route::get('/checkin', [ReceptionistCheckInController::class, 'index'])->name('receptionist.checkin.index');
+    Route::post('/checkin/process', [ReceptionistCheckInController::class, 'processCheckIn'])->name('receptionist.checkin.process');
+    Route::post('/checkin/manual', [ReceptionistCheckInController::class, 'manualCheckIn'])->name('receptionist.checkin.manual');
+    Route::delete('/checkin/{id}', [ReceptionistCheckInController::class, 'destroyCheckIn'])->name('receptionist.checkin.destroy');
+
+    // 3. Master Loker (Data Master Loker Gym)
+    Route::get('/master-lockers', [ReceptionistLockerController::class, 'index'])->name('receptionist.lockers.index');
+    Route::post('/master-lockers', [ReceptionistLockerController::class, 'store'])->name('receptionist.lockers.store');
+    Route::put('/master-lockers/{id}', [ReceptionistLockerController::class, 'update'])->name('receptionist.lockers.update');
+    Route::delete('/master-lockers/{id}', [ReceptionistLockerController::class, 'destroy'])->name('receptionist.lockers.destroy');
+
+    // 4. Loker Peminjaman & Pengembalian
     Route::get('/lockers', [ReceptionistController::class, 'lockers'])->name('receptionist.lockers');
     Route::post('/lockers/assign', [ReceptionistController::class, 'assignLocker'])->name('receptionist.lockers.assign');
     Route::post('/lockers/{id}/return', [ReceptionistController::class, 'returnLocker'])->name('receptionist.lockers.return');
 
-    // 8 & 9. Buku Tamu & Lost and Found
+    // 5. Buku Tamu (Walk-in Leads)
     Route::get('/guests', [ReceptionistController::class, 'guests'])->name('receptionist.guests');
     Route::post('/guests/store', [ReceptionistController::class, 'storeGuest'])->name('receptionist.guests.store');
     Route::post('/guests/{id}/convert', [ReceptionistController::class, 'convertGuestToMember'])->name('receptionist.guests.convert');
+
+    // 6. Log Barang Tertinggal (Lost & Found)
+    Route::get('/lost-found', [ReceptionistController::class, 'lostFound'])->name('receptionist.lost-found');
     Route::post('/lost-found/store', [ReceptionistController::class, 'storeLostFound'])->name('receptionist.lost-found.store');
     Route::post('/lost-found/{id}/claim', [ReceptionistController::class, 'claimLostFound'])->name('receptionist.lost-found.claim');
 
-    // 5. Shift & 6. Keluhan
+    // 7. Shift Kasir
     Route::get('/shifts', [ReceptionistController::class, 'shifts'])->name('receptionist.shifts');
     Route::post('/shifts/start', [ReceptionistController::class, 'startShift'])->name('receptionist.shifts.start');
     Route::post('/shifts/{id}/end', [ReceptionistController::class, 'endShift'])->name('receptionist.shifts.end');
+    Route::post('/shifts/close-logout', [ReceptionistController::class, 'closeShiftAndLogout'])->name('receptionist.shifts.close-logout');
+
+    // 8. Keluhan & Komplain Member
+    Route::get('/complaints', [ReceptionistController::class, 'complaints'])->name('receptionist.complaints');
     Route::post('/complaints/store', [ReceptionistController::class, 'storeComplaint'])->name('receptionist.complaints.store');
 
-    // 4. Booking Kelas & PT Check-In
+    // 9. Booking Kelas & PT Check-In
     Route::post('/pt/checkin', [ReceptionistController::class, 'checkInTrainerSession'])->name('receptionist.pt.checkin');
 });
 
-// Group Personal Trainer
+// Group Personal Trainer (Pelatih Olahraga & Kebugaran)
 Route::middleware(['auth', 'verified', 'role:trainer'])->prefix('trainer')->group(function () {
     Route::get('/dashboard', [TrainerController::class, 'dashboard'])->name('trainer.dashboard');
+    Route::get('/pt-sessions', [TrainerController::class, 'ptSessions'])->name('trainer.pt-sessions');
+    Route::post('/pt-sessions/{id}/status', [TrainerController::class, 'updatePtStatus'])->name('trainer.pt-sessions.status');
+    Route::get('/classes', [TrainerController::class, 'classes'])->name('trainer.classes');
+    Route::get('/rsvps', [TrainerController::class, 'rsvps'])->name('trainer.rsvps');
+    Route::post('/rsvps/{id}/status', [TrainerController::class, 'updateRsvpStatus'])->name('trainer.rsvps.status');
 });
 
 use App\Http\Controllers\OwnerController;
@@ -275,7 +293,7 @@ use App\Http\Controllers\MemberPortalController;
 Route::middleware(['auth', 'verified', 'role:owner'])->prefix('owner')->group(function () {
     Route::get('/dashboard', [OwnerController::class, 'dashboard'])->name('owner.dashboard');
     Route::get('/transactions', [OwnerController::class, 'transactions'])->name('owner.transactions');
-    Route::get('/members', [OwnerController::class, 'members'])->name('owner.members');
+    Route::get('/performance', [OwnerController::class, 'performance'])->name('owner.performance');
     Route::get('/classes', [OwnerController::class, 'classes'])->name('owner.classes');
     Route::get('/inventory', [OwnerController::class, 'inventory'])->name('owner.inventory');
     Route::get('/staff', [OwnerController::class, 'staff'])->name('owner.staff');

@@ -12,7 +12,7 @@ use App\Models\StaffLog;
 use App\Models\PromoCode;
 use Carbon\Carbon;
 
-class AdminPosController extends Controller
+class ReceptionistPosController extends Controller
 {
     public function index()
     {
@@ -20,7 +20,7 @@ class AdminPosController extends Controller
         $tenant = $user->tenant;
 
         if ($user->role === 'admin') {
-            return redirect()->route('admin.reports.index')->with('warning', 'Fungsi POS Kasir hanya diakses oleh Resepsionis/Kasir. Silakan gunakan menu Pembayaran untuk Pengaturan Melanjutkan Web.');
+            return redirect()->route('admin.dashboard')->with('warning', 'Fungsi POS Kasir hanya diakses oleh Resepsionis/Kasir. Silakan gunakan menu Langganan Website untuk Pengaturan Sewa Web.');
         }
 
         $members = Member::where('tenant_id', $tenant->id)->orderBy('name')->get();
@@ -39,7 +39,7 @@ class AdminPosController extends Controller
                 ->first();
         }
 
-        return view('admin.pos.index', compact('members', 'products', 'recentTransactions', 'tenant', 'openShift'));
+        return view('receptionist.pos.index', compact('members', 'products', 'recentTransactions', 'tenant', 'openShift'));
     }
 
     public function checkout(Request $request)
@@ -78,7 +78,6 @@ class AdminPosController extends Controller
             $totalAmount += ($item['qty'] * $item['price']);
         }
 
-        // Apply Promo Code if valid
         $discountAmount = 0;
         if ($request->filled('promo_code')) {
             $promo = PromoCode::where('tenant_id', $tenant->id)
@@ -118,7 +117,6 @@ class AdminPosController extends Controller
                 'subtotal' => $subtotal,
             ]);
 
-            // Deduct stock if product inventory item
             if (!empty($item['product_id'])) {
                 $prod = Product::find($item['product_id']);
                 if ($prod && $prod->category !== 'membership') {
@@ -127,7 +125,6 @@ class AdminPosController extends Controller
             }
         }
 
-        // Auto extend member expired date if membership transaction
         if ($request->type === 'membership' && $request->member_id) {
             $member = Member::find($request->member_id);
             if ($member) {
@@ -139,7 +136,6 @@ class AdminPosController extends Controller
                 if ($months > 0) {
                     $newExpiry = (clone $currentExpiry)->addMonths($months);
                 } else {
-                    // Pass Harian (1 Hari)
                     $newExpiry = (clone $currentExpiry)->addDay();
                 }
 
@@ -158,8 +154,7 @@ class AdminPosController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        // Redirect based on user role
-        $redirectRoute = $user->isReceptionist() ? 'receptionist.dashboard' : 'admin.pos.index';
+        $redirectRoute = $user->isReceptionist() ? 'receptionist.dashboard' : 'receptionist.pos.index';
 
         return redirect()->route($redirectRoute)->with([
             'success' => "Transaksi {$invNumber} berhasil diproses!",
@@ -171,33 +166,22 @@ class AdminPosController extends Controller
     {
         $user = Auth::user();
         $tenant = $user->tenant;
-
         $transaction = PosTransaction::where('tenant_id', $tenant->id)
             ->with(['member', 'user', 'items', 'tenant'])
             ->findOrFail($id);
-
         return response()->json($transaction);
     }
 
-    /**
-     * Request Void (Pembatalan Transaksi dari Kasir Resepsionis)
-     */
     public function requestVoid(Request $request, $id)
     {
         $user = Auth::user();
         $tenant = $user->tenant;
-
-        $request->validate([
-            'void_reason' => 'required|string|max:500',
-        ]);
-
+        $request->validate(['void_reason' => 'required|string|max:500']);
         $transaction = PosTransaction::where('tenant_id', $tenant->id)->findOrFail($id);
-
         $transaction->update([
             'void_status' => 'pending',
             'void_reason' => $request->void_reason,
         ]);
-
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
@@ -205,8 +189,7 @@ class AdminPosController extends Controller
             'description' => "Kasir {$user->name} mengajukan pembatalan (void) invoice {$transaction->invoice_number}. Alasan: {$request->void_reason}",
             'ip_address' => $request->ip(),
         ]);
-
-        $redirectRoute = $user->isReceptionist() ? 'receptionist.dashboard' : 'admin.pos.index';
+        $redirectRoute = $user->isReceptionist() ? 'receptionist.dashboard' : 'receptionist.pos.index';
         return redirect()->route($redirectRoute)->with('success', 'Pengajuan void transaksi telah dikirim ke Manager untuk persetujuan.');
     }
 
@@ -214,14 +197,12 @@ class AdminPosController extends Controller
     {
         $user = Auth::user();
         $tenant = $user->tenant;
-
         $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|in:membership,supplement,drink,merchandise',
             'price' => 'required|integer|min:0',
             'stock' => 'required|integer|min:0',
         ]);
-
         $product = Product::create([
             'tenant_id' => $tenant->id,
             'name' => $request->name,
@@ -229,7 +210,6 @@ class AdminPosController extends Controller
             'price' => $request->price,
             'stock' => $request->stock,
         ]);
-
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
@@ -237,31 +217,26 @@ class AdminPosController extends Controller
             'description' => "Menambahkan produk baru: {$product->name} (Rp " . number_format($product->price, 0, ',', '.') . ")",
             'ip_address' => $request->ip(),
         ]);
-
-        return redirect()->route('admin.pos.index')->with('success', "Produk {$product->name} berhasil ditambahkan ke katalog inventaris.");
+        return redirect()->route('receptionist.pos.index')->with('success', "Produk {$product->name} berhasil ditambahkan ke katalog inventaris.");
     }
 
     public function updateProduct(Request $request, $id)
     {
         $user = Auth::user();
         $tenant = $user->tenant;
-
         $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
-
         $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|in:membership,supplement,drink,merchandise',
             'price' => 'required|integer|min:0',
             'stock' => 'required|integer|min:0',
         ]);
-
         $product->update([
             'name' => $request->name,
             'category' => $request->category,
             'price' => $request->price,
             'stock' => $request->stock,
         ]);
-
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
@@ -269,19 +244,16 @@ class AdminPosController extends Controller
             'description' => "Memperbarui produk: {$product->name}",
             'ip_address' => $request->ip(),
         ]);
-
-        return redirect()->route('admin.pos.index')->with('success', "Produk {$product->name} berhasil diperbarui.");
+        return redirect()->route('receptionist.pos.index')->with('success', "Produk {$product->name} berhasil diperbarui.");
     }
 
     public function destroyProduct(Request $request, $id)
     {
         $user = Auth::user();
         $tenant = $user->tenant;
-
         $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
         $prodName = $product->name;
         $product->delete();
-
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
@@ -289,7 +261,6 @@ class AdminPosController extends Controller
             'description' => "Menghapus produk: {$prodName}",
             'ip_address' => $request->ip(),
         ]);
-
-        return redirect()->route('admin.pos.index')->with('success', "Produk {$prodName} berhasil dihapus dari katalog.");
+        return redirect()->route('receptionist.pos.index')->with('success', "Produk {$prodName} berhasil dihapus dari katalog.");
     }
 }

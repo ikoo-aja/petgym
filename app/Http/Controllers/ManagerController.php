@@ -4,29 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\GymEquipment;
-use App\Models\EquipmentMaintenanceLog;
-use App\Models\StaffShift;
-use App\Models\LeaveRequest;
+use App\Models\GymClass;
+use App\Models\Trainer;
 use App\Models\PromoCode;
-use App\Models\Complaint;
 use App\Models\Vendor;
 use App\Models\User;
 use App\Models\Member;
 use App\Models\PosTransaction;
 use App\Models\CheckIn;
 use App\Models\StaffLog;
-use App\Models\Locker;
-use App\Models\GymClass;
-use App\Models\Trainer;
-use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ManagerController extends Controller
 {
     /**
-     * Dashboard Utama Manager Gym
+     * Dashboard Eksekutif Manager Gym (Fokus Strategis & Manajerial)
      */
     public function dashboard()
     {
@@ -83,32 +76,27 @@ class ManagerController extends Controller
     }
 
     /**
-     * 10 Fitur Manajerial Terintegrasi
+     * Fitur Strategis & Manajerial Manager Gym:
+     * 1. Perencanaan Master Kelas
+     * 2. Program Promo & Voucher Diskon
+     * 3. Pantauan Evaluasi Kinerja Karyawan
+     * 4. Rekapitulasi Kas Keuangan Harian
+     * 5. Database Mitra / Vendor Eksternal
      */
-    public function features()
+    public function features(Request $request)
     {
         $user = Auth::user();
         $tenant = $user->tenant;
+        $activeTab = $request->query('tab', 'classes');
 
-        // 1. Manajemen Aset & Pemeliharaan Alat Gym
-        $equipments = GymEquipment::where('tenant_id', $tenant->id)->latest()->get();
-        $maintenanceLogs = EquipmentMaintenanceLog::where('tenant_id', $tenant->id)->with('equipment')->latest()->get();
+        // 1. Perencanaan Master Kelas
+        $masterClasses = GymClass::where('tenant_id', $tenant->id)->with('trainer')->latest()->get();
+        $trainers = Trainer::where('tenant_id', $tenant->id)->get();
 
-        // 2. Pengaturan Jadwal & Shift Karyawan
-        $staffShifts = StaffShift::where('tenant_id', $tenant->id)->with('user')->orderBy('shift_date', 'desc')->get();
-        $leaveRequests = LeaveRequest::where('tenant_id', $tenant->id)->with(['user', 'approver'])->latest()->get();
-
-        // 3. Sistem Otorisasi & Otoritas Transaksi (Approval Void / Custom Discount)
-        $voidTransactions = PosTransaction::where('tenant_id', $tenant->id)
-            ->where('void_status', '!=', 'none')
-            ->with(['member', 'user'])
-            ->latest()
-            ->get();
-
-        // 4. Manajemen Promo & Harga
+        // 2. Manajemen Promo & Voucher Diskon
         $promoCodes = PromoCode::where('tenant_id', $tenant->id)->latest()->get();
 
-        // 5. Pantauan Kinerja Staf & Target
+        // 3. Pantauan Kinerja Karyawan & Target Omset
         $receptionistPerformance = PosTransaction::where('tenant_id', $tenant->id)
             ->where('created_at', '>=', Carbon::now()->startOfMonth())
             ->select('user_id', DB::raw('SUM(total_amount) as total_sales'), DB::raw('COUNT(*) as total_transactions'))
@@ -125,373 +113,31 @@ class ManagerController extends Controller
             ->orderBy('total_classes', 'desc')
             ->get();
 
-        // 6. Laporan Operasional Taktis (Rekap Kas Harian / Tren Kehadiran)
+        // 4. Laporan Rekapitulasi Kas Harian
         $dailyCashRecap = PosTransaction::where('tenant_id', $tenant->id)
             ->whereDate('created_at', Carbon::today())
             ->get();
 
-        // 7. Manajemen Stok & Inventaris Ritel (Stock Opname) & Loker
-        $allProducts = Product::where('tenant_id', $tenant->id)->latest()->get();
-        $lowStockProducts = $allProducts->filter(function($prod) {
-            return $prod->stock <= 10;
-        });
-
-        $lockers = Locker::where('tenant_id', $tenant->id)->get();
-        $availableLockers = $lockers->where('status', 'tersedia')->count();
-        $occupiedLockers = $lockers->where('status', 'terpakai')->count();
-        $brokenLockers = $lockers->where('status', 'rusak')->count();
-
-        // 8. Manajemen Retensi Member (Complaints Ticketing)
-        $complaints = Complaint::where('tenant_id', $tenant->id)->with(['member', 'reporter'])->latest()->get();
-
-        // 9. Perencanaan Master Kelas
-        $masterClasses = GymClass::where('tenant_id', $tenant->id)->with('trainer')->latest()->get();
-
-        // 10. Database Vendor & Pihak Ketiga
+        // 5. Database Vendor & Mitra Eksternal
         $vendors = Vendor::where('tenant_id', $tenant->id)->latest()->get();
 
-        // Extra data for forms
-        $staffUsers = User::where('tenant_id', $tenant->id)->get();
-        $shiftStaffUsers = User::where('tenant_id', $tenant->id)->whereIn('role', ['receptionist', 'trainer'])->get();
-        $members = Member::where('tenant_id', $tenant->id)->get();
-        $trainers = Trainer::where('tenant_id', $tenant->id)->get();
-
         return view('manager.features', compact(
-            'equipments', 'maintenanceLogs', 'staffShifts', 'leaveRequests',
-            'voidTransactions', 'promoCodes', 'receptionistPerformance', 'trainerPerformance',
-            'dailyCashRecap', 'allProducts', 'lowStockProducts', 'lockers', 'availableLockers',
-            'occupiedLockers', 'brokenLockers', 'complaints', 'masterClasses', 'vendors',
-            'staffUsers', 'shiftStaffUsers', 'members', 'trainers', 'tenant'
+            'user',
+            'tenant',
+            'activeTab',
+            'masterClasses',
+            'trainers',
+            'promoCodes',
+            'receptionistPerformance',
+            'trainerPerformance',
+            'dailyCashRecap',
+            'vendors'
         ));
     }
 
-    // --- 1. EQUIPMENT CRUD ---
-    public function storeEquipment(Request $request)
-    {
-        $tenant = Auth::user()->tenant;
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'required|string',
-            'brand' => 'nullable|string',
-            'status' => 'required|string',
-            'purchase_date' => 'nullable|date',
-            'next_service_date' => 'nullable|date',
-        ]);
-
-        GymEquipment::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
-
-        return redirect()->route('manager.features')->with('success', 'Alat gym berhasil didaftarkan.');
-    }
-
-    public function updateEquipment(Request $request, $id)
-    {
-        $tenant = Auth::user()->tenant;
-        $equipment = GymEquipment::where('tenant_id', $tenant->id)->findOrFail($id);
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'required|string',
-            'brand' => 'nullable|string',
-            'status' => 'required|string',
-            'purchase_date' => 'nullable|date',
-            'next_service_date' => 'nullable|date',
-        ]);
-
-        $equipment->update($request->all());
-
-        return redirect()->route('manager.features')->with('success', 'Data alat gym berhasil diperbarui.');
-    }
-
-    public function destroyEquipment($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $equipment = GymEquipment::where('tenant_id', $tenant->id)->findOrFail($id);
-        $equipment->delete();
-
-        return redirect()->route('manager.features')->with('success', 'Alat gym berhasil dihapus.');
-    }
-
-    // --- MAINTENANCE LOG ---
-    public function storeMaintenanceLog(Request $request)
-    {
-        $tenant = Auth::user()->tenant;
-        $request->validate([
-            'gym_equipment_id' => 'required|exists:gym_equipments,id',
-            'action' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'cost' => 'required|numeric|min:0',
-            'serviced_at' => 'required|date',
-            'next_service_date' => 'nullable|date',
-        ]);
-
-        EquipmentMaintenanceLog::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
-
-        // Update status and next service date on the equipment
-        $equipment = GymEquipment::where('tenant_id', $tenant->id)->findOrFail($request->gym_equipment_id);
-        $equipment->update([
-            'status' => 'berfungsi',
-            'next_service_date' => $request->next_service_date,
-        ]);
-
-        return redirect()->route('manager.features')->with('success', 'Log pemeliharaan berhasil dicatat dan status alat di-reset.');
-    }
-
-    // --- 2. STAFF SHIFTS CRUD ---
-    public function storeShift(Request $request)
-    {
-        $tenant = Auth::user()->tenant;
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'shift_date' => 'required|date',
-            'shift_name' => 'required|string',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'notes' => 'nullable|string',
-        ]);
-
-        $targetUser = User::where('tenant_id', $tenant->id)->findOrFail($request->user_id);
-        if (!in_array($targetUser->role, ['receptionist', 'trainer'])) {
-            return redirect()->back()->with('error', 'Penjadwalan shift hanya berlaku untuk Resepsionis dan Personal Trainer (PT).');
-        }
-
-        StaffShift::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
-
-        return redirect()->route('manager.features')->with('success', 'Jadwal shift staf berhasil ditambahkan.');
-    }
-
-    public function updateShift(Request $request, $id)
-    {
-        $tenant = Auth::user()->tenant;
-        $shift = StaffShift::where('tenant_id', $tenant->id)->findOrFail($id);
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'shift_date' => 'required|date',
-            'shift_name' => 'required|string',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'notes' => 'nullable|string',
-        ]);
-
-        $shift->update($request->all());
-
-        return redirect()->route('manager.features')->with('success', 'Jadwal shift staf berhasil diperbarui.');
-    }
-
-    public function destroyShift($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $shift = StaffShift::where('tenant_id', $tenant->id)->findOrFail($id);
-        $shift->delete();
-
-        return redirect()->route('manager.features')->with('success', 'Jadwal shift staf berhasil dihapus.');
-    }
-
-    // --- LEAVE REQUESTS ---
-    public function approveLeave($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $leave = LeaveRequest::where('tenant_id', $tenant->id)->findOrFail($id);
-        $leave->update([
-            'status' => 'approved',
-            'approved_by' => Auth::id()
-        ]);
-
-        return redirect()->route('manager.features')->with('success', 'Pengajuan cuti disetujui.');
-    }
-
-    public function rejectLeave($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $leave = LeaveRequest::where('tenant_id', $tenant->id)->findOrFail($id);
-        $leave->update([
-            'status' => 'rejected',
-            'approved_by' => Auth::id()
-        ]);
-
-        return redirect()->route('manager.features', ['tab' => 'shift'])->with('success', 'Pengajuan cuti ditolak.');
-    }
-
-    public function storeLeave(Request $request)
-    {
-        $tenant = Auth::user()->tenant;
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'required|string',
-        ]);
-
-        LeaveRequest::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => $request->user_id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'reason' => $request->reason,
-            'status' => 'approved',
-            'approved_by' => Auth::id(),
-        ]);
-
-        return redirect()->route('manager.features', ['tab' => 'shift'])->with('success', 'Data cuti pekerja berhasil diinput dan dicatat oleh Manager.');
-    }
-
-    // --- VOID OTORISASI ---
-    public function approveVoid($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $transaction = PosTransaction::where('tenant_id', $tenant->id)->findOrFail($id);
-
-        $transaction->update(['void_status' => 'approved']);
-
-        // Refund product stocks if inventory type
-        if ($transaction->type === 'inventory') {
-            foreach ($transaction->items as $item) {
-                if ($item->product_id) {
-                    $prod = Product::find($item->product_id);
-                    if ($prod) {
-                        $prod->increment('stock', $item->qty);
-                    }
-                }
-            }
-        }
-
-        StaffLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => Auth::id(),
-            'action' => 'Approve Void Transaksi',
-            'description' => "Manager menyetujui void (pembatalan) transaksi invoice {$transaction->invoice_number}",
-            'ip_address' => request()->ip(),
-        ]);
-
-        return redirect()->route('manager.features', ['tab' => 'approval'])->with('success', 'Transaksi void berhasil disetujui.');
-    }
-
-    public function rejectVoid($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $transaction = PosTransaction::where('tenant_id', $tenant->id)->findOrFail($id);
-
-        $transaction->update(['void_status' => 'rejected']);
-
-        StaffLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => Auth::id(),
-            'action' => 'Reject Void Transaksi',
-            'description' => "Manager menolak void (pembatalan) transaksi invoice {$transaction->invoice_number}",
-            'ip_address' => request()->ip(),
-        ]);
-
-        return redirect()->route('manager.features', ['tab' => 'approval'])->with('success', 'Transaksi void berhasil ditolak.');
-    }
-
-    // --- 4. PROMO CODES CRUD ---
-    public function storePromo(Request $request)
-    {
-        $tenant = Auth::user()->tenant;
-        $request->validate([
-            'code' => 'required|string|unique:promo_codes,code',
-            'description' => 'nullable|string',
-            'discount_type' => 'required|string',
-            'discount_value' => 'required|numeric|min:0',
-            'min_purchase' => 'required|numeric|min:0',
-            'max_uses' => 'required|integer|min:1',
-            'valid_from' => 'required|date',
-            'valid_until' => 'required|date',
-        ]);
-
-        PromoCode::create(array_merge($request->all(), ['tenant_id' => $tenant->id, 'is_active' => true]));
-
-        return redirect()->route('manager.features')->with('success', 'Kode promo berhasil dibuat.');
-    }
-
-    public function updatePromo(Request $request, $id)
-    {
-        $tenant = Auth::user()->tenant;
-        $promo = PromoCode::where('tenant_id', $tenant->id)->findOrFail($id);
-        $request->validate([
-            'code' => 'required|string|unique:promo_codes,code,' . $promo->id,
-            'description' => 'nullable|string',
-            'discount_type' => 'required|string',
-            'discount_value' => 'required|numeric|min:0',
-            'min_purchase' => 'required|numeric|min:0',
-            'max_uses' => 'required|integer|min:1',
-            'valid_from' => 'required|date',
-            'valid_until' => 'required|date',
-        ]);
-
-        $promo->update(array_merge($request->all(), ['is_active' => $request->has('is_active')]));
-
-        return redirect()->route('manager.features')->with('success', 'Kode promo berhasil diperbarui.');
-    }
-
-    public function destroyPromo($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $promo = PromoCode::where('tenant_id', $tenant->id)->findOrFail($id);
-        $promo->delete();
-
-        return redirect()->route('manager.features')->with('success', 'Kode promo berhasil dihapus.');
-    }
-
-    // --- 8. COMPLAINTS TICKETING ---
-    public function updateComplaint(Request $request, $id)
-    {
-        $tenant = Auth::user()->tenant;
-        $complaint = Complaint::where('tenant_id', $tenant->id)->findOrFail($id);
-        $request->validate([
-            'status' => 'required|string',
-            'resolution' => 'nullable|string',
-        ]);
-
-        $complaint->update($request->all());
-
-        return redirect()->route('manager.features')->with('success', 'Tiket komplain member berhasil diperbarui.');
-    }
-
-    // --- 10. VENDORS CRUD ---
-    public function storeVendor(Request $request)
-    {
-        $tenant = Auth::user()->tenant;
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string',
-            'email' => 'nullable|email',
-            'category' => 'required|string',
-            'address' => 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
-
-        Vendor::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
-
-        return redirect()->route('manager.features')->with('success', 'Buku kontak vendor eksternal berhasil disimpan.');
-    }
-
-    public function updateVendor(Request $request, $id)
-    {
-        $tenant = Auth::user()->tenant;
-        $vendor = Vendor::where('tenant_id', $tenant->id)->findOrFail($id);
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string',
-            'email' => 'nullable|email',
-            'category' => 'required|string',
-            'address' => 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
-
-        $vendor->update($request->all());
-
-        return redirect()->route('manager.features')->with('success', 'Kontak vendor berhasil diperbarui.');
-    }
-
-    public function destroyVendor($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $vendor = Vendor::where('tenant_id', $tenant->id)->findOrFail($id);
-        $vendor->delete();
-
-        return redirect()->route('manager.features')->with('success', 'Kontak vendor berhasil dihapus.');
-    }
-
-    // --- 9. PERENCANAAN MASTER KELAS ---
+    // ==========================================
+    // 1. MASTER KELAS GYM
+    // ==========================================
     public function storeMasterClass(Request $request)
     {
         $tenant = Auth::user()->tenant;
@@ -502,7 +148,6 @@ class ManagerController extends Controller
             'duration_minutes' => 'required|integer|min:1',
         ]);
 
-        // Calculate end_time based on start_time and duration_minutes
         $startTime = Carbon::createFromFormat('H:i', $request->start_time);
         $endTime = (clone $startTime)->addMinutes((int) $request->duration_minutes);
 
@@ -513,10 +158,9 @@ class ManagerController extends Controller
             'start_time' => $startTime->format('H:i'),
             'end_time' => $endTime->format('H:i'),
             'duration_minutes' => $request->duration_minutes,
-            // trainer_id, room, max_capacity are left null/empty for Admin to allocate
         ]);
 
-        return redirect()->route('manager.features')->with('success', 'Master Kelas dasar berhasil direncanakan. Harap hubungi Admin untuk alokasi instruktur, ruangan, dan kuota.');
+        return redirect()->route('manager.features', ['tab' => 'classes'])->with('success', 'Rencana Master Kelas baru berhasil dibuat.');
     }
 
     public function updateMasterClass(Request $request, $id)
@@ -541,7 +185,7 @@ class ManagerController extends Controller
             'duration_minutes' => $request->duration_minutes,
         ]);
 
-        return redirect()->route('manager.features')->with('success', 'Master Kelas dasar berhasil diperbarui.');
+        return redirect()->route('manager.features', ['tab' => 'classes'])->with('success', 'Rencana Master Kelas berhasil diperbarui.');
     }
 
     public function destroyMasterClass($id)
@@ -550,40 +194,104 @@ class ManagerController extends Controller
         $class = GymClass::where('tenant_id', $tenant->id)->findOrFail($id);
         $class->delete();
 
-        return redirect()->route('manager.features')->with('success', 'Master Kelas berhasil dihapus.');
+        return redirect()->route('manager.features', ['tab' => 'classes'])->with('success', 'Master Kelas berhasil dihapus.');
     }
 
-    // --- 11. MANAJEMEN AKUN OPERASIONAL (PT, RESEPSIONIS, STAF) OLEH MANAGER ---
-    public function storeOperationalStaff(Request $request)
+    // ==========================================
+    // 2. PROMO & VOUCHER DISKON
+    // ==========================================
+    public function storePromo(Request $request)
+    {
+        $tenant = Auth::user()->tenant;
+        $request->validate([
+            'code' => 'required|string|unique:promo_codes,code',
+            'description' => 'nullable|string',
+            'discount_type' => 'required|string',
+            'discount_value' => 'required|numeric|min:0',
+            'min_purchase' => 'required|numeric|min:0',
+            'max_uses' => 'required|integer|min:1',
+            'valid_from' => 'required|date',
+            'valid_until' => 'required|date',
+        ]);
+
+        PromoCode::create(array_merge($request->all(), ['tenant_id' => $tenant->id, 'is_active' => true]));
+
+        return redirect()->route('manager.features', ['tab' => 'promo'])->with('success', 'Kode voucher promo berhasil dibuat.');
+    }
+
+    public function updatePromo(Request $request, $id)
+    {
+        $tenant = Auth::user()->tenant;
+        $promo = PromoCode::where('tenant_id', $tenant->id)->findOrFail($id);
+        $request->validate([
+            'code' => 'required|string|unique:promo_codes,code,' . $promo->id,
+            'description' => 'nullable|string',
+            'discount_type' => 'required|string',
+            'discount_value' => 'required|numeric|min:0',
+            'min_purchase' => 'required|numeric|min:0',
+            'max_uses' => 'required|integer|min:1',
+            'valid_from' => 'required|date',
+            'valid_until' => 'required|date',
+        ]);
+
+        $promo->update(array_merge($request->all(), ['is_active' => $request->has('is_active')]));
+
+        return redirect()->route('manager.features', ['tab' => 'promo'])->with('success', 'Voucher promo berhasil diperbarui.');
+    }
+
+    public function destroyPromo($id)
+    {
+        $tenant = Auth::user()->tenant;
+        $promo = PromoCode::where('tenant_id', $tenant->id)->findOrFail($id);
+        $promo->delete();
+
+        return redirect()->route('manager.features', ['tab' => 'promo'])->with('success', 'Voucher promo berhasil dihapus.');
+    }
+
+    // ==========================================
+    // 3. DATABASE VENDOR & MITRA
+    // ==========================================
+    public function storeVendor(Request $request)
     {
         $tenant = Auth::user()->tenant;
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:4',
-            'role' => 'required|in:trainer,receptionist,staff',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|email',
+            'category' => 'required|string',
+            'address' => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
-        $staff = User::create([
-            'tenant_id' => $tenant->id,
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
-            'role' => $request->role,
+        Vendor::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
+
+        return redirect()->route('manager.features', ['tab' => 'vendor'])->with('success', 'Kontak vendor mitra berhasil disimpan.');
+    }
+
+    public function updateVendor(Request $request, $id)
+    {
+        $tenant = Auth::user()->tenant;
+        $vendor = Vendor::where('tenant_id', $tenant->id)->findOrFail($id);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|email',
+            'category' => 'required|string',
+            'address' => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
-        if ($staff->role === 'receptionist') {
-            \App\Models\Receptionist::updateOrCreate(
-                ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
-                ['name' => $staff->name, 'email' => $staff->email, 'shift' => 'Pagi', 'status' => 'active']
-            );
-        } elseif ($staff->role === 'trainer') {
-            Trainer::updateOrCreate(
-                ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
-                ['name' => $staff->name, 'email' => $staff->email, 'specialization' => 'Fitness Coach', 'status' => 'active']
-            );
-        }
+        $vendor->update($request->all());
 
-        return redirect()->route('manager.features', ['tab' => 'performance'])->with('success', "Akun operasional " . ucfirst($staff->role) . " berhasil dibuat oleh Manager.");
+        return redirect()->route('manager.features', ['tab' => 'vendor'])->with('success', 'Kontak vendor berhasil diperbarui.');
+    }
+
+    public function destroyVendor($id)
+    {
+        $tenant = Auth::user()->tenant;
+        $vendor = Vendor::where('tenant_id', $tenant->id)->findOrFail($id);
+        $vendor->delete();
+
+        return redirect()->route('manager.features', ['tab' => 'vendor'])->with('success', 'Kontak vendor berhasil dihapus.');
     }
 }

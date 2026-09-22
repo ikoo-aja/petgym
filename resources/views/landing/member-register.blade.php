@@ -126,12 +126,12 @@
 
             <div class="row">
               <div class="col-md-6 form-group mb-3">
-                <label for="password" class="text-dark font-weight-bold small">Password *</label>
+                <label for="password" class="text-dark font-weight-bold small">Kata Sandi *</label>
                 <input type="password" id="password" name="password" class="form-control" placeholder="Min. 4 karakter" required style="height: 48px; border-radius: 8px; font-size: 14px;">
               </div>
               <div class="col-md-6 form-group mb-3">
-                <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Password *</label>
-                <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" placeholder="Ulangi password" required style="height: 48px; border-radius: 8px; font-size: 14px;">
+                <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Kata Sandi *</label>
+                <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" placeholder="Ulangi kata sandi" required style="height: 48px; border-radius: 8px; font-size: 14px;">
               </div>
             </div>
 

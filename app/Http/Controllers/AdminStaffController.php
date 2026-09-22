@@ -35,15 +35,10 @@ class AdminStaffController extends Controller
         $user = Auth::user();
         $tenant = $user->tenant;
 
-        $query = User::where('tenant_id', $tenant->id);
-
-        if ($user->isAdmin()) {
-            $query->whereIn('role', ['manager', 'owner']);
-        } elseif ($user->isManager()) {
-            $query->whereIn('role', ['receptionist', 'trainer']);
-        }
-
-        $staffs = $query->latest()->get();
+        $staffs = User::where('tenant_id', $tenant->id)
+            ->whereIn('role', ['manager', 'owner'])
+            ->latest()
+            ->get();
 
         return view('admin.staff.index', compact('staffs', 'tenant'));
     }

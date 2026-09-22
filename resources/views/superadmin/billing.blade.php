@@ -11,24 +11,6 @@
     <h4 class="font-weight-bold text-black mb-0">Daftar Pengajuan Tagihan & Perpanjangan Sewa</h4>
   </div>
 
-  @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="border-radius: 10px;">
-      <strong>Sukses!</strong> {{ session('success') }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-  @endif
-
-  @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius: 10px;">
-      <strong>Peringatan!</strong> {{ session('error') }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-  @endif
-
   <div class="table-custom p-4">
     <!-- Filter & Search Bar -->
     <form action="{{ route('superadmin.billing') }}" method="GET" class="row mb-4">

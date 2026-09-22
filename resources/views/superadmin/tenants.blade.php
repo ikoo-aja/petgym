@@ -12,15 +12,6 @@
     <h4 class="font-weight-bold text-black mb-0">Daftar Seluruh Gym (Tenant List)</h4>
   </div>
 
-  @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-      <strong>Sukses!</strong> {{ session('success') }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-  @endif
-
   <div class="table-custom p-4">
     <!-- Filter & Search Bar -->
     <form action="{{ route('superadmin.tenants') }}" method="GET" class="row mb-3">

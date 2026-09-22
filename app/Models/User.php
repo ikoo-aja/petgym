@@ -47,14 +47,24 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'manager';
     }
 
+    public function isSupervisor(): bool
+    {
+        return $this->role === 'supervisor';
+    }
+
     public function isReceptionist(): bool
     {
         return $this->role === 'receptionist';
     }
 
+    public function isTrainer(): bool
+    {
+        return $this->role === 'trainer';
+    }
+
     public function isTenantUser(): bool
     {
-        return in_array($this->role, ['owner', 'admin', 'manager', 'receptionist', 'trainer']) || !is_null($this->tenant_id);
+        return in_array($this->role, ['owner', 'admin', 'manager', 'supervisor', 'receptionist', 'trainer']) || !is_null($this->tenant_id);
     }
 
     public function hasSetupWebsite(): bool
@@ -73,6 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return $this->hasSetupWebsite() ? 'admin.dashboard' : 'tenant.onboarding';
         }
         if ($this->isManager()) return 'manager.dashboard';
+        if ($this->isSupervisor()) return 'supervisor.dashboard';
         if ($this->isReceptionist()) return 'receptionist.dashboard';
         if ($this->role === 'trainer') return 'trainer.dashboard';
         return 'member.dashboard';

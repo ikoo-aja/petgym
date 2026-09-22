@@ -5,20 +5,13 @@
 @section('page_subtitle', 'Setup kapasitas loker, pendaftaran loker baru, dan blokir loker rusak oleh Admin')
 
 @section('content')
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-  <strong>Gagal!</strong> {{ session('error') }}
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-</div>
-@endif
-
 <div class="row">
   @if(!Auth::user() || !Auth::user()->isOwner())
   <!-- Form Tambah Loker Baru (Khusus Admin) -->
   <div class="col-md-4">
     <div class="card-custom mb-4">
       <h6 class="font-weight-bold text-dark mb-3">Daftarkan Loker Baru</h6>
-      <form action="{{ route('admin.lockers.store') }}" method="POST">
+      <form action="{{ route('receptionist.lockers.store') }}" method="POST">
         @csrf
         <div class="form-group mb-2">
           <label class="font-weight-bold mb-1" style="font-size:12px;">Nomor Loker *</label>
@@ -93,7 +86,7 @@
               @if(!Auth::user() || !Auth::user()->isOwner())
               <td class="text-right">
                 @if($l->status === 'tersedia')
-                  <form action="{{ route('admin.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Blokir loker ini? Status akan menjadi Rusak dan tidak bisa dipakai Resepsionis.">
+                  <form action="{{ route('receptionist.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Blokir loker ini? Status akan menjadi Rusak dan tidak bisa dipakai Resepsionis.">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">
@@ -101,7 +94,7 @@
                     <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius:6px;">Blokir (Rusak)</button>
                   </form>
                 @elseif($l->status === 'rusak')
-                  <form action="{{ route('admin.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Aktifkan kembali loker ini?">
+                  <form action="{{ route('receptionist.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Aktifkan kembali loker ini?">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">
@@ -113,7 +106,7 @@
                 @endif
 
                 @if($l->status !== 'terpakai')
-                <form action="{{ route('admin.lockers.destroy', $l->id) }}" method="POST" style="display:inline;" data-confirm="Hapus loker ini dari database secara permanen?">
+                <form action="{{ route('receptionist.lockers.destroy', $l->id) }}" method="POST" style="display:inline;" data-confirm="Hapus loker ini dari database secara permanen?">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-xs btn-outline-dark font-weight-bold ml-1" style="border-radius:6px;">Hapus</button>
@@ -168,7 +161,7 @@ $(document).ready(function() {
       for (var i = start; i <= end; i++) {
         try {
           var numStr = String(i).padStart(2, '0');
-          var res = await fetch('{{ route("admin.lockers.store") }}', {
+          var res = await fetch('{{ route("receptionist.lockers.store") }}', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

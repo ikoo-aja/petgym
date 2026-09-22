@@ -1,22 +1,22 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Resepsionis')
-@section('page_title', 'Dashboard Resepsionis / Frontdesk')
-@section('page_subtitle', 'Antarmuka cepat layanan frontdesk, PIN check-in, registrasi member, dan POS kasir')
+@section('title', 'Beranda Resepsionis — PetGym')
+@section('page_title', 'Beranda Resepsionis')
+@section('page_subtitle', 'Layanan meja depan, presensi anggota, pendaftaran member, dan transaksi kasir')
 
 @section('content')
 <!-- Shift Status Banner -->
 @if(!$activeShift)
 <div class="alert alert-danger shadow-sm mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <strong>Shift Ditutup!</strong> Harap buka shift kasir terlebih dahulu sebelum memproses transaksi kasir.
+    <strong>Shift Kasir Belum Dibuka:</strong> Anda wajib membuka shift kasir dan memasukkan uang kas awal sebelum dapat menggunakan seluruh fitur operasional gym.
   </div>
   <a href="{{ route('receptionist.shifts') }}" class="btn btn-sm btn-danger font-weight-bold">Buka Shift Sekarang</a>
 </div>
 @else
 <div class="alert alert-success shadow-sm mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <strong>Shift Aktif:</strong> Terbuka sejak {{ $activeShift->opened_at->format('H:i') }} WIB dengan kas awal sebesar <strong>Rp {{ number_format($activeShift->start_cash, 0, ',', '.') }}</strong>.
+    <strong>Shift Kasir Aktif:</strong> Terbuka sejak <strong>{{ $activeShift->opened_at->format('H:i') }} WIB</strong> dengan modal kas awal <strong>Rp {{ number_format($activeShift->start_cash, 0, ',', '.') }}</strong>.
   </div>
   <a href="{{ route('receptionist.shifts') }}" class="btn btn-sm btn-outline-success font-weight-bold">Kelola Shift</a>
 </div>
@@ -25,27 +25,27 @@
 <!-- Quick Action Buttons for Receptionist -->
 <div class="row mb-4">
   <div class="col-md-3">
-    <a href="{{ route('admin.checkin.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-primary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold text-white mb-1"><span class="icon-check"></span> Check-In Absensi</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Antarmuka PIN & Manual</p>
+    <a href="{{ route('receptionist.checkin.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-primary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
+      <h4 class="font-weight-bold text-white mb-1"><span class="icon-check"></span> Presensi Member</h4>
+      <p class="mb-0 text-white-50" style="font-size: 12px;">Metode PIN dan Manual</p>
     </a>
   </div>
   <div class="col-md-3">
-    <a href="{{ route('admin.members.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-success text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold text-white mb-1"><span class="icon-person"></span> Register Member</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Pendaftaran & Generate PIN</p>
+    <a href="{{ route('manager.members.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-success text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
+      <h4 class="font-weight-bold text-white mb-1"><span class="icon-person"></span> Pendaftaran Member</h4>
+      <p class="mb-0 text-white-50" style="font-size: 12px;">Registrasi dan Buat PIN</p>
     </a>
   </div>
   <div class="col-md-3">
-    <a href="{{ route('admin.pos.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-info text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold text-white mb-1"><span class="icon-shopping-cart"></span> POS Kasir & Struk</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Transaksi Kasir & Produk</p>
+    <a href="{{ route('receptionist.pos.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-info text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
+      <h4 class="font-weight-bold text-white mb-1"><span class="icon-shopping-cart"></span> Kasir dan Struk</h4>
+      <p class="mb-0 text-white-50" style="font-size: 12px;">Transaksi Penjualan Produk</p>
     </a>
   </div>
   <div class="col-md-3">
     <a href="{{ route('receptionist.lockers') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-secondary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
       <h4 class="font-weight-bold text-white mb-1"><span class="icon-settings"></span> Manajemen Loker</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Peminjaman & Pengembalian</p>
+      <p class="mb-0 text-white-50" style="font-size: 12px;">Peminjaman dan Pengembalian</p>
     </a>
   </div>
 </div>
@@ -55,7 +55,7 @@
   <div class="col-md-6">
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="font-weight-bold text-dark mb-0">Checked-In Member Hari Ini</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Presensi Member Hari Ini</h6>
         <span class="badge badge-primary font-weight-bold px-3 py-2" style="border-radius: 12px;">{{ count($todayCheckIns) }} Kunjungan</span>
       </div>
 
@@ -183,11 +183,11 @@
                 <td class="font-weight-bold text-success" style="font-size: 13px;">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</td>
                 <td>
                   @if($tx->void_status === 'pending')
-                    <span class="badge badge-warning text-dark">Pending Void</span>
+                    <span class="badge badge-warning text-dark">Menunggu Pembatalan</span>
                   @elseif($tx->void_status === 'approved')
-                    <span class="badge badge-danger">Voided</span>
+                    <span class="badge badge-danger">Dibatalkan</span>
                   @elseif($tx->void_status === 'rejected')
-                    <span class="badge badge-secondary">Void Rejected</span>
+                    <span class="badge badge-secondary">Pembatalan Ditolak</span>
                   @else
                     <span class="badge badge-success">Selesai</span>
                   @endif

@@ -46,7 +46,7 @@
           <div class="col-md-8 section-heading mb-2">
             <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Keamanan Akun</span>
             <h2 class="heading mb-2 text-dark font-weight-bold">Verifikasi Email Anda</h2>
-            <p class="text-muted">Sebelum mengakses dashboard, kami perlu memastikan email ini benar-benar milik Anda.</p>
+            <p class="text-muted">Sebelum mengakses dasbor, kami perlu memastikan email ini benar-benar milik Anda.</p>
           </div>
         </div>
 
@@ -63,9 +63,9 @@
 
               <div class="text-center mb-4">
                 <span class="icon-envelope-o d-inline-flex align-items-center justify-content-center text-primary" style="font-size: 44px;"></span>
-                <h6 class="font-weight-bold text-dark mt-3 mb-1">Cek Inbox Email Anda</h6>
+                <h6 class="font-weight-bold text-dark mt-3 mb-1">Periksa Kotak Masuk Email Anda</h6>
                 <p class="text-muted small mb-0">
-                  Kami sudah mengirimkan link verifikasi ke:<br>
+                  Kami sudah mengirimkan tautan verifikasi ke:<br>
                   <strong class="text-dark">{{ Auth::user()->email }}</strong>
                 </p>
               </div>
@@ -73,7 +73,7 @@
               <div class="alert alert-info py-3 mb-4" role="alert">
                 <small class="font-weight-bold">
                   <i class="icon-exclamation-circle mr-1"></i>
-                  Link verifikasi berlaku <strong>60 menit</strong> dan hanya bisa dipakai sekali. Jika tidak menemukannya, periksa folder spam.
+                  Tautan verifikasi berlaku <strong>60 menit</strong> dan hanya bisa dipakai sekali. Jika tidak menemukannya, periksa folder spam.
                 </small>
               </div>
 
@@ -81,16 +81,16 @@
                 <form action="{{ route('verification.send') }}" method="POST">
                   @csrf
                   <button type="submit" class="btn btn-primary py-3 btn-block font-weight-bold shadow-sm" style="border-radius: 30px; font-size: 15px;">
-                    <i class="icon-envelope-o mr-1"></i> Kirim Ulang Link Verifikasi
+                    <i class="icon-envelope-o mr-1"></i> Kirim Ulang Tautan Verifikasi
                   </button>
                 </form>
               </div>
 
               <div class="text-center mt-3 pt-3 border-top d-flex justify-content-between">
-                <a href="{{ route('login') }}" class="text-primary small font-weight-bold">Sudah verifikasi? Login</a>
+                <a href="{{ route('login') }}" class="text-primary small font-weight-bold">Sudah verifikasi? Masuk</a>
                 <form action="{{ route('logout') }}" method="POST" class="d-inline">
                   @csrf
-                  <button type="submit" class="btn btn-link text-muted small font-weight-bold p-0">Logout</button>
+                  <button type="submit" class="btn btn-link text-muted small font-weight-bold p-0">Keluar</button>
                 </form>
               </div>
             </div>
@@ -106,7 +106,7 @@
         <h3 class="text-white mb-2">Pet Gym SaaS Management</h3>
         <p class="text-white-50 mb-3 small">Platform terpadu kendali operasional, presensi member, POS kasir, dan manajemen kelas gym Anda.</p>
         <p class="mb-0 text-white-50 small">
-          Copyright &copy; <script>document.write(new Date().getFullYear());</script> All rights reserved | Pet Gym Management System
+          Hak Cipta &copy; <script>document.write(new Date().getFullYear());</script> Hak cipta dilindungi undang-undang | Sistem Manajemen PetGym
         </p>
       </div>
     </footer>

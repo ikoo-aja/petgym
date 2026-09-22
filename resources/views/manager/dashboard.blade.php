@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Manager')
-@section('page_title', 'Dashboard Manager Gym')
+@section('title', 'Beranda Manager — PetGym')
+@section('page_title', 'Beranda Manager Gym')
 @section('page_subtitle', 'Pengawasan operasional harian, pendapatan bulanan, dan log aktivitas staf')
 
 @section('content')
 <div class="row">
   <div class="col-md-3">
     <div class="card-custom">
-      <div class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Check-In Hari Ini</div>
+      <div class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Presensi Hari Ini</div>
       <div class="d-flex align-items-baseline mt-2">
         <h2 class="font-weight-bold mb-0 text-dark">{{ $checkinsToday }}</h2>
         <span class="ml-2 text-muted" style="font-size: 12px;">kunjungan</span>
@@ -74,7 +74,7 @@
     <div class="card-custom">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="font-weight-bold text-dark mb-0">Log Aktivitas Staf Terbaru (Audit Trail)</h6>
-        <a href="{{ route('admin.logs.index') }}" class="btn btn-sm btn-link text-primary font-weight-bold">Lihat Semua Log &rarr;</a>
+        <span class="badge badge-light border text-muted px-2 py-1" style="font-size: 11px;">Aktivitas Terkini</span>
       </div>
 
       <div class="table-responsive">

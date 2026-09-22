@@ -76,12 +76,12 @@
 
               <div class="row">
                 <div class="col-md-6 form-group mb-3">
-                  <label for="password" class="text-dark font-weight-bold small">Password *</label>
+                  <label for="password" class="text-dark font-weight-bold small">Kata Sandi *</label>
                   <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Min. 4 karakter" required style="font-size: 15px;">
                 </div>
                 <div class="col-md-6 form-group mb-3">
-                  <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Password *</label>
-                  <input type="password" id="password_confirmation" name="password_confirmation" class="form-control form-control-lg" placeholder="Ulangi password" required style="font-size: 15px;">
+                  <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Kata Sandi *</label>
+                  <input type="password" id="password_confirmation" name="password_confirmation" class="form-control form-control-lg" placeholder="Ulangi kata sandi" required style="font-size: 15px;">
                 </div>
               </div>
 
@@ -104,7 +104,7 @@
 
               <div class="text-center mt-4 pt-3 border-top">
                 <span class="text-muted small">Sudah memiliki akun?</span>
-                <a href="{{ route('login') }}" class="text-primary small font-weight-bold ml-1">Masuk / Login Di Sini</a>
+                <a href="{{ route('login') }}" class="text-primary small font-weight-bold ml-1">Masuk di Sini</a>
               </div>
             </form>
           </div>

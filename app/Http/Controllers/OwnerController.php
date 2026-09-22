@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\GymEquipment;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class OwnerController extends Controller
 {
@@ -138,33 +139,30 @@ class OwnerController extends Controller
     }
 
     /**
-     * Pemantauan Data & Status Member (Read-Only).
+     * Pemantauan Kinerja Karyawan (Evaluasi Penjualan Resepsionis & Jam Terbang Trainer).
      */
-    public function members(Request $request)
+    public function performance(Request $request)
     {
         $tenant = Auth::user()->tenant;
         $tenantId = $tenant->id;
 
-        $query = Member::where('tenant_id', $tenantId);
+        $receptionistPerformance = PosTransaction::where('tenant_id', $tenantId)
+            ->where('created_at', '>=', Carbon::now()->startOfMonth())
+            ->select('user_id', DB::raw('SUM(total_amount) as total_sales'), DB::raw('COUNT(*) as total_transactions'))
+            ->groupBy('user_id')
+            ->with('user')
+            ->orderBy('total_sales', 'desc')
+            ->get();
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('access_code', 'like', "%{$search}%");
-            });
-        }
+        $trainerPerformance = GymClass::where('tenant_id', $tenantId)
+            ->select('trainer_id', DB::raw('COUNT(*) as total_classes'))
+            ->whereNotNull('trainer_id')
+            ->groupBy('trainer_id')
+            ->with('trainer')
+            ->orderBy('total_classes', 'desc')
+            ->get();
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $members = $query->latest()->paginate(10)->withQueryString();
-        $totalMembers = Member::where('tenant_id', $tenantId)->count();
-        $activeMembers = Member::where('tenant_id', $tenantId)->where('status', 'active')->count();
-
-        return view('owner.members', compact('tenant', 'members', 'totalMembers', 'activeMembers'));
+        return view('owner.performance', compact('tenant', 'receptionistPerformance', 'trainerPerformance'));
     }
 
     /**

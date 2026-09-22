@@ -452,7 +452,7 @@
           <i class="icon-fitness_center text-danger mr-1"></i> {{ $tenantName }}
         </a>
       @endif
-      <span class="badge badge-primary font-weight-bold ml-2 d-none d-sm-inline-block" style="font-size:10px; background-color: var(--brand-red-light) !important; color: var(--brand-red) !important; border: 1px solid var(--brand-red-border) !important;">MEMBER PORTAL</span>
+      <span class="badge badge-primary font-weight-bold ml-2 d-none d-sm-inline-block" style="font-size:10px; background-color: var(--brand-red-light) !important; color: var(--brand-red) !important; border: 1px solid var(--brand-red-border) !important;">PORTAL ANGGOTA</span>
     </div>
 
     <div class="d-flex align-items-center" style="gap: 12px;">
@@ -474,7 +474,7 @@
 <main class="member-container">
   <!-- Page Title Header -->
   <div class="mb-4">
-    <h4 class="font-weight-bold text-dark mb-1">@yield('page_title', 'Beranda Member')</h4>
+    <h4 class="font-weight-bold text-dark mb-1">@yield('page_title', 'Beranda Anggota')</h4>
     <p class="text-muted small mb-0">@yield('page_subtitle', 'Sistem Pengelolaan Keanggotaan Member Gym')</p>
   </div>
 
@@ -497,7 +497,7 @@
 </main>
 
 <footer class="member-footer">
-  &copy; {{ date('Y') }} {{ $tenantName }}. All rights reserved.
+  &copy; {{ date('Y') }} {{ $tenantName }}. Hak cipta dilindungi undang-undang.
 </footer>
 
 <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
