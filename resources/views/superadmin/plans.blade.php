@@ -8,6 +8,19 @@
 @section('content')
 <!-- 3. PAKET SEWA (SUBSCRIPTION & PLAN MANAGEMENT) -->
 <section id="plans" class="mb-5">
+  @if($errors->any())
+  <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius: 10px;">
+    <ul class="mb-0 pl-3">
+      @foreach($errors->all() as $err)
+        <li class="font-weight-bold small">{{ $err }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  @endif
+
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="font-weight-bold text-black mb-0">Manajemen Paket Sewa</h4>
     <button class="btn btn-primary btn-sm px-3" data-toggle="modal" data-target="#createPlanModal">+ Buat Paket Baru</button>
@@ -108,44 +121,54 @@
 @section('modals')
 <!-- MODAL: TAMBAH PAKET BARU -->
 <div class="modal fade" id="createPlanModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-header-title font-weight-bold text-black">Buat Paket Sewa Baru</h5>
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 14px; overflow: hidden;">
+      <div class="modal-header bg-white border-bottom py-3 px-4">
+        <h5 class="modal-header-title font-weight-bold text-black mb-0">Buat Paket Sewa Baru</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <form action="{{ route('superadmin.plans.store') }}" method="POST" id="createPlanForm">
         @csrf
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Nama Paket</label>
-            <input type="text" name="name" class="form-control" placeholder="Contoh: Paket Ultimate" required>
-          </div>
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Harga Bulanan (Rp)</label>
-            <input type="number" name="price" class="form-control" placeholder="3000000" required>
-          </div>
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Maksimal Member</label>
-            <input type="number" name="max_members" class="form-control" placeholder="1000">
-            <small class="text-muted">Kosongkan jika unlimited</small>
+        <div class="modal-body p-4">
+          <div class="row">
+            <div class="col-md-4 form-group mb-3">
+              <label class="text-black font-weight-bold small">Nama Paket <span class="text-danger">*</span></label>
+              <input type="text" name="name" class="form-control" placeholder="Contoh: Paket Ultimate" required>
+            </div>
+            <div class="col-md-4 form-group mb-3">
+              <label class="text-black font-weight-bold small">Harga Bulanan (Rp) <span class="text-danger">*</span></label>
+              <input type="number" name="price" class="form-control" placeholder="3000000" required>
+            </div>
+            <div class="col-md-4 form-group mb-3">
+              <label class="text-black font-weight-bold small">Maksimal Member</label>
+              <input type="number" name="max_members" class="form-control" placeholder="1000">
+              <small class="text-muted d-block mt-1">Kosongkan jika unlimited</small>
+            </div>
           </div>
           
-          <div class="form-group mb-0">
-            <label class="text-black font-weight-bold mb-2">Fitur & Modul Paket</label>
-            @foreach($masterFeatures as $idx => $fName)
-              <div class="custom-control custom-checkbox mb-2">
-                <input type="checkbox" name="features[]" value="{{ $fName }}" class="custom-control-input" id="createFeat{{ $idx }}">
-                <label class="custom-control-label font-weight-bold text-dark" for="createFeat{{ $idx }}">{{ $fName }}</label>
-              </div>
-            @endforeach
+          <div class="form-group mb-0 bg-light p-3 rounded border">
+            <label class="text-black font-weight-bold small d-block mb-3">
+              <span class="icon-layers mr-1 text-primary"></span> Fitur & Modul Paket (Pilih Fitur Aktif)
+            </label>
+            <div class="row">
+              @foreach($masterFeatures as $idx => $fName)
+                <div class="col-md-4 col-sm-6 mb-2">
+                  <div class="custom-control custom-checkbox bg-white p-2 rounded border h-100 d-flex align-items-center">
+                    <input type="checkbox" name="features[]" value="{{ $fName }}" class="custom-control-input" id="createFeat{{ $idx }}" {{ $idx < 5 ? 'checked' : '' }}>
+                    <label class="custom-control-label font-weight-bold text-dark small pl-1 w-100" for="createFeat{{ $idx }}" style="cursor: pointer; line-height: 1.3;">
+                      {{ $fName }}
+                    </label>
+                  </div>
+                </div>
+              @endforeach
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer bg-light py-2 px-4 border-top">
           <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm">Buat & Simpan Paket</button>
+          <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-3">Buat & Simpan Paket</button>
         </div>
       </form>
     </div>
@@ -154,10 +177,10 @@
 
 <!-- MODAL: EDIT BATASAN & FITUR PAKET -->
 <div class="modal fade" id="editPlanModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-header-title font-weight-bold text-black">Edit Batasan & Fitur: <span id="editModalPlanTitle" class="text-primary"></span></h5>
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 14px; overflow: hidden;">
+      <div class="modal-header bg-white border-bottom py-3 px-4">
+        <h5 class="modal-header-title font-weight-bold text-black mb-0">Edit Batasan & Fitur: <span id="editModalPlanTitle" class="text-primary"></span></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -165,34 +188,44 @@
       <form action="" method="POST" id="editPlanForm">
         @csrf
         @method('PUT')
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Nama Paket</label>
-            <input type="text" name="name" id="edit_name" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Harga Bulanan (Rp)</label>
-            <input type="number" name="price" id="edit_price" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label class="text-black font-weight-bold">Maksimal Member</label>
-            <input type="number" name="max_members" id="edit_max_members" class="form-control" placeholder="Kosongkan jika unlimited">
-            <small class="text-muted">Isi angka (misal 150, 500) atau kosongkan untuk Unlimited.</small>
+        <div class="modal-body p-4">
+          <div class="row">
+            <div class="col-md-4 form-group mb-3">
+              <label class="text-black font-weight-bold small">Nama Paket <span class="text-danger">*</span></label>
+              <input type="text" name="name" id="edit_name" class="form-control" required>
+            </div>
+            <div class="col-md-4 form-group mb-3">
+              <label class="text-black font-weight-bold small">Harga Bulanan (Rp) <span class="text-danger">*</span></label>
+              <input type="number" name="price" id="edit_price" class="form-control" required>
+            </div>
+            <div class="col-md-4 form-group mb-3">
+              <label class="text-black font-weight-bold small">Maksimal Member</label>
+              <input type="number" name="max_members" id="edit_max_members" class="form-control" placeholder="Kosongkan jika unlimited">
+              <small class="text-muted d-block mt-1">Kosongkan untuk Unlimited.</small>
+            </div>
           </div>
           
-          <div class="form-group mb-0">
-            <label class="text-black font-weight-bold mb-2">Fitur & Modul Paket</label>
-            @foreach($masterFeatures as $idx => $fName)
-              <div class="custom-control custom-checkbox mb-2">
-                <input type="checkbox" name="features[]" value="{{ $fName }}" class="custom-control-input edit-feat-checkbox" id="editFeat{{ $idx }}">
-                <label class="custom-control-label font-weight-bold text-dark" for="editFeat{{ $idx }}">{{ $fName }}</label>
-              </div>
-            @endforeach
+          <div class="form-group mb-0 bg-light p-3 rounded border">
+            <label class="text-black font-weight-bold small d-block mb-3">
+              <span class="icon-layers mr-1 text-primary"></span> Fitur & Modul Paket
+            </label>
+            <div class="row">
+              @foreach($masterFeatures as $idx => $fName)
+                <div class="col-md-4 col-sm-6 mb-2">
+                  <div class="custom-control custom-checkbox bg-white p-2 rounded border h-100 d-flex align-items-center">
+                    <input type="checkbox" name="features[]" value="{{ $fName }}" class="custom-control-input edit-feat-checkbox" id="editFeat{{ $idx }}">
+                    <label class="custom-control-label font-weight-bold text-dark small pl-1 w-100" for="editFeat{{ $idx }}" style="cursor: pointer; line-height: 1.3;">
+                      {{ $fName }}
+                    </label>
+                  </div>
+                </div>
+              @endforeach
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer bg-light py-2 px-4 border-top">
           <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm">Simpan Perubahan ke Database</button>
+          <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-3">Simpan Perubahan ke Database</button>
         </div>
       </form>
     </div>

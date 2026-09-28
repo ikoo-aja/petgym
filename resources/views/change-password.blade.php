@@ -25,7 +25,7 @@
   <div class="py-3 bg-white border-bottom shadow-sm">
     <div class="container text-center">
       <div class="site-logo d-flex justify-content-center align-items-center">
-        <x-brand-logo type="full" theme="light" size="44" url="/" />
+        <x-brand-logo type="full" theme="light" size="44" url="none" />
       </div>
     </div>
   </div>

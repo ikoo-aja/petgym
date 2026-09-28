@@ -187,7 +187,7 @@
       <div class="container-fluid px-4 px-lg-5">
         <div class="d-flex align-items-center justify-content-between">
           <div class="site-logo">
-            <x-brand-logo type="full" theme="dark" size="40" url="/" />
+            <x-brand-logo type="full" theme="dark" size="40" url="/" onclick="if(window.location.pathname === '/' || window.location.pathname === ''){ window.scrollTo({top: 0, behavior: 'smooth'}); return false; }" />
           </div>
           <div class="ml-auto d-flex align-items-center">
             <nav class="site-navigation position-relative text-right" role="navigation">
@@ -534,7 +534,7 @@
             <div class="card h-100 border-0 bg-transparent">
               <div class="card-body p-0 text-left">
                 <div class="mb-3">
-                  <x-brand-logo type="full" theme="dark" size="36" url="/" />
+                  <x-brand-logo type="full" theme="dark" size="36" url="/" onclick="if(window.location.pathname === '/' || window.location.pathname === ''){ window.scrollTo({top: 0, behavior: 'smooth'}); return false; }" />
                 </div>
                 <p class="text-white-50 small mb-4">
                   Platform manajemen gym cloud terbaik untuk mempermudah operasional, otomatisasi kasir, retensi member, dan analitik bisnis kebugaran Anda.

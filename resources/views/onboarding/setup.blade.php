@@ -44,7 +44,7 @@
   <!-- Top Navbar Minimalis -->
   <header class="bg-white border-bottom py-3">
     <div class="container d-flex justify-content-between align-items-center">
-      <x-brand-logo type="full" theme="light" size="38" url="/" />
+      <x-brand-logo type="full" theme="light" size="38" url="none" />
       <div class="d-flex align-items-center">
         <span class="text-muted small mr-3 d-none d-sm-inline">Masuk sebagai: <strong>{{ Auth::user()->name }}</strong> ({{ Auth::user()->email }})</span>
         <a href="{{ route('logout') }}" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 20px;">Keluar</a>

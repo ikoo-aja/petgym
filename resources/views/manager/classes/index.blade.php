@@ -67,7 +67,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="{{ Auth::user() && Auth::user()->isManager() ? '6' : '5' }}" class="text-center py-4 text-muted">Belum ada jadwal kelas dari Manager.</td>
+                <td colspan="{{ Auth::user() && Auth::user()->isManager() ? '6' : '5' }}" class="text-center py-4 text-muted">Belum ada jadwal kelas terdaftar.</td>
               </tr>
             @endforelse
           </tbody>
@@ -196,7 +196,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Kelas</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
       </div>
     </form>
   </div>
@@ -258,7 +258,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold">Simpan Kelas Baru</button>
+        <button type="submit" class="btn btn-success font-weight-bold">Simpan Data</button>
       </div>
     </form>
   </div>
@@ -290,7 +290,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Trainer</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
       </div>
     </form>
   </div>
@@ -321,7 +321,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold">Simpan Trainer</button>
+        <button type="submit" class="btn btn-success font-weight-bold">Simpan Data</button>
       </div>
     </form>
   </div>

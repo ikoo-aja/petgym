@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard Admin — PetGym')
 @section('page_title', 'Dashboard Website & Pengelolaan')
-@section('page_subtitle', 'Pantau performa website gym, status masa sewa SaaS, dan pengumuman dari Superadmin')
+@section('page_subtitle', 'Pantau performa website gym, status masa sewa SaaS, dan pengumuman sistem')
 
 @section('content')
 <div class="container-fluid py-4">
@@ -142,12 +142,12 @@
         </div>
     </div>
 
-    <!-- 2. PENGUMUMAN & NOTIFIKASI SUPERADMIN (FULL WIDTH HORIZONTAL) -->
+    <!-- 2. PENGUMUMAN & NOTIFIKASI SISTEM (FULL WIDTH HORIZONTAL) -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm bg-white" style="border-radius: 14px;">
                 <div class="card-header bg-white border-bottom pt-4 px-4 pb-3">
-                    <h6 class="font-weight-bold text-dark mb-0">Pengumuman &amp; Notifikasi Superadmin</h6>
+                    <h6 class="font-weight-bold text-dark mb-0">Pengumuman &amp; Informasi Sistem</h6>
                     <small class="text-muted">Pemberitahuan resmi jadwal pemeliharaan dan pembaruan sistem</small>
                 </div>
                 <div class="card-body p-4">
@@ -172,7 +172,7 @@
                     @else
                         <div class="text-center py-4 text-muted small">
                             <span class="icon-bell-off h4 d-block mb-1 text-muted"></span>
-                            Belum ada pengumuman baru dari Superadmin.
+                            Belum ada pengumuman baru.
                         </div>
                     @endif
                 </div>

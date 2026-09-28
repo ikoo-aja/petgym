@@ -132,7 +132,7 @@
       </div>
       <div class="modal-body p-4">
         <div class="alert alert-info py-2 mb-4" style="font-size: 13px;">
-          Pendaftaran member baru terintegrasi langsung dengan Kasir POS. Akun member akan langsung aktif dengan kode akses PIN unik setelah pembayaran paket diselesaikan.
+          Pendaftaran member baru terintegrasi langsung dengan sistem pembayaran. Akun member akan langsung aktif dengan kode akses PIN unik setelah pembayaran paket diselesaikan.
         </div>
 
         <div class="row">
@@ -183,7 +183,7 @@
 
             <div class="card bg-light border p-3 mb-3" style="border-radius: 10px;">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="text-muted" style="font-size: 13px;">Total Tagihan Kasir:</span>
+                <span class="text-muted" style="font-size: 13px;">Total Tagihan:</span>
                 <span class="font-weight-bold text-dark" id="regPackagePriceText" style="font-size: 16px;">Rp 500.000</span>
               </div>
               <div class="d-flex justify-content-between align-items-center">
@@ -214,7 +214,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 8px;">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold px-4" style="border-radius: 8px;">Bayar di Kasir & Buat Akun</button>
+        <button type="submit" class="btn btn-success font-weight-bold px-4" style="border-radius: 8px;">Proses Pembayaran & Buat Akun</button>
       </div>
     </form>
   </div>
@@ -338,7 +338,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Update Data Member</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
       </div>
     </form>
   </div>
@@ -437,19 +437,19 @@
       $('#editMemberAddress').val($(this).data('address'));
       $('#editMemberStatus').val($(this).data('status'));
       $('#editMemberExpiredAt').val($(this).data('expired_at'));
-      $('#editMemberForm').attr('action', '/admin/members/' + id);
+      $('#editMemberForm').attr('action', '/manager/members/' + id);
       $('#editMemberModal').modal('show');
     });
 
     $('.btn-history').on('click', function() {
       var memberId = $(this).data('id');
       var memberName = $(this).data('name');
-      $('#historyMemberTitle').text('Riwayat Membership: ' + memberName);
+      $('#historyMemberTitle').text('Riwayat Keanggotaan: ' + memberName);
       $('#historyLoading').show();
       $('#historyTableContainer').hide();
       $('#historyModal').modal('show');
 
-      $.get('/admin/members/' + memberId + '/history', function(data) {
+      $.get('/manager/members/' + memberId + '/history', function(data) {
         $('#historyLoading').hide();
         $('#historyTableContainer').show();
         var html = '';

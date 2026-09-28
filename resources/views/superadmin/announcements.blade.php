@@ -3,7 +3,7 @@
 @section('title', 'Pengumuman Sistem &mdash; Superadmin Panel')
 
 @section('page_title', 'Pengumuman')
-@section('page_subtitle', 'Kirim pengumuman global ke semua tenant')
+@section('page_subtitle', 'Kirim pengumuman global ke seluruh dashboard tenant')
 
 @section('styles')
 <!-- Quill.js Snow theme CSS -->
@@ -20,38 +20,56 @@
 @section('content')
 <div class="row">
   <div class="col-lg-12 mb-4" id="announcements">
-    <!-- Form Broadcast -->
+    @if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius: 10px;">
+      <ul class="mb-0 pl-3">
+        @foreach($errors->all() as $err)
+          <li class="font-weight-bold small">{{ $err }}</li>
+        @endforeach
+      </ul>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    @endif
+
+    <!-- Form Broadcast Baru -->
     <div class="bg-white p-4 rounded shadow-sm">
       <h4 class="font-weight-bold text-black mb-3">Kirim Pengumuman Baru</h4>
-      <form action="#" method="POST" id="broadcastForm">
+      <form action="{{ route('superadmin.announcements.store') }}" method="POST" id="broadcastForm">
         @csrf
-        <div class="form-group">
-          <label class="text-black font-weight-bold">Judul Pengumuman</label>
-          <input type="text" name="title" class="form-control" placeholder="Contoh: Maintenance Sistem Harian" required>
+        <div class="form-group mb-3">
+          <label class="text-black font-weight-bold">Judul Pengumuman <span class="text-danger">*</span></label>
+          <input type="text" name="title" class="form-control" placeholder="Contoh: Pembaruan Sistem Harian & Fitur Baru" required value="{{ old('title') }}">
         </div>
-        <div class="form-group">
-          <label class="text-black font-weight-bold">Pesan Broadcast ke Tenant</label>
+        <div class="form-group mb-3">
+          <label class="text-black font-weight-bold">Pesan Broadcast ke Tenant <span class="text-danger">*</span></label>
           <!-- Quill Editor -->
-          <div id="editor-container" style="background: #fff; border-radius: 4px;"></div>
+          <div id="editor-container" style="background: #fff; border-radius: 4px;">{!! old('message') !!}</div>
           <!-- Hidden Input for HTML Message -->
           <input type="hidden" name="message" id="message-input">
         </div>
-        <button type="submit" class="btn btn-primary btn-sm px-4">Kirim Broadcast</button>
+        <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold">
+          <span class="icon-send mr-1"></span> Kirim Broadcast
+        </button>
       </form>
     </div>
 
     <!-- Riwayat Pengumuman -->
     <div class="bg-white p-4 rounded shadow-sm mt-4">
-      <h4 class="font-weight-bold text-black mb-3">Riwayat Pengumuman (Announcement History)</h4>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="font-weight-bold text-black mb-0">Riwayat Pengumuman (Announcement History)</h4>
+        <span class="badge badge-light border text-muted px-2 py-1">Total: {{ $announcements->total() }}</span>
+      </div>
       <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-hover align-middle">
           <thead>
             <tr>
-              <th class="text-black font-weight-bold">Tanggal</th>
+              <th class="text-black font-weight-bold" style="width: 140px;">Tanggal</th>
               <th class="text-black font-weight-bold">Judul</th>
               <th class="text-black font-weight-bold">Isi Pesan</th>
               <th class="text-black font-weight-bold">Status</th>
-              <th class="text-black font-weight-bold">Aksi</th>
+              <th class="text-black font-weight-bold text-right" style="min-width: 180px;">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -61,32 +79,40 @@
               $annTitle = $announcement->title ?? $announcement['title'];
               $annMsg = $announcement->message ?? $announcement['message'];
               $annStatus = $announcement->status ?? $announcement['status'];
+              $isActive = (strcasecmp($annStatus, 'active') === 0);
             @endphp
-            <tr>
+            <tr id="row-announcement-{{ $announcement->id }}">
               <td style="white-space: nowrap;"><small class="text-muted">{{ $createdAtStr }}</small></td>
               <td class="font-weight-bold text-black">{{ $annTitle }}</td>
               <td style="max-width: 350px;" class="text-black">{!! \Illuminate\Support\Str::limit(strip_tags($annMsg), 90) !!}</td>
               <td>
-                @if($annStatus == 'Active')
-                  <span class="badge badge-success px-2 py-1 text-white">Aktif</span>
+                @if($isActive)
+                  <span class="badge badge-success px-2 py-1 text-white badge-status">Aktif</span>
                 @else
-                  <span class="badge badge-secondary px-2 py-1">Ditarik Kembali</span>
+                  <span class="badge badge-secondary px-2 py-1 badge-status">Ditarik (Nonaktif)</span>
                 @endif
               </td>
-              <td style="white-space: nowrap;">
-                <button class="btn btn-sm btn-outline-secondary px-2 py-1 mr-1 btn-edit-announcement" data-id="{{ $announcement->id ?? 0 }}" data-title="{{ $annTitle }}" data-message="{{ $annMsg }}" title="Ubah">
+              <td style="white-space: nowrap;" class="text-right">
+                <button class="btn btn-sm btn-outline-secondary px-2 py-1 mr-1 btn-edit-announcement"
+                        data-id="{{ $announcement->id }}"
+                        data-title="{{ $annTitle }}"
+                        data-message="{{ htmlspecialchars($annMsg, ENT_QUOTES) }}"
+                        title="Ubah Konten">
                   <span class="icon-pencil"></span> Ubah
                 </button>
-                @if($annStatus == 'Active')
-                  <button class="btn btn-sm btn-outline-warning px-2 py-1 mr-1 btn-recall-announcement" title="Tarik Kembali">
-                    <span class="icon-pause"></span> Tarik
-                  </button>
-                @else
-                  <button class="btn btn-sm btn-outline-success px-2 py-1 mr-1 btn-activate-announcement" title="Aktifkan Kembali">
-                    <span class="icon-play_arrow"></span> Aktifkan
-                  </button>
-                @endif
-                <button class="btn btn-sm btn-outline-danger px-2 py-1 btn-delete-announcement" title="Hapus">
+
+                <button class="btn btn-sm {{ $isActive ? 'btn-outline-warning' : 'btn-outline-success' }} px-2 py-1 mr-1 btn-toggle-announcement"
+                        data-id="{{ $announcement->id }}"
+                        data-title="{{ $annTitle }}"
+                        title="{{ $isActive ? 'Tarik Kembali' : 'Aktifkan Kembali' }}">
+                  <span class="{{ $isActive ? 'icon-pause' : 'icon-play_arrow' }}"></span>
+                  <span class="btn-toggle-text">{{ $isActive ? 'Tarik' : 'Aktifkan' }}</span>
+                </button>
+
+                <button class="btn btn-sm btn-outline-danger px-2 py-1 btn-delete-announcement"
+                        data-id="{{ $announcement->id }}"
+                        data-title="{{ $annTitle }}"
+                        title="Hapus">
                   <span class="icon-close"></span> Hapus
                 </button>
               </td>
@@ -99,6 +125,47 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Footer -->
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <small class="text-muted">Menampilkan {{ $announcements->firstItem() ?? 0 }} sampai {{ $announcements->lastItem() ?? 0 }} dari {{ $announcements->total() }} pengumuman</small>
+        {{ $announcements->links() }}
+      </div>
+    </div>
+  </div>
+</div>
+@endsection
+
+@section('modals')
+<!-- MODAL: UBAH PENGUMUMAN -->
+<div class="modal fade" id="editAnnouncementModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-header-title font-weight-bold text-black">Ubah Pengumuman</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="" method="POST" id="editAnnouncementForm">
+        @csrf
+        @method('PUT')
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="text-black font-weight-bold">Judul Pengumuman <span class="text-danger">*</span></label>
+            <input type="text" name="title" id="edit_title" class="form-control" required>
+          </div>
+          <div class="form-group mb-3">
+            <label class="text-black font-weight-bold">Pesan Broadcast <span class="text-danger">*</span></label>
+            <div id="edit-editor-container" style="background: #fff; border-radius: 4px;"></div>
+            <input type="hidden" name="message" id="edit-message-input">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary btn-sm font-weight-bold">Simpan Perubahan</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -109,10 +176,10 @@
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
   $(document).ready(function() {
-    // Inisialisasi Quill Editor
-    var quill = new Quill('#editor-container', {
+    // 1. Inisialisasi Quill Editor untuk Create
+    var quillCreate = new Quill('#editor-container', {
       theme: 'snow',
-      placeholder: 'Tuliskan pesan broadcast lengkap dengan link promo, text bold, list bullet, dsb...',
+      placeholder: 'Tuliskan pesan broadcast lengkap dengan link info, promo, list bullet, dsb...',
       modules: {
         toolbar: [
           ['bold', 'italic', 'underline', 'strike'],
@@ -122,110 +189,116 @@
       }
     });
 
-    // 1. Submit form broadcast secara dinamis
-    $('#broadcastForm').on('submit', function(e) {
-      e.preventDefault();
-      const title = $('input[name="title"]').val();
-      const editorHtml = quill.root.innerHTML;
+    // 2. Inisialisasi Quill Editor untuk Edit Modal
+    var quillEdit = new Quill('#edit-editor-container', {
+      theme: 'snow',
+      placeholder: 'Tuliskan pembaruan pesan broadcast...',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          ['link', 'clean']
+        ]
+      }
+    });
 
-      if (quill.getText().trim().length === 0) {
+    // Validasi & Sync Form Broadcast Baru
+    $('#broadcastForm').on('submit', function(e) {
+      const editorHtml = quillCreate.root.innerHTML;
+      if (quillCreate.getText().trim().length === 0) {
+        e.preventDefault();
         showToast('Validasi Gagal', 'Isi pesan broadcast tidak boleh kosong!', 'error');
         return false;
       }
-
-      // Format Tanggal Hari Ini
-      const now = new Date();
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
-      const formattedDate = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-      // Tambahkan baris data dinamis
-      const newRow = `
-        <tr class="new-announcement-row" style="background-color: #f6fff6;">
-          <td><small class="text-muted">${formattedDate}</small></td>
-          <td class="font-weight-bold text-black">${title}</td>
-          <td style="max-width: 350px;">${quill.getText().substring(0, 90)}...</td>
-          <td><span class="badge badge-success px-2 py-1 text-white">Aktif</span></td>
-          <td style="white-space: nowrap;">
-            <button class="btn btn-sm btn-outline-secondary px-2 py-1 mr-1 btn-edit-announcement" data-title="${title}" data-message='${editorHtml}' title="Ubah">
-              <span class="icon-pencil"></span> Ubah
-            </button>
-            <button class="btn btn-sm btn-outline-warning px-2 py-1 mr-1 btn-recall-announcement" title="Tarik Kembali">
-              <span class="icon-pause"></span> Tarik
-            </button>
-            <button class="btn btn-sm btn-outline-danger px-2 py-1 btn-delete-announcement" title="Hapus">
-              <span class="icon-close"></span> Hapus
-            </button>
-          </td>
-        </tr>
-      `;
-
-      $('table tbody').prepend(newRow);
-
-      // Reset form
-      $('input[name="title"]').val('');
-      quill.root.innerHTML = '';
-
-      showToast('Pengumuman Disiarkan', `Pengumuman "${title}" berhasil disiarkan ke seluruh dashboard tenant!`, 'success');
-
-      setTimeout(function() {
-        $('.new-announcement-row').first().css('background-color', '');
-      }, 2000);
+      $('#message-input').val(editorHtml);
+      return true;
     });
 
-    // 2. Aksi Tarik Pengumuman (Recall)
-    $(document).on('click', '.btn-recall-announcement', function(e) {
+    // Modal Edit Pengumuman
+    $(document).on('click', '.btn-edit-announcement', function(e) {
       e.preventDefault();
-      const row = $(this).closest('tr');
-      const statusBadge = row.find('.badge-success, .badge-secondary');
-      const title = row.find('td:nth-child(2)').text();
-
-      statusBadge.removeClass('badge-success').addClass('badge-secondary').text('Ditarik (Recalled)');
-      $(this).removeClass('btn-outline-warning btn-recall-announcement').addClass('btn-outline-success btn-activate-announcement').html('<span class="icon-play_arrow"></span> Aktifkan').attr('title', 'Aktifkan Kembali');
-
-      showToast('Pengumuman Ditarik', `Pengumuman "${title}" berhasil dinonaktifkan dari dashboard tenant.`, 'warning');
-    });
-
-    // 3. Aksi Aktifkan Pengumuman Kembali
-    $(document).on('click', '.btn-activate-announcement', function(e) {
-      e.preventDefault();
-      const row = $(this).closest('tr');
-      const statusBadge = row.find('.badge-success, .badge-secondary');
-      const title = row.find('td:nth-child(2)').text();
-
-      statusBadge.removeClass('badge-secondary').addClass('badge-success').text('Aktif');
-      $(this).removeClass('btn-outline-success btn-activate-announcement').addClass('btn-outline-warning btn-recall-announcement').html('<span class="icon-pause"></span> Tarik').attr('title', 'Tarik Kembali');
-
-      showToast('Pengumuman Aktif', `Pengumuman "${title}" disiarkan kembali ke dashboard tenant.`, 'success');
-    });
-
-    // 4. Aksi Hapus Pengumuman
-    $(document).on('click', '.btn-delete-announcement', function(e) {
-      e.preventDefault();
-      const row = $(this).closest('tr');
-      const title = row.find('td:nth-child(2)').text();
-
-      row.css('background-color', '#fff3f3');
-      setTimeout(function() {
-        row.fadeOut(400, function() {
-          row.remove();
-          showToast('Pengumuman Dihapus', `Pengumuman "${title}" berhasil dibersihkan dari riwayat.`, 'error');
-        });
-      }, 100);
-    });
-
-    // 5. Aksi Edit Pengumuman
-    $(document).on('click', '.btn-edit-announcement', function() {
+      const id = $(this).data('id');
       const title = $(this).data('title');
       const message = $(this).data('message');
 
-      $('input[name="title"]').val(title);
-      quill.root.innerHTML = message;
+      $('#editAnnouncementForm').attr('action', "{{ url('/superadmin/announcements') }}/" + id);
+      $('#edit_title').val(title);
+      quillEdit.root.innerHTML = message || '';
 
-      $('html, body').animate({
-        scrollTop: $("#broadcastForm").offset().top - 100
-      }, 500);
+      $('#editAnnouncementModal').modal('show');
+    });
 
-      showToast('Memuat Pengumuman', 'Konten pengumuman dimuat ke editor untuk diedit.', 'info');
+    // Sync Form Edit
+    $('#editAnnouncementForm').on('submit', function(e) {
+      const editorHtml = quillEdit.root.innerHTML;
+      if (quillEdit.getText().trim().length === 0) {
+        e.preventDefault();
+        showToast('Validasi Gagal', 'Isi pesan broadcast tidak boleh kosong!', 'error');
+        return false;
+      }
+      $('#edit-message-input').val(editorHtml);
+      return true;
+    });
+
+    // Toggle Aktif / Tarik Status via Server
+    $(document).on('click', '.btn-toggle-announcement', function(e) {
+      e.preventDefault();
+      const btn = $(this);
+      const id = btn.data('id');
+      const title = btn.data('title');
+
+      fetch("{{ url('/superadmin/announcements') }}/" + id + "/toggle", {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showToast('Status Pengumuman', data.message, 'success');
+          setTimeout(() => window.location.reload(), 700);
+        } else {
+          showToast('Gagal', 'Tidak dapat mengubah status pengumuman.', 'error');
+        }
+      })
+      .catch(() => {
+        showToast('Error', 'Terjadi kesalahan jaringan saat memperbarui status.', 'error');
+      });
+    });
+
+    // Hapus Pengumuman via Server
+    $(document).on('click', '.btn-delete-announcement', function(e) {
+      e.preventDefault();
+      const id = $(this).data('id');
+      const title = $(this).data('title');
+
+      if (!confirm(`Apakah Anda yakin ingin menghapus pengumuman "${title}"?`)) {
+        return;
+      }
+
+      fetch("{{ url('/superadmin/announcements') }}/" + id, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showToast('Berhasil', data.message, 'success');
+          $('#row-announcement-' + id).fadeOut(400, function() { $(this).remove(); });
+        } else {
+          showToast('Gagal', 'Tidak dapat menghapus pengumuman.', 'error');
+        }
+      })
+      .catch(() => {
+        showToast('Error', 'Terjadi kesalahan jaringan saat menghapus data.', 'error');
+      });
     });
   });
 </script>

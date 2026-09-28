@@ -64,10 +64,10 @@
                             @if($pendingInvoice)
                                 <div>
                                     <button class="btn btn-secondary font-weight-bold px-4 py-3 shadow-sm" disabled style="border-radius: 10px; font-size: 14px; opacity: 0.9; cursor: not-allowed;">
-                                        <i class="icon-clock-o mr-2"></i> Menunggu Verifikasi Superadmin
+                                        <i class="icon-clock-o mr-2"></i> Menunggu Verifikasi Pembayaran
                                     </button>
                                     <small class="d-block text-muted mt-2 font-weight-bold" style="font-size: 12px;">
-                                        <i class="icon-info mr-1 text-primary"></i> Pengajuan perpanjangan (<strong>{{ $pendingInvoice->invoice_number }}</strong>) sedang diproses Superadmin.
+                                        <i class="icon-info mr-1 text-primary"></i> Pengajuan perpanjangan (<strong>{{ $pendingInvoice->invoice_number }}</strong>) sedang dalam proses verifikasi.
                                     </small>
                                 </div>
                             @else
@@ -104,7 +104,7 @@
                 <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                     <div>
                         <h5 class="font-weight-bold text-dark mb-0">Riwayat Tagihan</h5>
-                        <small class="text-muted">Daftar transaksi perpanjangan sewa website gym yang telah diajukan ke Superadmin</small>
+                        <small class="text-muted">Daftar transaksi dan status perpanjangan sewa website gym</small>
                     </div>
                     @if(!$pendingInvoice)
                         <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-3 mt-2 mt-md-0" data-toggle="modal" data-target="#renewalModal" style="border-radius: 8px;">
@@ -315,7 +315,7 @@
 
                         <!-- Pilihan Bank Tujuan -->
                         <div>
-                            <label class="font-weight-bold text-dark small mb-2 d-block">Pilih Rekening Tujuan Transfer Superadmin:</label>
+                            <label class="font-weight-bold text-dark small mb-2 d-block">Pilih Rekening Tujuan Transfer:</label>
                             
                             <div class="d-flex flex-wrap mb-3" style="gap: 8px;">
                                 <button type="button" class="btn btn-sm btn-payment-tab active-pay-tab font-weight-bold px-3 py-1" data-method="Bank Transfer BCA" data-bank="BCA" data-rekening="883012345678" data-rekening-fmt="8830-1234-5678" style="border-radius: 8px; font-size: 12px;">
@@ -335,7 +335,7 @@
                                 <div>
                                     <span class="text-muted small d-block" id="bankNameDisplay">Bank BCA (Transfer Antar Bank / M-Banking)</span>
                                     <span class="font-weight-bold text-dark h5 mb-0" id="bankNumberDisplay" style="letter-spacing: 0.5px; font-family: monospace;">8830-1234-5678</span>
-                                    <small class="text-muted d-block mt-1">a.n. <strong>PT PetGym Digital Indonesia (Superadmin)</strong></small>
+                                    <small class="text-muted d-block mt-1">a.n. <strong>PT PetGym Digital Indonesia</strong></small>
                                 </div>
                                 <div>
                                     <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-3 py-2 btn-copy" id="btnCopyRekening" data-copy="883012345678" style="border-radius: 8px; font-size: 12px;">

@@ -451,7 +451,7 @@
       </div>
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Rencana Kelas</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Data</button>
       </div>
     </form>
   </div>
@@ -557,7 +557,7 @@
       </div>
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Voucher</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Data</button>
       </div>
     </form>
   </div>
@@ -667,7 +667,7 @@
       </div>
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Vendor</button>
+        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Data</button>
       </div>
     </form>
   </div>

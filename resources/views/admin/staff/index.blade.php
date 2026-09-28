@@ -10,7 +10,7 @@
     <h6 class="font-weight-bold text-dark mb-0">Daftar Akun Pengelola & Staf Internal</h6>
     @if(!Auth::user() || !Auth::user()->isOwner())
     <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#createStaffModal" style="border-radius: 8px;">
-      + Tambah Akun Staf Baru
+      + Tambah Akun Baru
     </button>
     @endif
   </div>
@@ -19,8 +19,8 @@
     <table class="table table-hover align-middle mb-0">
       <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
         <tr>
-          <th>Nama Staf</th>
-          <th>Email Login (Masked for Owner)</th>
+          <th>Nama</th>
+          <th>Email Login</th>
           <th>Role / Jabatan</th>
           <th>Tanggal Dibuat</th>
           @if(!Auth::user() || !Auth::user()->isOwner())
@@ -66,7 +66,7 @@
                   </form>
                 @endif
                 @if(Auth::id() !== $st->id)
-                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun staf ini?">
+                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun ini?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
@@ -78,7 +78,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="5" class="text-center py-4 text-muted">Belum ada akun staf tambahan.</td>
+            <td colspan="5" class="text-center py-4 text-muted">Belum ada akun tambahan.</td>
           </tr>
         @endforelse
       </tbody>
@@ -86,13 +86,13 @@
   </div>
 </div>
 
-<!-- Modal Tambah Staf -->
+<!-- Modal Tambah Akun -->
 <div class="modal fade" id="createStaffModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <form action="{{ route('admin.staff.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
       @csrf
       <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Form Registrasi Akun Staf Baru</h5>
+        <h5 class="modal-title font-weight-bold">Form Registrasi Akun Baru</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
@@ -105,8 +105,8 @@
         </div>
         @endif
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Lengkap Staf *</label>
-          <input type="text" name="name" class="form-control" placeholder="Contoh: Rina Resepsionis / Joko Manager" required>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Lengkap *</label>
+          <input type="text" name="name" class="form-control" placeholder="Contoh: Rina / Joko" required>
         </div>
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Email Login *</label>
@@ -124,11 +124,11 @@
           </div>
           <div class="custom-control custom-checkbox mt-2">
             <input type="checkbox" class="custom-control-input" id="autoGenPw" onchange="toggleAutoGen(this)">
-            <label class="custom-control-label text-muted" style="font-size: 12px;" for="autoGenPw">Generate password default otomatis (staf wajib ganti saat login)</label>
+            <label class="custom-control-label text-muted" style="font-size: 12px;" for="autoGenPw">Generate password default otomatis (wajib ganti saat login)</label>
           </div>
         </div>
         <div class="alert alert-info border-0 p-3 mb-3 rounded" style="background-color: #e0f2fe; color: #0369a1; font-size: 12.5px;">
-          <i class="icon-info mr-1"></i> <strong>Akses Admin:</strong> Admin menginput akun pengelola tingkat tinggi (Manager Gym & Owner). Akun staf operasional seperti Resepsionis/Kasir dan Personal Trainer dikelola secara mandiri oleh <strong>Manager Gym</strong>.
+          <i class="icon-info mr-1"></i> <strong>Informasi:</strong> Formulir ini digunakan untuk mendaftarkan akun pengelola gym.
         </div>
         <div class="form-group mb-0">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Role / Peran Akun *</label>
@@ -140,7 +140,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold">Simpan Akun Staf</button>
+        <button type="submit" class="btn btn-success font-weight-bold">Simpan Data</button>
       </div>
     </form>
   </div>

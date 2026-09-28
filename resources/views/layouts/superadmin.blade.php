@@ -198,7 +198,7 @@
     <!-- Sidebar Navigation -->
     <aside class="admin-sidebar">
       <div class="sidebar-brand d-flex align-items-center justify-content-between">
-        <x-brand-logo type="full" theme="dark" size="36" url="/" />
+        <x-brand-logo type="full" theme="dark" size="36" url="{{ route('superadmin.dashboard') }}" />
         <small style="font-size: 9px; color:#9ca3af; font-weight:800; background:#1e293b; padding:2px 6px; border-radius:4px;">SUPER ADMIN</small>
       </div>
       <ul class="nav flex-column mt-3">
@@ -281,7 +281,10 @@
 
   @yield('modals')
 
-  <!-- Toast Notification Container & Standard Flash Toast -->
+  <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
+  <script src="{{ asset('js/popper.min.js') }}"></script>
+  <script src="{{ asset('js/bootstrap.min.js') }}"></script>
+  @include('partials.confirm-modal')
   @include('partials.flash-toast')
   @include('partials.toast-helper')
 

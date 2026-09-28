@@ -41,8 +41,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post('/checkout', [SuperadminController::class, 'publicCheckout'])->name('public.checkout');
-
 Route::get('/home', function () {
     // Arahkan ke dashboard sesuai role user (bukan hardcode /admin)
     $user = auth()->user();
@@ -101,6 +99,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('onboarding')->gro
 Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')->group(function () {
     Route::get('/dashboard', [SuperadminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::get('/registrations', [SuperadminController::class, 'registrations'])->name('superadmin.registrations');
+    Route::post('/registrations', [SuperadminController::class, 'storeRegistration'])->name('superadmin.registrations.store');
+    Route::put('/registrations/{id}', [SuperadminController::class, 'updateRegistration'])->name('superadmin.registrations.update');
     Route::post('/registrations/{id}/approve', [SuperadminController::class, 'approveRegistration'])->name('superadmin.registrations.approve');
     Route::post('/registrations/{id}/status', [SuperadminController::class, 'updateRegistrationStatus'])->name('superadmin.registrations.status');
     Route::delete('/registrations/{id}', [SuperadminController::class, 'destroyRegistration'])->name('superadmin.registrations.destroy');
@@ -120,6 +120,10 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::post('/billing/{id}/verify-dp', [SuperadminController::class, 'verifyDpPayment'])->name('superadmin.billing.verify-dp');
     Route::post('/billing/{id}/verify', [SuperadminController::class, 'verifyInvoice'])->name('superadmin.billing.verify');
     Route::get('/announcements', [SuperadminController::class, 'announcements'])->name('superadmin.announcements');
+    Route::post('/announcements', [SuperadminController::class, 'storeAnnouncement'])->name('superadmin.announcements.store');
+    Route::put('/announcements/{id}', [SuperadminController::class, 'updateAnnouncement'])->name('superadmin.announcements.update');
+    Route::post('/announcements/{id}/toggle', [SuperadminController::class, 'toggleAnnouncementStatus'])->name('superadmin.announcements.toggle');
+    Route::delete('/announcements/{id}', [SuperadminController::class, 'destroyAnnouncement'])->name('superadmin.announcements.destroy');
     Route::get('/logs', [SuperadminController::class, 'logs'])->name('superadmin.logs');
     Route::get('/settings', [SuperadminController::class, 'settings'])->name('superadmin.settings');
     Route::get('/profile', [SuperadminController::class, 'profile'])->name('superadmin.profile');

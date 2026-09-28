@@ -36,6 +36,24 @@ class SuperadminController extends Controller
 
         $recentLogs = SystemLog::latest()->take(5)->get();
 
+        // Distribusi Paket Sewa Riil dari Database
+        $planDistribution = Tenant::selectRaw('plan_name, count(*) as count')
+            ->groupBy('plan_name')
+            ->pluck('count', 'plan_name')
+            ->toArray();
+
+        // Statistik 6 Bulan Terakhir untuk Grafik
+        $monthlyStats = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $d = now()->subMonths($i);
+            $monthlyStats[] = [
+                'label'   => $d->translatedFormat('M Y'),
+                'short'   => $d->translatedFormat('M'),
+                'tenants' => Tenant::whereMonth('joined_at', $d->month)->whereYear('joined_at', $d->year)->count(),
+                'income'  => (float) Invoice::where('status', 'paid')->whereMonth('paid_at', $d->month)->whereYear('paid_at', $d->year)->sum('amount'),
+            ];
+        }
+
         return view('superadmin.dashboard', compact(
             'activeTenantsCount',
             'totalTenantsCount',
@@ -44,7 +62,9 @@ class SuperadminController extends Controller
             'newTenantsCount',
             'expiringTenantsCount',
             'pendingRegistrationsCount',
-            'recentLogs'
+            'recentLogs',
+            'planDistribution',
+            'monthlyStats'
         ));
     }
 
@@ -168,22 +188,24 @@ class SuperadminController extends Controller
         $tenant = Tenant::findOrFail($id);
 
         $request->validate([
-            'plan_id' => 'required|exists:plans,id',
+            'plan_id' => 'nullable|exists:plans,id',
             'features' => 'nullable|array',
         ]);
 
-        $plan = Plan::findOrFail($request->plan_id);
+        $planId = $request->plan_id ?: $tenant->plan_id;
+        $plan = $planId ? Plan::find($planId) : null;
+        $planName = $plan ? $plan->name : $tenant->plan_name;
 
         $tenant->update([
-            'plan_id' => $plan->id,
-            'plan_name' => $plan->name,
-            'features' => $request->features ?? $plan->features ?? [],
+            'plan_id' => $plan ? $plan->id : $tenant->plan_id,
+            'plan_name' => $planName,
+            'features' => $request->features ?? ($plan ? $plan->features : $tenant->features) ?? [],
         ]);
 
         SystemLog::create([
             'user_id' => Auth::id(),
             'action' => 'Update Tenant Features',
-            'description' => "Superadmin memperbarui paket & fitur tenant {$tenant->name} ke {$plan->name}.",
+            'description' => "Superadmin memperbarui paket & fitur tenant {$tenant->name} (Paket: {$planName}).",
             'ip_address' => $request->ip(),
         ]);
 
@@ -253,19 +275,24 @@ class SuperadminController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'period' => 'required|string',
-            'max_members' => 'required|integer',
+            'price' => 'required|numeric|min:0',
+            'max_members' => 'nullable|integer|min:0',
             'features' => 'nullable|array',
         ]);
 
-        Plan::create([
+        $plan = Plan::create([
             'name' => $request->name,
             'price' => $request->price,
-            'period' => $request->period,
             'max_members' => $request->max_members,
             'features' => $request->features ?? [],
             'status' => 'active',
+        ]);
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Tambah Paket Sewa',
+            'description' => "Superadmin menambahkan paket sewa baru: {$plan->name} (Rp " . number_format($plan->price, 0, ',', '.') . ").",
+            'ip_address' => $request->ip(),
         ]);
 
         return redirect()->route('superadmin.plans')->with('success', 'Paket sewa baru berhasil ditambahkan!');
@@ -279,18 +306,23 @@ class SuperadminController extends Controller
         $plan = Plan::findOrFail($id);
         $request->validate([
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'period' => 'required|string',
-            'max_members' => 'required|integer',
+            'price' => 'required|numeric|min:0',
+            'max_members' => 'nullable|integer|min:0',
             'features' => 'nullable|array',
         ]);
 
         $plan->update([
             'name' => $request->name,
             'price' => $request->price,
-            'period' => $request->period,
             'max_members' => $request->max_members,
             'features' => $request->features ?? [],
+        ]);
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Update Paket Sewa',
+            'description' => "Superadmin memperbarui batasan paket sewa: {$plan->name}.",
+            'ip_address' => $request->ip(),
         ]);
 
         return redirect()->route('superadmin.plans')->with('success', "Paket sewa '{$plan->name}' berhasil diperbarui!");
@@ -474,6 +506,90 @@ class SuperadminController extends Controller
     }
 
     /**
+     * Simpan Data Calon Penyewa Baru Secara Manual oleh Superadmin.
+     */
+    public function storeRegistration(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|max:255',
+            'phone'    => 'required|string|max:30',
+            'plan_id'  => 'nullable|exists:plans,id',
+            'notes'    => 'nullable|string',
+        ], [
+            'name.required'  => 'Nama calon penyewa wajib diisi.',
+            'email.required' => 'Email calon penyewa wajib diisi.',
+            'phone.required' => 'Nomor WhatsApp calon penyewa wajib diisi.',
+        ]);
+
+        $plan = $request->plan_id ? Plan::find($request->plan_id) : null;
+        $planName = $plan ? $plan->name : 'Paket Basic';
+
+        $registration = TenantRegistration::create([
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'phone'             => $request->phone,
+            'plan_id'           => $plan ? $plan->id : null,
+            'plan_name'         => $planName,
+            'status'            => 'pending',
+            'notes'             => $request->notes,
+            'selected_features' => $plan ? ($plan->features ?? []) : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'],
+        ]);
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Tambah Calon Penyewa',
+            'description' => "Superadmin mendaftarkan calon penyewa baru secara manual: {$registration->name} ({$registration->email}).",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->route('superadmin.registrations')->with('success', "Data calon penyewa '{$registration->name}' berhasil ditambahkan ke daftar prospek!");
+    }
+
+    /**
+     * Perbarui Informasi Calon Penyewa.
+     */
+    public function updateRegistration(Request $request, $id)
+    {
+        $registration = TenantRegistration::findOrFail($id);
+
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|max:255',
+            'phone'    => 'required|string|max:30',
+            'plan_id'  => 'nullable|exists:plans,id',
+            'status'   => 'required|in:pending,contacted,approved,rejected',
+            'notes'    => 'nullable|string',
+        ], [
+            'name.required'  => 'Nama calon penyewa wajib diisi.',
+            'email.required' => 'Email calon penyewa wajib diisi.',
+            'phone.required' => 'Nomor WhatsApp calon penyewa wajib diisi.',
+        ]);
+
+        $plan = $request->plan_id ? Plan::find($request->plan_id) : null;
+        $planName = $plan ? $plan->name : $registration->plan_name;
+
+        $registration->update([
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'phone'     => $request->phone,
+            'plan_id'   => $plan ? $plan->id : $registration->plan_id,
+            'plan_name' => $planName,
+            'status'    => $request->status,
+            'notes'     => $request->notes,
+        ]);
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Update Data Calon Penyewa',
+            'description' => "Superadmin memperbarui data calon penyewa #REG-{$registration->id} ({$registration->name}).",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->route('superadmin.registrations')->with('success', "Data calon penyewa '{$registration->name}' berhasil diperbarui!");
+    }
+
+    /**
      * Setujui Pembayaran & Buat Akun Login untuk Penyewa Baru.
      */
     public function approveRegistration(Request $request, $id)
@@ -493,8 +609,8 @@ class SuperadminController extends Controller
         ]);
 
         $plan = $request->plan_id ? Plan::find($request->plan_id) : $registration->plan;
-        $planName = $plan ? $plan->name : $registration->plan_name;
-        $features = $request->features ?? ($plan ? ($plan->features ?? []) : ['members', 'pos', 'classes', 'lockers']);
+        $planName = $plan ? $plan->name : ($registration->plan_name ?: 'Paket Basic');
+        $features = $request->features ?? ($plan ? ($plan->features ?? []) : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana']);
 
         // Generate Subdomain & Slug unik untuk tenant baru
         $baseSlug = Str::slug($registration->name) ?: 'gym';
@@ -524,19 +640,32 @@ class SuperadminController extends Controller
         // 2. Inisialisasi Pengaturan Landing Page bawaan
         $tenant->landingSettings();
 
-        // 3. Buat / Update Akun User Pengelola (Admin Gym)
-        $user = User::updateOrCreate(
+        // 3. Buat / Update Akun User Pengelola (Owner & Admin Gym)
+        $ownerUser = User::updateOrCreate(
             ['email' => $request->email],
             [
                 'name'      => $registration->name,
+                'password'  => Hash::make($request->password),
+                'role'      => 'owner',
+                'tenant_id' => $tenant->id,
+            ]
+        );
+        if (!$ownerUser->hasVerifiedEmail()) {
+            $ownerUser->markEmailAsVerified();
+        }
+
+        $adminEmail = "admin.{$slug}@workout.id";
+        $adminUser = User::updateOrCreate(
+            ['email' => $adminEmail],
+            [
+                'name'      => "Admin {$registration->name}",
                 'password'  => Hash::make($request->password),
                 'role'      => 'admin',
                 'tenant_id' => $tenant->id,
             ]
         );
-
-        if (!$user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
+        if (!$adminUser->hasVerifiedEmail()) {
+            $adminUser->markEmailAsVerified();
         }
 
         // 4. Update status pendaftaran
@@ -546,7 +675,7 @@ class SuperadminController extends Controller
             'plan_name'         => $planName,
             'selected_features' => $features,
             'notes'             => $request->notes,
-            'created_user_id'   => $user->id,
+            'created_user_id'   => $ownerUser->id,
         ]);
 
         SystemLog::create([
@@ -556,7 +685,7 @@ class SuperadminController extends Controller
             'ip_address'  => $request->ip(),
         ]);
 
-        return redirect()->route('superadmin.registrations')->with('success', "Pendaftaran {$registration->name} BERHASIL DISETUJUI! Akun login telah dibuat ({$user->email} / Password: {$request->password}) dan website gym telah aktif di domain {$tenant->subdomain}.");
+        return redirect()->route('superadmin.registrations')->with('success', "Pendaftaran {$registration->name} BERHASIL DISETUJUI! Akun Owner ({$ownerUser->email}) dan Admin ({$adminUser->email}) telah dibuat (Password: {$request->password}). Website gym aktif di domain {$tenant->subdomain}.");
     }
 
     /**
@@ -615,11 +744,155 @@ class SuperadminController extends Controller
     }
 
     /**
+     * Simpan & Siarkan Pengumuman Baru.
+     */
+    public function storeAnnouncement(Request $request)
+    {
+        $request->validate([
+            'title'   => 'required|string|max:255',
+            'message' => 'required|string',
+        ], [
+            'title.required'   => 'Judul pengumuman wajib diisi.',
+            'message.required' => 'Isi pesan broadcast wajib diisi.',
+        ]);
+
+        $announcement = Announcement::create([
+            'title'   => $request->title,
+            'message' => $request->message,
+            'status'  => 'Active',
+            'user_id' => Auth::id(),
+        ]);
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Kirim Pengumuman',
+            'description' => "Superadmin menyiarkan pengumuman baru: {$announcement->title}.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Pengumuman '{$announcement->title}' berhasil disiarkan!",
+                'data'    => $announcement,
+            ]);
+        }
+
+        return redirect()->route('superadmin.announcements')->with('success', "Pengumuman '{$announcement->title}' berhasil disiarkan!");
+    }
+
+    /**
+     * Perbarui Pengumuman.
+     */
+    public function updateAnnouncement(Request $request, $id)
+    {
+        $announcement = Announcement::findOrFail($id);
+
+        $request->validate([
+            'title'   => 'required|string|max:255',
+            'message' => 'required|string',
+        ], [
+            'title.required'   => 'Judul pengumuman wajib diisi.',
+            'message.required' => 'Isi pesan broadcast wajib diisi.',
+        ]);
+
+        $announcement->update([
+            'title'   => $request->title,
+            'message' => $request->message,
+        ]);
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Update Pengumuman',
+            'description' => "Superadmin memperbarui konten pengumuman: {$announcement->title}.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Pengumuman '{$announcement->title}' berhasil diperbarui!",
+            ]);
+        }
+
+        return redirect()->route('superadmin.announcements')->with('success', "Pengumuman '{$announcement->title}' berhasil diperbarui!");
+    }
+
+    /**
+     * Toggle Status Aktif / Tarik Pengumuman.
+     */
+    public function toggleAnnouncementStatus(Request $request, $id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $newStatus = (strcasecmp($announcement->status, 'active') === 0) ? 'Inactive' : 'Active';
+
+        $announcement->update(['status' => $newStatus]);
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Toggle Status Pengumuman',
+            'description' => "Superadmin mengubah status pengumuman '{$announcement->title}' menjadi {$newStatus}.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'     => 'success',
+                'new_status' => $newStatus,
+                'message'    => "Status pengumuman diubah menjadi {$newStatus}.",
+            ]);
+        }
+
+        return redirect()->route('superadmin.announcements')->with('success', "Status pengumuman diubah menjadi {$newStatus}.");
+    }
+
+    /**
+     * Hapus Pengumuman.
+     */
+    public function destroyAnnouncement(Request $request, $id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $title = $announcement->title;
+        $announcement->delete();
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Hapus Pengumuman',
+            'description' => "Superadmin menghapus pengumuman: {$title}.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['status' => 'success', 'message' => "Pengumuman '{$title}' berhasil dihapus."]);
+        }
+
+        return redirect()->route('superadmin.announcements')->with('success', "Pengumuman '{$title}' berhasil dihapus.");
+    }
+
+    /**
      * Tampilkan Halaman System Logs.
      */
-    public function logs()
+    public function logs(Request $request)
     {
-        $logs = SystemLog::with('user')->latest()->paginate(20);
+        $query = SystemLog::with('user');
+
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('action', 'like', "%{$search}%")
+                  ->orWhere('ip_address', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('action')) {
+            $query->where('action', 'like', "%{$request->query('action')}%");
+        }
+
+        $logs = $query->latest('id')->paginate(20)->withQueryString();
         return view('superadmin.logs', compact('logs'));
     }
 

@@ -8,11 +8,11 @@
 <div class="card border-0 shadow-sm bg-white" style="border-radius: 12px;">
   <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center">
     <div>
-      <h6 class="font-weight-bold text-dark mb-0">Daftar Akun Staf Operasional</h6>
-      <small class="text-muted">Kelola akun Resepsionis/Kasir dan Personal Trainer gym</small>
+      <h6 class="font-weight-bold text-dark mb-0">Daftar Akun Operasional</h6>
+      <small class="text-muted">Kelola akun tim operasional gym</small>
     </div>
     <button type="button" class="btn btn-sm btn-success font-weight-bold px-3 py-2" data-toggle="modal" data-target="#createStaffModal" style="border-radius: 8px;">
-      + Tambah Staf Baru
+      + Tambah Akun Baru
     </button>
   </div>
 
@@ -21,7 +21,7 @@
       <table class="table table-hover align-middle mb-0">
         <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
           <tr>
-            <th class="px-4 py-3">Nama Staf</th>
+            <th class="px-4 py-3">Nama</th>
             <th class="py-3">Email Login</th>
             <th class="py-3">Role / Jabatan</th>
             <th class="py-3">Tanggal Dibuat</th>
@@ -61,7 +61,7 @@
                     </button>
                   </form>
                 @endif
-                <form action="{{ route('manager.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun staf operasional ini?">
+                <form action="{{ route('manager.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun ini?">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">
@@ -74,7 +74,7 @@
             <tr>
               <td colspan="5" class="text-center py-4 text-muted small">
                 <span class="icon-people h4 d-block mb-1 text-muted"></span>
-                Belum ada data staf operasional terdaftar.
+                Belum ada data akun operasional terdaftar.
               </td>
             </tr>
           @endforelse
@@ -84,13 +84,13 @@
   </div>
 </div>
 
-<!-- Modal Tambah Staf Operasional -->
+<!-- Modal Tambah Akun Baru -->
 <div class="modal fade" id="createStaffModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <form action="{{ route('manager.staff.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
       @csrf
       <div class="modal-header bg-white border-bottom">
-        <h5 class="modal-title font-weight-bold text-dark">Registrasi Staf Operasional Baru</h5>
+        <h5 class="modal-title font-weight-bold text-dark">Registrasi Akun Baru</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body p-4">
@@ -104,8 +104,8 @@
         @endif
 
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark small mb-1">Nama Lengkap Staf <span class="text-danger">*</span></label>
-          <input type="text" name="name" class="form-control" placeholder="Contoh: Rina Resepsionis / Dimas Trainer" required>
+          <label class="font-weight-bold text-dark small mb-1">Nama Lengkap <span class="text-danger">*</span></label>
+          <input type="text" name="name" class="form-control" placeholder="Contoh: Rina / Dimas" required>
         </div>
 
         <div class="form-group mb-3">
@@ -139,14 +139,14 @@
         </div>
 
         <div class="form-group mb-0" id="staffPhoneGroup" style="display: none;">
-          <label class="font-weight-bold text-dark small mb-1">Nomor WhatsApp Trainer</label>
+          <label class="font-weight-bold text-dark small mb-1">Nomor WhatsApp</label>
           <input type="text" name="phone" id="staffPhone" class="form-control" placeholder="081234567890" maxlength="20">
           <small class="text-muted" style="font-size: 11px;">Kontak ini akan tampil di jadwal kelas &amp; trainer.</small>
         </div>
       </div>
       <div class="modal-footer bg-light border-top">
         <button type="button" class="btn btn-secondary font-weight-bold px-3" data-dismiss="modal" style="border-radius: 8px;">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold px-4" style="border-radius: 8px;">Simpan Akun Staf</button>
+        <button type="submit" class="btn btn-success font-weight-bold px-4" style="border-radius: 8px;">Simpan Data</button>
       </div>
     </form>
   </div>

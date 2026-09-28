@@ -2,14 +2,15 @@
   Component: Brand Logo PetGym
   Usage examples:
   1. Hanya Logo: <x-brand-logo type="logo" size="40" />
-  2. Logo + Tulisan (Default): <x-brand-logo type="full" size="40" theme="dark" />
-  3. Hanya Tulisan: <x-brand-logo type="text" />
+  2. Logo + Tulisan (Default): <x-brand-logo type="full" size="40" theme="dark" url="/" />
+  3. Logo Statis (Non-Clickable): <x-brand-logo type="full" size="40" theme="light" url="none" />
 --}}
 @props([
     'type' => 'full', // 'logo', 'full', 'text'
     'theme' => 'dark', // 'light' (untuk bg terang) atau 'dark' (untuk bg gelap)
     'size' => '40', // tinggi logo dalam pixel
-    'url' => '/'
+    'url' => '/', // 'none' untuk mode statis non-clickable
+    'onclick' => null
 ])
 
 @php
@@ -17,9 +18,15 @@
     $logoWhite = asset('images/logo-white.png');
     $textColor = $theme === 'dark' ? '#ffffff' : '#111827';
     $accentColor = '#f43f5e'; // Red brand color
+    $isClickable = !empty($url) && $url !== 'none' && $url !== 'null';
+    $targetHref = $isClickable ? (str_starts_with($url, 'http') || str_starts_with($url, '#') ? $url : url($url)) : null;
 @endphp
 
-<a href="{{ url($url) }}" class="brand-logo-container d-inline-flex align-items-center text-decoration-none" style="gap: 10px;">
+@if($isClickable)
+<a href="{{ $targetHref }}" @if($onclick) onclick="{{ $onclick }}" @endif class="brand-logo-container d-inline-flex align-items-center text-decoration-none" style="gap: 10px;">
+@else
+<div class="brand-logo-container d-inline-flex align-items-center" style="gap: 10px; cursor: default; user-select: none;">
+@endif
     {{-- 1. HANYA LOGO ATAU LOGO + TULISAN --}}
     @if($type === 'logo' || $type === 'full')
         <img src="{{ $logoWhite }}"
@@ -38,4 +45,8 @@
             <span class="brand-logo-text-airs" style="color: {{ $textColor }}; transition: color 0.3s ease;">Pet</span><span style="color: {{ $accentColor }};">Gym</span>
         </span>
     @endif
+@if($isClickable)
 </a>
+@else
+</div>
+@endif

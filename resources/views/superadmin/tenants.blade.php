@@ -10,6 +10,9 @@
 <section id="tenants" class="mb-5">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="font-weight-bold text-black mb-0">Daftar Seluruh Gym (Tenant List)</h4>
+    <button class="btn btn-primary btn-sm px-3 font-weight-bold" data-toggle="modal" data-target="#createTenantModal">
+      <span class="icon-plus mr-1"></span> Tambah Tenant Baru
+    </button>
   </div>
 
   <div class="table-custom p-4">
@@ -148,7 +151,7 @@
                   Pilihan
                 </button>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ $loop->index }}">
-                  <a class="dropdown-item btn-features-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}" data-features='@json($featuresList)'>
+                  <a class="dropdown-item btn-features-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}" data-plan-id="{{ $tenant->plan_id }}" data-features='@json($featuresList)'>
                     <span class="icon-settings text-secondary mr-2"></span> Atur Fitur
                   </a>
                   @if($tenant->status == 'active')
@@ -192,6 +195,57 @@
 @endsection
 
 @section('modals')
+<!-- MODAL: TAMBAH TENANT BARU MANUAL -->
+<div class="modal fade" id="createTenantModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-header-title font-weight-bold text-black">Daftarkan Tenant / Gym Baru</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{{ route('superadmin.tenants.store') }}" method="POST">
+        @csrf
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="text-black font-weight-bold">Nama Gym / Bisnis <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="Contoh: Powerhouse Fitness" required>
+          </div>
+          <div class="form-group mb-3">
+            <label class="text-black font-weight-bold">Subdomain Web <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input type="text" name="subdomain" class="form-control" placeholder="powerhouse" required>
+              <div class="input-group-append">
+                <span class="input-group-text bg-light text-muted">.workout.id</span>
+              </div>
+            </div>
+            <small class="text-muted">Hanya masukkan nama subdomain (tanpa spasi/simbol).</small>
+          </div>
+          <div class="form-group mb-3">
+            <label class="text-black font-weight-bold">Email Pemilik Gym <span class="text-danger">*</span></label>
+            <input type="email" name="owner_email" class="form-control" placeholder="owner@powerhouse.com" required>
+            <small class="text-muted">Akun Owner & Admin akan dibuat otomatis dengan password default: <strong>1234</strong>.</small>
+          </div>
+          <div class="form-group mb-3">
+            <label class="text-black font-weight-bold">Pilihan Paket Sewa</label>
+            <select name="plan_id" class="form-control">
+              <option value="">Pilih Paket...</option>
+              @foreach($plans as $p)
+                <option value="{{ $p->id }}">{{ $p->name }} (Rp {{ number_format($p->price, 0, ',', '.') }}/bln)</option>
+              @endforeach
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary btn-sm font-weight-bold">Daftarkan & Buat Akun</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: ATUR FITUR & ADD-ON TENANT -->
 <div class="modal fade" id="configureFeaturesModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -208,6 +262,18 @@
           <div class="mb-3 bg-light p-3 rounded" style="font-size: 14px;">
             Mengonfigurasi modul fitur aktif untuk: <strong class="text-black" id="featuresTenantName">Gym Name</strong>
           </div>
+
+          <div class="form-group mb-3">
+            <label class="text-black font-weight-bold">Tingkat Paket Sewa</label>
+            <select name="plan_id" id="featuresPlanId" class="form-control">
+              <option value="">-- Tetap Gunakan Paket Saat Ini --</option>
+              @foreach($plans as $p)
+                <option value="{{ $p->id }}">{{ $p->name }} (Rp {{ number_format($p->price, 0, ',', '.') }}/bln)</option>
+              @endforeach
+            </select>
+            <small class="text-muted">Pilih paket jika ingin mengubah tier langganan gym ini.</small>
+          </div>
+
           <hr class="my-3">
 
           <div class="form-group">
@@ -306,10 +372,12 @@
       e.preventDefault();
       const tenantId = $(this).data('id');
       const tenantName = $(this).data('name');
+      const planId = $(this).data('plan-id');
       const features = $(this).data('features') || [];
 
       $('#featuresTenantName').text(tenantName);
       $('#configureFeaturesForm').attr('action', "{{ url('/superadmin/tenants') }}/" + tenantId + "/features");
+      $('#featuresPlanId').val(planId || '');
 
       // Reset centang
       $('.feat-sw').prop('checked', false);
