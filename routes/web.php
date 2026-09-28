@@ -252,10 +252,6 @@ Route::middleware(['auth', 'verified', 'role:receptionist,manager', 'receptionis
     Route::post('/lockers/assign', [ReceptionistController::class, 'assignLocker'])->name('receptionist.lockers.assign');
     Route::post('/lockers/{id}/return', [ReceptionistController::class, 'returnLocker'])->name('receptionist.lockers.return');
 
-    // 5. Buku Tamu (Walk-in Leads)
-    Route::get('/guests', [ReceptionistController::class, 'guests'])->name('receptionist.guests');
-    Route::post('/guests/store', [ReceptionistController::class, 'storeGuest'])->name('receptionist.guests.store');
-    Route::post('/guests/{id}/convert', [ReceptionistController::class, 'convertGuestToMember'])->name('receptionist.guests.convert');
 
     // 6. Log Barang Tertinggal (Lost & Found)
     Route::get('/lost-found', [ReceptionistController::class, 'lostFound'])->name('receptionist.lost-found');

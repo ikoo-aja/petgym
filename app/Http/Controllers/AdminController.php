@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Guest;
 use App\Models\Announcement;
 use Carbon\Carbon;
 
@@ -39,9 +38,7 @@ class AdminController extends Controller
         $visitsGrowth = 12;
 
         // 2. Pesan Masuk / Leads Calon Klien (Form Kontak Website)
-        $unreadLeadsCount = Guest::where('tenant_id', $tenant->id)
-            ->whereNull('converted_to_member_id')
-            ->count();
+        $unreadLeadsCount = 0;
 
         // 3. Pengumuman & Notifikasi dari Superadmin
         $announcements = Announcement::where('status', 'Active')

@@ -232,11 +232,6 @@ class Tenant extends Model
         return $this->hasMany(LockerRental::class);
     }
 
-    public function guests()
-    {
-        return $this->hasMany(Guest::class);
-    }
-
     public function lostFounds()
     {
         return $this->hasMany(LostFound::class);

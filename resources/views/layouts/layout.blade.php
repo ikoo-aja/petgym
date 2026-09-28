@@ -467,11 +467,6 @@
         </a>
       </li>
       <li>
-        <a href="{{ route('receptionist.guests') }}" class="{{ request()->routeIs('receptionist.guests*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Buku Tamu
-        </a>
-      </li>
-      <li>
         <a href="{{ route('receptionist.lost-found') }}" class="{{ request()->routeIs('receptionist.lost-found*') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-search"></span></span> Barang Tertinggal
         </a>

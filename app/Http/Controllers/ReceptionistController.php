@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Locker;
 use App\Models\LockerRental;
-use App\Models\Guest;
 use App\Models\LostFound;
 use App\Models\ReceptionistShift;
 use App\Models\TrainerSession;
@@ -160,67 +159,6 @@ class ReceptionistController extends Controller
         $locker->update(['status' => 'tersedia']);
 
         return redirect()->route('receptionist.lockers')->with('success', "Kunci Loker {$locker->locker_number} berhasil dikembalikan.");
-    }
-
-    /**
-     * Buku Tamu (Walk-in Leads)
-     */
-    public function guests()
-    {
-        $tenant = Auth::user()->tenant;
-        $guests = Guest::where('tenant_id', $tenant->id)->latest()->get();
-
-        return view('receptionist.guests', compact('guests'));
-    }
-
-    /**
-     * 8. Buku Tamu & Walk-in Leads
-     */
-    public function storeGuest(Request $request)
-    {
-        $tenant = Auth::user()->tenant;
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'email' => 'nullable|email',
-            'notes' => 'nullable|string',
-        ]);
-
-        Guest::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
-
-        return redirect()->route('receptionist.guests')->with('success', 'Buku tamu berhasil dicatat.');
-    }
-
-    public function convertGuestToMember(Request $request, $id)
-    {
-        $tenant = Auth::user()->tenant;
-        $guest = Guest::where('tenant_id', $tenant->id)->findOrFail($id);
-
-        // Auto-generate static PIN code
-        $accessCode = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
-
-        $member = Member::create([
-            'tenant_id' => $tenant->id,
-            'name' => $guest->name,
-            'email' => $guest->email ?? strtolower(str_replace(' ', '', $guest->name)) . '@petgym-lead.com',
-            'phone' => $guest->phone,
-            'gender' => 'Laki-laki',
-            'access_code' => $accessCode,
-            'status' => 'inactive',
-            'expired_at' => null,
-        ]);
-
-        $guest->update(['converted_to_member_id' => $member->id]);
-
-        StaffLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => Auth::id(),
-            'action' => 'Konversi Tamu ke Member',
-            'description' => "Konversi walk-in guest {$guest->name} menjadi calon member.",
-            'ip_address' => $request->ip(),
-        ]);
-
-        return redirect()->route('manager.members.index')->with('success', "Tamu {$guest->name} berhasil didaftarkan sebagai calon member. Silakan lakukan transaksi pembelian paket keanggotaan di POS Kasir.");
     }
 
     /**
