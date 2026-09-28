@@ -104,8 +104,23 @@
                   <textarea id="notes" name="notes" rows="2" class="form-control" placeholder="Tuliskan jika ada pertanyaan atau jadwal preferensi untuk dihubungi..." style="border-radius: 8px; font-size: 14px;">{{ old('notes') }}</textarea>
                 </div>
 
+                <style>
+                  .btn-gradient-primary {
+                    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+                    color: #ffffff !important;
+                    border: none;
+                    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                  }
+                  .btn-gradient-primary:hover {
+                    background: linear-gradient(135deg, #be123c 0%, #9f1239 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(225, 29, 72, 0.45);
+                  }
+                </style>
+
                 <div class="form-group mb-3">
-                  <button type="submit" class="btn btn-primary btn-block font-weight-bold shadow-sm py-3" style="border-radius: 30px; font-size: 15px;">
+                  <button type="submit" class="btn btn-gradient-primary btn-block font-weight-bold py-3" style="border-radius: 30px; font-size: 15px;">
                     <i class="icon-send mr-1"></i> Kirim Formulir Pendaftaran
                   </button>
                 </div>

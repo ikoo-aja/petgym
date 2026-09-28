@@ -5,8 +5,27 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\ChangePasswordController;
+use App\Http\Controllers\AccountSettingController;
 use App\Http\Controllers\TenantLandingController;
+use App\Http\Controllers\TenantOnboardingController;
+use App\Http\Controllers\SuperadminController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminStaffController;
+use App\Http\Controllers\AdminSettingController;
+use App\Http\Controllers\AdminSubscriptionController;
+use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\ManagerMemberController;
+use App\Http\Controllers\ManagerClassController;
+use App\Http\Controllers\ManagerStaffController;
 use App\Http\Controllers\SupervisorController;
+use App\Http\Controllers\ReceptionistController;
+use App\Http\Controllers\ReceptionistCheckInController;
+use App\Http\Controllers\ReceptionistPosController;
+use App\Http\Controllers\ReceptionistLockerController;
+use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\OwnerController;
+use App\Http\Controllers\MemberPortalController;
 
 // Landing Page Publik per-Tenant lewat subdomain (demo: fitlife.localhost, powerhouse.localhost, dll)
 // WAJIB didaftarkan sebelum route '/' utama supaya request subdomain tidak jatuh ke welcome page.
@@ -22,15 +41,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post('/checkout', [\App\Http\Controllers\SuperadminController::class, 'publicCheckout'])->name('public.checkout');
+Route::post('/checkout', [SuperadminController::class, 'publicCheckout'])->name('public.checkout');
 
 Route::get('/home', function () {
     // Arahkan ke dashboard sesuai role user (bukan hardcode /admin)
     $user = auth()->user();
     return redirect()->route($user ? $user->dashboardRoute() : 'admin.dashboard');
 });
-
-
 
 // Group Guest (Hanya bisa diakses jika belum login)
 Route::middleware('guest')->group(function () {
@@ -62,32 +79,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
     
     // Ubah Password Wajib (untuk staf baru)
-    Route::get('/change-password', [\App\Http\Controllers\ChangePasswordController::class, 'show'])->name('password.change');
-    Route::post('/change-password', [\App\Http\Controllers\ChangePasswordController::class, 'update'])->name('password.change.update');
+    Route::get('/change-password', [ChangePasswordController::class, 'show'])->name('password.change');
+    Route::post('/change-password', [ChangePasswordController::class, 'update'])->name('password.change.update');
 
     // Pengaturan Akun (Profil & Ganti Password)
-    Route::get('/account/settings', [\App\Http\Controllers\AccountSettingController::class, 'index'])->name('account.settings');
-    Route::post('/account/profile', [\App\Http\Controllers\AccountSettingController::class, 'updateProfile'])->name('account.profile.update');
-    Route::post('/account/password', [\App\Http\Controllers\AccountSettingController::class, 'updatePassword'])->name('account.password.update');
+    Route::get('/account/settings', [AccountSettingController::class, 'index'])->name('account.settings');
+    Route::post('/account/profile', [AccountSettingController::class, 'updateProfile'])->name('account.profile.update');
+    Route::post('/account/password', [AccountSettingController::class, 'updatePassword'])->name('account.password.update');
 });
 
 // Link verifikasi bertanda tangan (signed URL) — bisa dibuka langsung dari email tanpa login
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
-
-use App\Http\Controllers\SuperadminController;
-use App\Http\Controllers\TenantOnboardingController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AdminStaffController;
-use App\Http\Controllers\AdminSettingController;
-use App\Http\Controllers\ManagerController;
-use App\Http\Controllers\ManagerMemberController;
-use App\Http\Controllers\ManagerClassController;
-use App\Http\Controllers\ManagerStaffController;
-use App\Http\Controllers\ReceptionistController;
-use App\Http\Controllers\ReceptionistCheckInController;
-use App\Http\Controllers\ReceptionistPosController;
-use App\Http\Controllers\ReceptionistLockerController;
-use App\Http\Controllers\TrainerController;
 
 // Group Onboarding Setup Website (Khusus Admin yang belum punya website)
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('onboarding')->group(function () {
@@ -144,8 +146,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::post('/landing', [TenantLandingController::class, 'update'])->name('admin.landing.update');
 
     // 5. Pembayaran & Melanjutkan Penyewaan Web ke Superadmin
-    Route::get('/subscription', [\App\Http\Controllers\AdminSubscriptionController::class, 'index'])->name('admin.subscription.index');
-    Route::post('/subscription/pay', [\App\Http\Controllers\AdminSubscriptionController::class, 'pay'])->name('admin.subscription.pay');
+    Route::get('/subscription', [AdminSubscriptionController::class, 'index'])->name('admin.subscription.index');
+    Route::post('/subscription/pay', [AdminSubscriptionController::class, 'pay'])->name('admin.subscription.pay');
 });
 
 // Group Manager Gym & Akses Bersama Staf Operasional
@@ -281,9 +283,6 @@ Route::middleware(['auth', 'verified', 'role:trainer'])->prefix('trainer')->grou
     Route::get('/rsvps', [TrainerController::class, 'rsvps'])->name('trainer.rsvps');
     Route::post('/rsvps/{id}/status', [TrainerController::class, 'updateRsvpStatus'])->name('trainer.rsvps.status');
 });
-
-use App\Http\Controllers\OwnerController;
-use App\Http\Controllers\MemberPortalController;
 
 // Group Pemilik Gym (Owner) - Mode Pemantauan Eksekutif (Read-Only)
 Route::middleware(['auth', 'verified', 'role:owner'])->prefix('owner')->group(function () {

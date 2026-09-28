@@ -62,6 +62,12 @@ class ManagerMemberController extends Controller
 
         $tenant = $user->tenant;
 
+        // Cek Kuota Member Aktif berdasarkan Paket Tenant
+        if ($tenant && !$tenant->canAddMember()) {
+            $maxMembers = $tenant->maxMembers();
+            return redirect()->back()->with('error', "Pendaftaran member gagal: Kuota maksimal member aktif untuk {$tenant->plan_name} ({$maxMembers} Member) telah tercapai. Silakan hubungi Admin Gym untuk upgrade paket langganan.");
+        }
+
         // Jika staf adalah resepsionis, pastikan shift kasir sedang aktif
         if ($user->isReceptionist()) {
             $openShift = ReceptionistShift::where('tenant_id', $tenant->id)

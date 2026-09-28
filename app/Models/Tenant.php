@@ -264,4 +264,130 @@ class Tenant extends Model
         }
         return $value ?? 'active';
     }
+
+    /**
+     * Kuota batas maksimal member aktif berdasarkan paket.
+     * - Paket Basic      : 150 Member
+     * - Paket Pro        : 500 Member
+     * - Paket Enterprise : null (Unlimited)
+     */
+    public function maxMembers(): ?int
+    {
+        if ($this->plan) {
+            return $this->plan->getMaxMembersLimit();
+        }
+
+        return match ($this->plan_name) {
+            'Paket Basic' => 150,
+            'Paket Pro' => 500,
+            'Paket Enterprise' => null,
+            default => 150,
+        };
+    }
+
+    /**
+     * Kuota batas maksimal akun staf/karyawan berdasarkan paket.
+     * - Paket Basic      : 5 Karyawan
+     * - Paket Pro        : 15 Karyawan
+     * - Paket Enterprise : null (Unlimited)
+     */
+    public function maxStaff(): ?int
+    {
+        if ($this->plan) {
+            return $this->plan->getMaxStaffLimit();
+        }
+
+        return match ($this->plan_name) {
+            'Paket Basic' => 5,
+            'Paket Pro' => 15,
+            'Paket Enterprise' => null,
+            default => 5,
+        };
+    }
+
+    /**
+     * Jumlah member aktif saat ini.
+     */
+    public function activeMembersCount(): int
+    {
+        return Member::where('tenant_id', $this->id)
+            ->where('status', 'active')
+            ->count();
+    }
+
+    /**
+     * Jumlah akun staf/karyawan saat ini.
+     */
+    public function staffCount(): int
+    {
+        return User::where('tenant_id', $this->id)
+            ->whereIn('role', ['admin', 'manager', 'supervisor', 'receptionist', 'trainer'])
+            ->count();
+    }
+
+    /**
+     * Cek apakah masih bisa menambah member aktif baru.
+     */
+    public function canAddMember(): bool
+    {
+        $max = $this->maxMembers();
+        if (is_null($max)) {
+            return true;
+        }
+
+        return $this->activeMembersCount() < $max;
+    }
+
+    /**
+     * Cek apakah masih bisa menambah akun staf baru.
+     */
+    public function canAddStaff(): bool
+    {
+        $max = $this->maxStaff();
+        if (is_null($max)) {
+            return true;
+        }
+
+        return $this->staffCount() < $max;
+    }
+
+    /**
+     * Cek apakah role staf tertentu diizinkan pada paket ini.
+     * - Paket Basic: Hanya staf operasional & resepsionis (tidak termasuk Manager/PT tingkat tinggi)
+     * - Paket Pro & Enterprise: Termasuk Manager & Personal Trainer (PT)
+     */
+    public function isStaffRoleAllowed(string $role): bool
+    {
+        if ($this->plan_name === 'Paket Basic') {
+            return in_array($role, ['receptionist', 'supervisor', 'admin']);
+        }
+
+        return true;
+    }
+
+    /**
+     * Cek hak akses fitur berdasarkan paket langganan gym.
+     *
+     * Fitur yang didukung:
+     * - 'pos'                : Modul POS & Kasir (Semua Paket)
+     * - 'checkin'            : Presensi / Check-in Cepat (Semua Paket)
+     * - 'classes_basic'      : Manajemen Jadwal Kelas (Semua Paket)
+     * - 'inventory'          : Manajemen Inventaris Ritel & Produk (Paket Pro & Enterprise)
+     * - 'member_retention'   : Modul Retensi & Follow-up Member (Paket Pro & Enterprise)
+     * - 'class_analytics'    : Analitik Kelas & Performa PT (Paket Pro & Enterprise)
+     * - 'trainer_management' : Manajemen Personal Trainer (Paket Pro & Enterprise)
+     * - 'custom_domain'      : Custom Domain Mandiri (Paket Enterprise)
+     * - 'priority_support'   : Prioritas Support 24/7 (Paket Enterprise)
+     */
+    public function hasFeature(string $feature): bool
+    {
+        $plan = $this->plan_name ?: ($this->plan ? $this->plan->name : 'Paket Basic');
+
+        return match ($feature) {
+            'inventory', 'member_retention', 'class_analytics', 'trainer_management' => in_array($plan, ['Paket Pro', 'Paket Enterprise']),
+            'custom_domain', 'priority_support' => $plan === 'Paket Enterprise',
+            'pos', 'checkin', 'classes_basic' => true,
+            default => true,
+        };
+    }
 }

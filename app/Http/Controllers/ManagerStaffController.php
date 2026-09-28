@@ -62,10 +62,18 @@ class ManagerStaffController extends Controller
             'email.required' => 'Email login wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email ini sudah terdaftar, gunakan email lain.',
-            'password.min' => 'Kata sandi minimal 4 karakter.',
             'role.required' => 'Role / jabatan wajib dipilih.',
             'role.in' => 'Manager dapat mendaftarkan akun staf operasional (Supervisor, Resepsionis & Personal Trainer).',
         ]);
+
+        if ($tenant && !$tenant->canAddStaff()) {
+            $maxStaff = $tenant->maxStaff();
+            return redirect()->back()->with('error', "Gagal menambahkan akun staf: Kuota maksimal karyawan untuk {$tenant->plan_name} ({$maxStaff} Akun Karyawan) telah tercapai. Silakan hubungi Admin untuk upgrade paket.");
+        }
+
+        if ($tenant && !$tenant->isStaffRoleAllowed($request->role)) {
+            return redirect()->back()->with('error', "Paket {$tenant->plan_name} belum mendukung pengelolaan akun Personal Trainer (PT). Silakan lakukan upgrade ke Paket Pro atau Enterprise.");
+        }
 
         // Generate password default jika dikosongkan
         if (empty($request->password)) {

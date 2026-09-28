@@ -21,9 +21,9 @@ class DatabaseSeeder extends Seeder
     {
         // 1. User Superadmin
         $admin = User::updateOrCreate(
-            ['email' => 'test@example.com'],
+            ['email' => 'superadmin@petgym.com'],
             [
-                'name' => 'Test User',
+                'name' => 'superadmin',
                 'password' => Hash::make('1234'),
                 'role' => 'superadmin',
                 'email_verified_at' => now(),
@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             [
                 'price' => 500000,
                 'max_members' => 150,
-                'features' => ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'],
+                'features' => ['Kapasitas Maksimal 150 Member Aktif', 'Maksimal 5 Akun Karyawan', 'Modul POS & Kasir', 'Check-in & Presensi Cepat', 'Manajemen Kelas Dasar'],
                 'status' => 'active',
             ]
         );
@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
             [
                 'price' => 1200000,
                 'max_members' => 500,
-                'features' => ['Akses Manajemen Kelas', 'Kasir / POS Sederhana', 'Akses Manajemen Trainer', 'Manajemen Inventaris', 'Mobile App Member Access'],
+                'features' => ['Kapasitas Maksimal 500 Member Aktif', 'Maksimal 15 Akun Karyawan (Manager & PT)', 'Semua Fitur Basic', 'Manajemen Inventaris Ritel', 'Modul Retensi Member', 'Analitik Kelas & Performa PT'],
                 'status' => 'active',
             ]
         );
@@ -56,7 +56,7 @@ class DatabaseSeeder extends Seeder
             [
                 'price' => 2500000,
                 'max_members' => null,
-                'features' => ['Akses Manajemen Kelas', 'Kasir / POS Sederhana', 'Akses Manajemen Trainer', 'Manajemen Inventaris', 'Mobile App Member Access', 'Analytics Lanjutan', 'Kustom Domain Sendiri', 'Dedicated Database', 'Support Prioritas 24/7'],
+                'features' => ['Kapasitas Member Aktif Unlimited', 'Akun Karyawan Unlimited', 'Semua Fitur Pro', 'Custom Domain Mandiri', 'Prioritas Support 24/7', 'Analitik Lanjutan Penuh'],
                 'status' => 'active',
             ]
         );

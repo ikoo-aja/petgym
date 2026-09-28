@@ -66,12 +66,21 @@ class AdminStaffController extends Controller
             'role.required'  => 'Role / jabatan wajib dipilih.',
         ]);
 
-        if ($user->isAdmin() && !in_array($request->role, ['manager', 'owner'])) {
-            return redirect()->back()->with('error', 'Admin hanya dapat mendaftarkan akun peran tingkat tinggi (Manager Gym & Owner). Peran staf operasional diinput oleh Manager Gym.');
+        if ($tenant && !$tenant->canAddStaff()) {
+            $maxStaff = $tenant->maxStaff();
+            return redirect()->back()->with('error', "Gagal menambahkan akun staf: Kuota maksimal karyawan untuk {$tenant->plan_name} ({$maxStaff} Akun Karyawan) telah tercapai. Silakan lakukan upgrade paket.");
         }
 
-        if ($user->isManager() && !in_array($request->role, ['receptionist', 'trainer'])) {
-            return redirect()->back()->with('error', 'Manager Gym hanya dapat mendaftarkan akun staf operasional (Resepsionis & Personal Trainer).');
+        if ($tenant && !$tenant->isStaffRoleAllowed($request->role)) {
+            return redirect()->back()->with('error', "Paket {$tenant->plan_name} dirancang untuk gym skala kecil dengan maksimal 5 akun staf (Staf & Resepsionis). Untuk mengelola akun Manager Gym & Personal Trainer, silakan upgrade ke Paket Pro atau Enterprise.");
+        }
+
+        if ($user->isAdmin() && !in_array($request->role, ['manager', 'owner', 'receptionist', 'supervisor'])) {
+            return redirect()->back()->with('error', 'Admin hanya dapat mendaftarkan akun staf resmi gym.');
+        }
+
+        if ($user->isManager() && !in_array($request->role, ['receptionist', 'trainer', 'supervisor'])) {
+            return redirect()->back()->with('error', 'Manager Gym hanya dapat mendaftarkan akun staf operasional (Resepsionis, Supervisor & Personal Trainer).');
         }
 
         // Jika password kosong → generate password default otomatis

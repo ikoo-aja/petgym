@@ -48,6 +48,14 @@
                                     <i class="icon-clock-o mr-1 text-primary"></i> Sisa Masa Aktif: 
                                     <strong class="{{ $tenant->expires_in_days <= 7 ? 'text-danger' : 'text-success' }}">{{ $tenant->expires_in_days }} Hari</strong>
                                 </div>
+                                <div>
+                                    <i class="icon-person mr-1 text-primary"></i> Kuota Member Aktif: 
+                                    <strong class="text-dark">{{ $tenant->activeMembersCount() }} / {{ $tenant->maxMembers() ? $tenant->maxMembers() . ' Member' : 'Unlimited' }}</strong>
+                                </div>
+                                <div>
+                                    <i class="icon-people mr-1 text-primary"></i> Kuota Karyawan: 
+                                    <strong class="text-dark">{{ $tenant->staffCount() }} / {{ $tenant->maxStaff() ? $tenant->maxStaff() . ' Akun' : 'Unlimited' }}</strong>
+                                </div>
                             </div>
                         </div>
 

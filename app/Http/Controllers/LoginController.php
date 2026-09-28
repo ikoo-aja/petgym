@@ -280,10 +280,18 @@ class LoginController extends Controller
         $tenantId = $request->tenant_id;
         if (!$tenantId && $request->route() && $request->route()->hasParameter('slug')) {
             $slug = $request->route('slug');
-            $tenant = \App\Models\Tenant::where('subdomain', 'like', "{$slug}%")->first();
+            $tenant = \App\Models\Tenant::where('subdomain', 'like', "{$slug}%")->orWhere('slug', $slug)->first();
             $tenantId = $tenant ? $tenant->id : 1;
         }
         $tenantId = $tenantId ?? 1;
+
+        $tenant = \App\Models\Tenant::find($tenantId);
+
+        // Cek Kuota Member Aktif Gym
+        if ($tenant && !$tenant->canAddMember()) {
+            $maxMembers = $tenant->maxMembers();
+            return redirect()->back()->withInput()->with('error', "Pendaftaran member saat ini tidak dapat diproses: Batas kuota member aktif untuk gym ini ({$maxMembers} Member) telah penuh. Silakan hubungi Customer Service gym untuk informasi lebih lanjut.");
+        }
 
         $user = User::create([
             'tenant_id' => $tenantId,

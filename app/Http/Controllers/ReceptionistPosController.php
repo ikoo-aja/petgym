@@ -197,6 +197,11 @@ class ReceptionistPosController extends Controller
     {
         $user = Auth::user();
         $tenant = $user->tenant;
+
+        if ($tenant && !$tenant->hasFeature('inventory')) {
+            return redirect()->back()->with('error', "Fitur Manajemen Inventaris Ritel (Suplemen, Minuman & Merchandise) hanya tersedia pada Paket Pro dan Enterprise. Paket Anda saat ini ({$tenant->plan_name}) hanya mendukung layanan dasar POS & Kasir Member.");
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|in:membership,supplement,drink,merchandise',
@@ -224,6 +229,11 @@ class ReceptionistPosController extends Controller
     {
         $user = Auth::user();
         $tenant = $user->tenant;
+
+        if ($tenant && !$tenant->hasFeature('inventory')) {
+            return redirect()->back()->with('error', "Fitur Manajemen Inventaris Ritel hanya tersedia pada Paket Pro dan Enterprise.");
+        }
+
         $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
         $request->validate([
             'name' => 'required|string|max:255',
@@ -251,6 +261,11 @@ class ReceptionistPosController extends Controller
     {
         $user = Auth::user();
         $tenant = $user->tenant;
+
+        if ($tenant && !$tenant->hasFeature('inventory')) {
+            return redirect()->back()->with('error', "Fitur Manajemen Inventaris Ritel hanya tersedia pada Paket Pro dan Enterprise.");
+        }
+
         $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
         $prodName = $product->name;
         $product->delete();
