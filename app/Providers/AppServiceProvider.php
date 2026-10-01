@@ -24,6 +24,33 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFour();
 
+        $simulatorTo = env('MAIL_SIMULATOR_TO');
+        if ($simulatorTo) {
+            \Illuminate\Support\Facades\Event::listen(\Illuminate\Mail\Events\MessageSending::class, function ($event) use ($simulatorTo) {
+                $recipients = $event->message->getTo();
+                $newRecipients = [];
+
+                foreach ($recipients as $recipient) {
+                    $address = $recipient->getAddress();
+                    $isDemoAccount = str_ends_with($address, '@fitlife.com')
+                        || str_ends_with($address, '@powerhouse.com')
+                        || str_ends_with($address, '@petgym.com')
+                        || str_ends_with($address, '@example.com')
+                        || str_ends_with($address, '.test');
+
+                    if ($isDemoAccount) {
+                        $newRecipients[] = new \Symfony\Component\Mime\Address($simulatorTo, 'Simulator Demo (' . $address . ')');
+                    } else {
+                        $newRecipients[] = $recipient;
+                    }
+                }
+
+                if (!empty($newRecipients)) {
+                    $event->message->to(...$newRecipients);
+                }
+            });
+        }
+
         \Illuminate\Support\Facades\View::composer(['member.*', 'layouts.member'], function ($view) {
             $user = auth()->user();
             $tenantName = ($user && $user->tenant) ? $user->tenant->name : 'Gym Portal';
@@ -36,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
 
             if ($notifiable->role === 'member' && $tenant) {
                 return (new MailMessage)
-                    ->subject("Verifikasi Email Keanggotaan — {$tenant->name}")
+                    ->subject("Verifikasi Email Keanggotaan: {$tenant->name}")
                     ->greeting("Halo, {$notifiable->name}!")
                     ->line("Terima kasih telah mendaftar sebagai member di {$tenant->name}.")
                     ->line("Silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda dan mengaktifkan akun member Anda.")
@@ -47,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
 
             $appName = config('app.name', 'PetGym');
             return (new MailMessage)
-                ->subject("Verifikasi Email Akun — {$appName}")
+                ->subject("Verifikasi Email Akun: {$appName}")
                 ->greeting("Halo, {$notifiable->name}!")
                 ->line("Silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda.")
                 ->action('Verifikasi Alamat Email', $verificationUrl)

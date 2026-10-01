@@ -59,6 +59,12 @@ class ManagerMemberController extends Controller
         if ($user->isAdmin()) {
             return redirect()->back()->with('error', 'Admin tidak menambahkan akun member baru secara langsung. Pendaftaran member dilakukan oleh Resepsionis/Kasir melalui POS.');
         }
+        if ($user->isTrainer()) {
+            abort(403, 'Akses Ditolak: Pelatih (Trainer) tidak memiliki izin untuk mendaftarkan member.');
+        }
+        if (!$user->isReceptionist()) {
+            abort(403, 'Akses Ditolak: Hanya Resepsionis/Kasir yang dapat mendaftarkan member baru.');
+        }
 
         $tenant = $user->tenant;
 
@@ -231,6 +237,9 @@ class ManagerMemberController extends Controller
         if ($user->isOwner()) {
             return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
         }
+        if (!$user->isManager()) {
+            abort(403, 'Akses Ditolak: Hanya Manager Gym yang dapat mengubah data member.');
+        }
         $tenant = $user->tenant;
 
         $member = Member::where('tenant_id', $tenant->id)->findOrFail($id);
@@ -272,6 +281,9 @@ class ManagerMemberController extends Controller
         if ($user->isOwner()) {
             return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
         }
+        if (!$user->isManager()) {
+            abort(403, 'Akses Ditolak: Hanya Manager Gym yang dapat menghapus data member.');
+        }
         $tenant = $user->tenant;
 
         $member = Member::where('tenant_id', $tenant->id)->findOrFail($id);
@@ -311,6 +323,9 @@ class ManagerMemberController extends Controller
     public function approve($id)
     {
         $user = Auth::user();
+        if (!$user->isManager()) {
+            abort(403, 'Akses Ditolak: Hanya Manager Gym yang dapat menyetujui akun member.');
+        }
         $tenant = $user->tenant;
 
         $member = Member::where('tenant_id', $tenant->id)->findOrFail($id);

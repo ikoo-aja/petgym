@@ -140,6 +140,10 @@ class LoginController extends Controller
                 return redirect()->intended('/receptionist/dashboard')->with('success', 'Selamat datang di Beranda Resepsionis!');
             }
 
+            if ($user->isSupervisor()) {
+                return redirect()->intended('/supervisor/dashboard')->with('success', 'Selamat datang di Dashboard Supervisor!');
+            }
+
             if ($user->role === 'trainer') {
                 return redirect()->intended('/trainer/dashboard')->with('success', 'Selamat datang di Dashboard Personal Trainer!');
             }

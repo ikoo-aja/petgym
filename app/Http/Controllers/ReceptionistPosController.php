@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use App\Models\Member;
 use App\Models\Product;
 use App\Models\PosTransaction;
@@ -59,7 +60,7 @@ class ReceptionistPosController extends Controller
         }
 
         $request->validate([
-            'member_id' => 'nullable|exists:members,id',
+            'member_id' => ['nullable', Rule::exists('members', 'id')->where('tenant_id', $tenant->id)],
             'payment_method' => 'required|in:cash,qris,transfer',
             'type' => 'required|in:membership,inventory',
             'items' => 'required|array|min:1',

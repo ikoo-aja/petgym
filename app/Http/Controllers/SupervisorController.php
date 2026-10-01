@@ -264,7 +264,17 @@ class SupervisorController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $shift->update($request->all());
+        // Scope user_id ke tenant sendiri (cegah jadwal shift lintas gym)
+        $targetUser = User::where('tenant_id', $tenant->id)->findOrFail($request->user_id);
+
+        $shift->update([
+            'user_id' => $targetUser->id,
+            'shift_date' => $request->shift_date,
+            'shift_name' => $request->shift_name,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'notes' => $request->notes,
+        ]);
 
         return redirect()->route('supervisor.features', ['tab' => 'shift'])->with('success', 'Jadwal shift staf berhasil diperbarui.');
     }
@@ -288,9 +298,12 @@ class SupervisorController extends Controller
             'reason' => 'required|string',
         ]);
 
+        // Scope user_id ke tenant sendiri (cegah cuti lintas gym)
+        $targetUser = User::where('tenant_id', $tenant->id)->findOrFail($request->user_id);
+
         LeaveRequest::create([
             'tenant_id' => $tenant->id,
-            'user_id' => $request->user_id,
+            'user_id' => $targetUser->id,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'reason' => $request->reason,
@@ -335,7 +348,7 @@ class SupervisorController extends Controller
             'name' => 'required|string|max:255',
             'category' => 'required|string',
             'brand' => 'nullable|string',
-            'status' => 'required|string',
+            'status' => 'required|in:berfungsi,perlu_servis,rusak',
             'purchase_date' => 'nullable|date',
             'next_service_date' => 'nullable|date',
         ]);
@@ -353,12 +366,12 @@ class SupervisorController extends Controller
             'name' => 'required|string|max:255',
             'category' => 'required|string',
             'brand' => 'nullable|string',
-            'status' => 'required|string',
+            'status' => 'required|in:berfungsi,perlu_servis,rusak',
             'purchase_date' => 'nullable|date',
             'next_service_date' => 'nullable|date',
         ]);
 
-        $equipment->update($request->all());
+        $equipment->update($request->except(['tenant_id']));
 
         return redirect()->route('supervisor.features', ['tab' => 'equipment'])->with('success', 'Data alat gym berhasil diperbarui.');
     }
@@ -408,7 +421,7 @@ class SupervisorController extends Controller
             'resolution' => 'nullable|string',
         ]);
 
-        $complaint->update($request->all());
+        $complaint->update($request->except(['tenant_id']));
 
         StaffLog::create([
             'tenant_id' => $tenant->id,

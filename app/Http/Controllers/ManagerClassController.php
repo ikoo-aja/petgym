@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use App\Models\GymClass;
 use App\Models\Trainer;
 use App\Models\StaffLog;
@@ -43,7 +44,7 @@ class ManagerClassController extends Controller
             'end_time' => 'required',
             'max_capacity' => 'required|integer|min:1',
             'room' => 'nullable|string|max:255',
-            'trainer_id' => 'nullable|exists:trainers,id',
+            'trainer_id' => ['nullable', Rule::exists('trainers', 'id')->where('tenant_id', $tenant->id)],
         ]);
         $gymClass = GymClass::create([
             'tenant_id' => $tenant->id,
@@ -80,7 +81,7 @@ class ManagerClassController extends Controller
             'end_time' => 'required',
             'max_capacity' => 'required|integer|min:1',
             'room' => 'nullable|string|max:255',
-            'trainer_id' => 'nullable|exists:trainers,id',
+            'trainer_id' => ['nullable', Rule::exists('trainers', 'id')->where('tenant_id', $tenant->id)],
         ]);
         $gymClass->update([
             'name' => $request->name,

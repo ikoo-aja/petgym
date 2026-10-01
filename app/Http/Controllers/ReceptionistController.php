@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use App\Models\Locker;
 use App\Models\LockerRental;
 use App\Models\LostFound;
@@ -118,8 +119,8 @@ class ReceptionistController extends Controller
     {
         $tenant = Auth::user()->tenant;
         $request->validate([
-            'locker_id' => 'required|exists:lockers,id',
-            'member_id' => 'required|exists:members,id',
+            'locker_id' => ['required', Rule::exists('lockers', 'id')->where('tenant_id', $tenant->id)],
+            'member_id' => ['required', Rule::exists('members', 'id')->where('tenant_id', $tenant->id)],
         ]);
 
         $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($request->locker_id);
@@ -388,7 +389,7 @@ class ReceptionistController extends Controller
     {
         $tenant = Auth::user()->tenant;
         $request->validate([
-            'member_id' => 'required|exists:members,id',
+            'member_id' => ['required', Rule::exists('members', 'id')->where('tenant_id', $tenant->id)],
             'title' => 'required|string|max:255',
             'description' => 'required|string',
         ]);
@@ -420,8 +421,8 @@ class ReceptionistController extends Controller
     {
         $tenant = Auth::user()->tenant;
         $request->validate([
-            'member_id' => 'required|exists:members,id',
-            'trainer_id' => 'required|exists:trainers,id',
+            'member_id' => ['required', Rule::exists('members', 'id')->where('tenant_id', $tenant->id)],
+            'trainer_id' => ['required', Rule::exists('trainers', 'id')->where('tenant_id', $tenant->id)],
             'session_date' => 'required|date',
         ]);
 

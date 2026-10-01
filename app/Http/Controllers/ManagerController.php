@@ -206,7 +206,7 @@ class ManagerController extends Controller
         $request->validate([
             'code' => 'required|string|unique:promo_codes,code',
             'description' => 'nullable|string',
-            'discount_type' => 'required|string',
+            'discount_type' => 'required|in:percentage,fixed',
             'discount_value' => 'required|numeric|min:0',
             'min_purchase' => 'required|numeric|min:0',
             'max_uses' => 'required|integer|min:1',
@@ -226,7 +226,7 @@ class ManagerController extends Controller
         $request->validate([
             'code' => 'required|string|unique:promo_codes,code,' . $promo->id,
             'description' => 'nullable|string',
-            'discount_type' => 'required|string',
+            'discount_type' => 'required|in:percentage,fixed',
             'discount_value' => 'required|numeric|min:0',
             'min_purchase' => 'required|numeric|min:0',
             'max_uses' => 'required|integer|min:1',
@@ -234,7 +234,7 @@ class ManagerController extends Controller
             'valid_until' => 'required|date',
         ]);
 
-        $promo->update(array_merge($request->all(), ['is_active' => $request->has('is_active')]));
+        $promo->update(array_merge($request->except(['tenant_id']), ['is_active' => $request->has('is_active')]));
 
         return redirect()->route('manager.features', ['tab' => 'promo'])->with('success', 'Voucher promo berhasil diperbarui.');
     }
@@ -281,7 +281,7 @@ class ManagerController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $vendor->update($request->all());
+        $vendor->update($request->except(['tenant_id']));
 
         return redirect()->route('manager.features', ['tab' => 'vendor'])->with('success', 'Kontak vendor berhasil diperbarui.');
     }

@@ -154,18 +154,24 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::post('/subscription/pay', [AdminSubscriptionController::class, 'pay'])->name('admin.subscription.pay');
 });
 
-// Group Manager Gym & Akses Bersama Staf Operasional
+// Group Manager Gym, Resepsionis & Trainer — HANYA AKSI BACA (GET)
 Route::middleware(['auth', 'verified', 'role:manager,receptionist,trainer'])->prefix('manager')->group(function () {
-    // 1. Member Management (Manager approval, Receptionist registration, Trainer view)
     Route::get('/members', [ManagerMemberController::class, 'index'])->name('manager.members.index');
+    Route::get('/members/{id}/history', [ManagerMemberController::class, 'history'])->name('manager.members.history');
+    Route::get('/classes', [ManagerClassController::class, 'index'])->name('manager.classes.index');
+});
+
+// Registrasi member baru — Resepsionis/Kasir saja
+Route::middleware(['auth', 'verified', 'role:receptionist'])->prefix('manager')->group(function () {
     Route::post('/members', [ManagerMemberController::class, 'store'])->name('manager.members.store');
+});
+
+// Manajemen & approval member + pengaturan kelas/trainer — Manager Gym saja
+Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->group(function () {
     Route::put('/members/{id}', [ManagerMemberController::class, 'update'])->name('manager.members.update');
     Route::post('/members/{id}/approve', [ManagerMemberController::class, 'approve'])->name('manager.members.approve');
     Route::delete('/members/{id}', [ManagerMemberController::class, 'destroy'])->name('manager.members.destroy');
-    Route::get('/members/{id}/history', [ManagerMemberController::class, 'history'])->name('manager.members.history');
 
-    // 2. Kelas & Trainer (Manager edit, Trainer view)
-    Route::get('/classes', [ManagerClassController::class, 'index'])->name('manager.classes.index');
     Route::post('/classes', [ManagerClassController::class, 'storeClass'])->name('manager.classes.store');
     Route::put('/classes/{id}', [ManagerClassController::class, 'updateClass'])->name('manager.classes.update');
     Route::delete('/classes/{id}', [ManagerClassController::class, 'destroyClass'])->name('manager.classes.destroy');
