@@ -163,6 +163,9 @@
                       <span class="icon-play_arrow mr-2"></span> Aktifkan
                     </a>
                   @endif
+                  <a class="dropdown-item text-primary btn-reset-password-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}" data-subdomain="{{ $tenant->subdomain }}" data-owner="{{ $tenant->owner_name ?? '-' }}" data-owner-email="{{ $tenant->owner_email ?? '-' }}" data-admin-email="{{ $oEmail }}">
+                    <span class="icon-key text-primary mr-2"></span> Reset Sandi Admin
+                  </a>
                   <div class="dropdown-divider"></div>
                   <a class="dropdown-item text-danger btn-delete-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
                     <span class="icon-close mr-2"></span> Hapus
@@ -343,11 +346,119 @@
     </div>
   </div>
 </div>
+
+<!-- MODAL: RESET PASSWORD ADMIN TENANT -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="border-radius: 14px;">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-header-title font-weight-bold text-black mb-0">
+            <i class="icon-key text-primary mr-1"></i> Reset Sandi Admin Tenant
+          </h5>
+          <small class="text-muted">Pemulihan akses darurat untuk pemilik / pengelola gym</small>
+        </div>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="resetPasswordForm" action="" method="POST">
+        @csrf
+        <div class="modal-body p-4">
+          <div class="alert alert-info py-2 mb-3" style="font-size: 12.5px; border-radius: 8px;">
+            <i class="icon-info mr-1"></i> Sandi baru akan otomatis mewajibkan Admin untuk mengganti kata sandi saat pertama kali login (<strong>Must Change Password</strong>).
+          </div>
+
+          <div class="bg-light p-3 rounded mb-3 border" style="border-radius: 10px; font-size: 13px;">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Gym / Tenant:</span>
+              <strong class="text-dark" id="resetTenantName">-</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Email Owner Resmi:</span>
+              <strong class="text-dark" id="resetOwnerEmail">-</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Akun Admin yang Direset:</span>
+              <strong class="text-primary" id="resetAdminEmail">-</strong>
+            </div>
+          </div>
+
+          <div class="form-group mb-0">
+            <label class="font-weight-bold text-dark" style="font-size: 13px;">Password Sementara Baru</label>
+            <div class="input-group">
+              <input type="text" name="password" id="resetPasswordInput" class="form-control font-weight-bold" placeholder="Klik tombol Acak untuk generate" required minlength="4">
+              <div class="input-group-append">
+                <button type="button" class="btn btn-outline-secondary font-weight-bold" id="btnGenPassword" style="font-size: 12px;">
+                  <i class="icon-refresh mr-1"></i> Acak Sandi
+                </button>
+              </div>
+            </div>
+            <small class="form-text text-muted">Bisa diketik manual atau menggunakan generator acak di atas.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary btn-sm font-weight-bold">Simpan & Reset Sandi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: HASIL RESET KREDENSIAL (POPUP COPY) -->
+@if(session('reset_credentials'))
+@php $cred = session('reset_credentials'); @endphp
+<div class="modal fade" id="credentialsModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="border-radius: 16px; border: 2px solid #22c55e;">
+      <div class="modal-header bg-success text-white py-3">
+        <h5 class="modal-title font-weight-bold">
+          <i class="icon-check-circle mr-1"></i> Sandi Admin Berhasil Di-Reset!
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-dark small mb-3">
+          Akses akun Admin untuk gym <strong>{{ $cred['tenant_name'] }}</strong> telah diperbarui. Silakan salin detail login di bawah ini untuk diteruskan kepada Pemilik Gym (<strong>{{ $cred['owner_email'] }}</strong>):
+        </p>
+
+        <div class="bg-light p-3 rounded border mb-3 position-relative" style="border-radius: 10px; font-family: monospace; font-size: 13px;" id="credentialsText">
+          <div><strong>URL Login:</strong> <a href="{{ $cred['login_url'] }}" target="_blank">{{ $cred['login_url'] }}</a></div>
+          <div><strong>Email Login:</strong> {{ $cred['admin_email'] }}</div>
+          <div><strong>Sandi Baru:</strong> <span class="text-danger font-weight-bold" style="font-size: 15px;">{{ $cred['new_password'] }}</span></div>
+        </div>
+
+        <button type="button" class="btn btn-success btn-block font-weight-bold py-2" id="btnCopyCredentials" style="border-radius: 8px;">
+          <i class="icon-copy mr-1"></i> Salin Seluruh Detail Login
+        </button>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
+
 @endsection
 
 @section('scripts')
 <script>
   $(document).ready(function() {
+    // Tampilkan modal hasil reset kredensial otomatis jika ada session
+    @if(session('reset_credentials'))
+      $('#credentialsModal').modal('show');
+
+      $('#btnCopyCredentials').on('click', function() {
+        @php $c = session('reset_credentials'); @endphp
+        const textToCopy = `*DETAIL LOGIN ADMIN GYM*\nGym: {{ $c['tenant_name'] }}\nURL Login: {{ $c['login_url'] }}\nEmail: {{ $c['admin_email'] }}\nPassword Sementara: {{ $c['new_password'] }}\n\n_Catatan: Anda akan diminta mengganti password ini saat pertama kali login._`;
+        navigator.clipboard.writeText(textToCopy).then(function() {
+          showToast('Sukses', 'Detail login berhasil disalin ke clipboard!', 'success');
+        });
+      });
+    @endif
+
     // 0. Toggle Masking / Sensor Email Pemilik
     $(document).on('click', '.btn-toggle-email', function(e) {
       e.preventDefault();
@@ -367,6 +478,7 @@
         btn.attr('title', 'Sembunyikan Email Pemilik');
       }
     });
+
     // 1. Membuka Modal Atur Fitur & Populasikan Data DB
     $(document).on('click', '.btn-features-tenant', function(e) {
       e.preventDefault();
@@ -392,6 +504,36 @@
       });
 
       $('#configureFeaturesModal').modal('show');
+    });
+
+    // 1b. Reset Password Admin Tenant
+    function generateSecurePassword() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let result = 'PetGym-';
+      for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    $(document).on('click', '.btn-reset-password-tenant', function(e) {
+      e.preventDefault();
+      const tenantId = $(this).data('id');
+      const tenantName = $(this).data('name');
+      const ownerEmail = $(this).data('owner-email');
+      const adminEmail = $(this).data('admin-email');
+
+      $('#resetTenantName').text(tenantName);
+      $('#resetOwnerEmail').text(ownerEmail);
+      $('#resetAdminEmail').text(adminEmail);
+      $('#resetPasswordInput').val(generateSecurePassword());
+      $('#resetPasswordForm').attr('action', "{{ url('/superadmin/tenants') }}/" + tenantId + "/reset-password");
+
+      $('#resetPasswordModal').modal('show');
+    });
+
+    $('#btnGenPassword').on('click', function() {
+      $('#resetPasswordInput').val(generateSecurePassword());
     });
 
     // 2. Toggle Suspend / Aktifkan Tenant via Database

@@ -216,4 +216,38 @@ class AdminStaffController extends Controller
 
         return redirect()->route('admin.staff.index')->with('success', "Akun staf {$staffName} berhasil dihapus.");
     }
+
+    public function toggleStatus(Request $request, $id)
+    {
+        $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+        }
+        $tenant = $user->tenant;
+
+        if ($user->id == $id) {
+            return redirect()->route('admin.staff.index')->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
+        }
+
+        $staff = User::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if (!in_array($staff->role, ['manager', 'owner'])) {
+            return redirect()->route('admin.staff.index')->with('error', 'Admin hanya dapat mengatur status akun Manager dan Owner.');
+        }
+
+        $newStatus = !$staff->isActive();
+        $staff->update(['is_active' => $newStatus]);
+
+        $statusText = $newStatus ? 'diaktifkan kembali' : 'dinonaktifkan';
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => $newStatus ? 'Aktivasi Akun Staf' : 'Nonaktifkan Akun Staf',
+            'description' => "Admin {$user->name} mengubah status akun {$staff->name} ({$staff->role}) menjadi {$statusText}.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('admin.staff.index')->with('success', "Akun {$staff->name} berhasil {$statusText}.");
+    }
 }

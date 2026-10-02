@@ -93,6 +93,17 @@ class LoginController extends Controller
                 return back()->withErrors(['email' => $errorMsg])->onlyInput('email');
             }
 
+            // Proteksi: Akun yang dinonaktifkan TIDAK boleh login
+            if (!$user->isActive()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Akses ditolak: Akun Anda sedang dinonaktifkan oleh pengelola gym. Silakan hubungi Manager atau Administrator untuk informasi lebih lanjut.'
+                ])->onlyInput('email');
+            }
+
             // 3a. Wajib verifikasi email sebelum bisa masuk ke dashboard
             // (user tetap login tapi diarahkan ke halaman verifikasi dulu)
             if (!$user->hasVerifiedEmail()) {

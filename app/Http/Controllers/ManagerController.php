@@ -77,26 +77,21 @@ class ManagerController extends Controller
 
     /**
      * Fitur Strategis & Manajerial Manager Gym:
-     * 1. Perencanaan Master Kelas
-     * 2. Program Promo & Voucher Diskon
-     * 3. Pantauan Evaluasi Kinerja Karyawan
-     * 4. Rekapitulasi Kas Keuangan Harian
-     * 5. Database Mitra / Vendor Eksternal
+     * 1. Program Promo & Voucher Diskon
+     * 2. Pantauan Evaluasi Kinerja Karyawan
+     * 3. Rekapitulasi Kas Keuangan Harian
+     * 4. Database Mitra / Vendor Eksternal
      */
     public function features(Request $request)
     {
         $user = Auth::user();
         $tenant = $user->tenant;
-        $activeTab = $request->query('tab', 'classes');
+        $activeTab = $request->query('tab', 'promo');
 
-        // 1. Perencanaan Master Kelas
-        $masterClasses = GymClass::where('tenant_id', $tenant->id)->with('trainer')->latest()->get();
-        $trainers = Trainer::where('tenant_id', $tenant->id)->get();
-
-        // 2. Manajemen Promo & Voucher Diskon
+        // 1. Manajemen Promo & Voucher Diskon
         $promoCodes = PromoCode::where('tenant_id', $tenant->id)->latest()->get();
 
-        // 3. Pantauan Kinerja Karyawan & Target Omset
+        // 2. Pantauan Kinerja Karyawan & Target Omset
         $receptionistPerformance = PosTransaction::where('tenant_id', $tenant->id)
             ->where('created_at', '>=', Carbon::now()->startOfMonth())
             ->select('user_id', DB::raw('SUM(total_amount) as total_sales'), DB::raw('COUNT(*) as total_transactions'))
@@ -113,88 +108,24 @@ class ManagerController extends Controller
             ->orderBy('total_classes', 'desc')
             ->get();
 
-        // 4. Laporan Rekapitulasi Kas Harian
+        // 3. Laporan Rekapitulasi Kas Harian
         $dailyCashRecap = PosTransaction::where('tenant_id', $tenant->id)
             ->whereDate('created_at', Carbon::today())
             ->get();
 
-        // 5. Database Vendor & Mitra Eksternal
+        // 4. Database Vendor & Mitra Eksternal
         $vendors = Vendor::where('tenant_id', $tenant->id)->latest()->get();
 
         return view('manager.features', compact(
             'user',
             'tenant',
             'activeTab',
-            'masterClasses',
-            'trainers',
             'promoCodes',
             'receptionistPerformance',
             'trainerPerformance',
             'dailyCashRecap',
             'vendors'
         ));
-    }
-
-    // ==========================================
-    // 1. MASTER KELAS GYM
-    // ==========================================
-    public function storeMasterClass(Request $request)
-    {
-        $tenant = Auth::user()->tenant;
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'day' => 'required|string',
-            'start_time' => 'required',
-            'duration_minutes' => 'required|integer|min:1',
-        ]);
-
-        $startTime = Carbon::createFromFormat('H:i', $request->start_time);
-        $endTime = (clone $startTime)->addMinutes((int) $request->duration_minutes);
-
-        GymClass::create([
-            'tenant_id' => $tenant->id,
-            'name' => $request->name,
-            'day' => $request->day,
-            'start_time' => $startTime->format('H:i'),
-            'end_time' => $endTime->format('H:i'),
-            'duration_minutes' => $request->duration_minutes,
-        ]);
-
-        return redirect()->route('manager.features', ['tab' => 'classes'])->with('success', 'Rencana Master Kelas baru berhasil dibuat.');
-    }
-
-    public function updateMasterClass(Request $request, $id)
-    {
-        $tenant = Auth::user()->tenant;
-        $class = GymClass::where('tenant_id', $tenant->id)->findOrFail($id);
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'day' => 'required|string',
-            'start_time' => 'required',
-            'duration_minutes' => 'required|integer|min:1',
-        ]);
-
-        $startTime = Carbon::createFromFormat('H:i:s', strlen($request->start_time) == 5 ? $request->start_time . ':00' : $request->start_time);
-        $endTime = (clone $startTime)->addMinutes((int) $request->duration_minutes);
-
-        $class->update([
-            'name' => $request->name,
-            'day' => $request->day,
-            'start_time' => $startTime->format('H:i:s'),
-            'end_time' => $endTime->format('H:i:s'),
-            'duration_minutes' => $request->duration_minutes,
-        ]);
-
-        return redirect()->route('manager.features', ['tab' => 'classes'])->with('success', 'Rencana Master Kelas berhasil diperbarui.');
-    }
-
-    public function destroyMasterClass($id)
-    {
-        $tenant = Auth::user()->tenant;
-        $class = GymClass::where('tenant_id', $tenant->id)->findOrFail($id);
-        $class->delete();
-
-        return redirect()->route('manager.features', ['tab' => 'classes'])->with('success', 'Master Kelas berhasil dihapus.');
     }
 
     // ==========================================

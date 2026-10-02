@@ -22,6 +22,7 @@
           <th>Nama</th>
           <th>Email Login</th>
           <th>Role / Jabatan</th>
+          <th>Status Akun</th>
           <th>Tanggal Dibuat</th>
           @if(!Auth::user() || !Auth::user()->isOwner())
           <th class="text-right">Aksi</th>
@@ -53,6 +54,17 @@
                 <span class="badge badge-secondary px-3 py-1">{{ ucfirst($st->role) }}</span>
               @endif
             </td>
+            <td>
+              @if($st->isActive())
+                <span class="badge badge-success px-2 py-1 font-weight-bold" style="border-radius: 6px; font-size: 11px;">
+                  <i class="icon-check mr-1"></i> Aktif
+                </span>
+              @else
+                <span class="badge badge-danger px-2 py-1 font-weight-bold" style="border-radius: 6px; font-size: 11px;">
+                  <i class="icon-close mr-1"></i> Non-Aktif
+                </span>
+              @endif
+            </td>
             <td style="font-size: 13px;" class="text-dark">{{ $st->created_at ? $st->created_at->format('d M Y H:i') : '-' }}</td>
             @if(!Auth::user() || !Auth::user()->isOwner())
             <td class="text-right">
@@ -60,16 +72,30 @@
                 <span class="badge badge-light text-muted px-2 py-1" style="font-size: 11px;">Akses Terbatas</span>
               @else
                 @if(!$st->hasVerifiedEmail())
-                  <form action="{{ route('admin.staff.send-verification', $st->id) }}" method="POST" class="d-inline">
+                  <form action="{{ route('admin.staff.send-verification', $st->id) }}" method="POST" class="d-inline mr-1">
                     @csrf
-                    <button type="submit" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Kirim Verifikasi</button>
+                    <button type="submit" class="btn btn-sm btn-outline-info font-weight-bold" style="border-radius: 6px;">Kirim Verifikasi</button>
+                  </form>
+                @endif
+                @if($st->role === 'manager' && Auth::id() !== $st->id)
+                  <form action="{{ route('admin.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun Manager ini? Pengguna tidak akan bisa login ke dashboard.' : 'Aktifkan kembali akun Manager ini?' }}">
+                    @csrf
+                    @if($st->isActive())
+                      <button type="submit" class="btn btn-sm btn-outline-warning text-dark font-weight-bold" style="border-radius: 6px;" title="Nonaktifkan Akun">
+                        Kunci Akses
+                      </button>
+                    @else
+                      <button type="submit" class="btn btn-sm btn-outline-success font-weight-bold" style="border-radius: 6px;" title="Buka Kunci Akun">
+                        Buka Akses
+                      </button>
+                    @endif
                   </form>
                 @endif
                 @if(Auth::id() !== $st->id)
                   <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun ini?">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 6px;">Hapus</button>
                   </form>
                 @endif
               @endif
@@ -78,7 +104,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="5" class="text-center py-4 text-muted">Belum ada akun tambahan.</td>
+            <td colspan="6" class="text-center py-4 text-muted">Belum ada akun tambahan.</td>
           </tr>
         @endforelse
       </tbody>

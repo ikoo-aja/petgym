@@ -501,12 +501,7 @@
         </a>
       </li>
       <li>
-        <a href="/manager/features?tab=classes" class="{{ request()->is('manager/features*') && (request()->query('tab', 'classes') === 'classes') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Master Kelas Rencana
-        </a>
-      </li>
-      <li>
-        <a href="/manager/features?tab=promo" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'promo') ? 'active' : '' }}">
+        <a href="/manager/features?tab=promo" class="{{ request()->is('manager/features*') && (request()->query('tab', 'promo') === 'promo') ? 'active' : '' }}">
           <span class="icon-wrapper"><span class="icon-file-text"></span></span> Promo & Voucher
         </a>
       </li>

@@ -24,6 +24,7 @@
             <th class="px-4 py-3">Nama</th>
             <th class="py-3">Email Login</th>
             <th class="py-3">Role / Jabatan</th>
+            <th class="py-3">Status Akun</th>
             <th class="py-3">Tanggal Dibuat</th>
             <th class="px-4 py-3 text-right">Aksi</th>
           </tr>
@@ -51,6 +52,17 @@
                   <span class="badge badge-secondary px-3 py-1 font-weight-bold" style="border-radius: 6px;">{{ ucfirst($st->role) }}</span>
                 @endif
               </td>
+              <td class="py-3">
+                @if($st->isActive())
+                  <span class="badge badge-success px-2 py-1 font-weight-bold" style="border-radius: 6px; font-size: 11px;">
+                    <i class="icon-check mr-1"></i> Aktif
+                  </span>
+                @else
+                  <span class="badge badge-danger px-2 py-1 font-weight-bold" style="border-radius: 6px; font-size: 11px;">
+                    <i class="icon-close mr-1"></i> Non-Aktif
+                  </span>
+                @endif
+              </td>
               <td class="py-3 text-muted small">{{ $st->created_at ? $st->created_at->format('d M Y H:i') : '-' }}</td>
               <td class="px-4 py-3 text-right">
                 @if(!$st->hasVerifiedEmail())
@@ -59,6 +71,20 @@
                     <button type="submit" class="btn btn-sm btn-outline-info font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">
                       Kirim Verifikasi
                     </button>
+                  </form>
+                @endif
+                @if(Auth::id() !== $st->id)
+                  <form action="{{ route('manager.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun staf ini? Pengguna tidak akan bisa login atau membuka shift.' : 'Aktifkan kembali akun staf ini?' }}">
+                    @csrf
+                    @if($st->isActive())
+                      <button type="submit" class="btn btn-sm btn-outline-warning text-dark font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;" title="Nonaktifkan Akun">
+                        Kunci Akses
+                      </button>
+                    @else
+                      <button type="submit" class="btn btn-sm btn-outline-success font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;" title="Buka Kunci Akun">
+                        Buka Akses
+                      </button>
+                    @endif
                   </form>
                 @endif
                 <form action="{{ route('manager.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun ini?">
@@ -72,7 +98,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="5" class="text-center py-4 text-muted small">
+              <td colspan="6" class="text-center py-4 text-muted small">
                 <span class="icon-people h4 d-block mb-1 text-muted"></span>
                 Belum ada data akun operasional terdaftar.
               </td>

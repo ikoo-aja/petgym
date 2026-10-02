@@ -46,12 +46,17 @@ class ManagerClassController extends Controller
             'room' => 'nullable|string|max:255',
             'trainer_id' => ['nullable', Rule::exists('trainers', 'id')->where('tenant_id', $tenant->id)],
         ]);
+        $duration = $request->filled('duration_minutes') 
+            ? (int) $request->duration_minutes 
+            : max(15, (int) (\Carbon\Carbon::parse($request->end_time)->diffInMinutes(\Carbon\Carbon::parse($request->start_time))));
+
         $gymClass = GymClass::create([
             'tenant_id' => $tenant->id,
             'name' => $request->name,
             'day' => $request->day,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
+            'duration_minutes' => $duration,
             'max_capacity' => $request->max_capacity,
             'room' => $request->room ?? 'Studio Utama',
             'trainer_id' => $request->trainer_id,
@@ -60,7 +65,7 @@ class ManagerClassController extends Controller
             'tenant_id' => $tenant->id,
             'user_id' => $user ? $user->id : null,
             'action' => 'Tambah Kelas Gym',
-            'description' => "Menambahkan kelas baru: {$gymClass->name} pada hari {$gymClass->day}",
+            'description' => "Menambahkan kelas baru: {$gymClass->name} pada hari {$gymClass->day} ({$gymClass->duration_minutes} Menit)",
             'ip_address' => $request->ip(),
         ]);
         return redirect()->route('manager.classes.index')->with('success', 'Jadwal kelas baru berhasil ditambahkan ke database.');
@@ -79,15 +84,22 @@ class ManagerClassController extends Controller
             'day' => 'required|string',
             'start_time' => 'required',
             'end_time' => 'required',
+            'duration_minutes' => 'nullable|integer|min:1',
             'max_capacity' => 'required|integer|min:1',
             'room' => 'nullable|string|max:255',
             'trainer_id' => ['nullable', Rule::exists('trainers', 'id')->where('tenant_id', $tenant->id)],
         ]);
+
+        $duration = $request->filled('duration_minutes') 
+            ? (int) $request->duration_minutes 
+            : max(15, (int) (\Carbon\Carbon::parse($request->end_time)->diffInMinutes(\Carbon\Carbon::parse($request->start_time))));
+
         $gymClass->update([
             'name' => $request->name,
             'day' => $request->day,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
+            'duration_minutes' => $duration,
             'max_capacity' => $request->max_capacity,
             'room' => $request->room ?? 'Studio Utama',
             'trainer_id' => $request->trainer_id,

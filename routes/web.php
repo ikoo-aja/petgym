@@ -108,6 +108,7 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::post('/tenants', [SuperadminController::class, 'storeTenant'])->name('superadmin.tenants.store');
     Route::post('/tenants/{id}/features', [SuperadminController::class, 'updateTenantFeatures'])->name('superadmin.tenants.features');
     Route::post('/tenants/{id}/toggle-status', [SuperadminController::class, 'toggleTenantStatus'])->name('superadmin.tenants.toggle-status');
+    Route::post('/tenants/{id}/reset-password', [SuperadminController::class, 'resetTenantAdminPassword'])->name('superadmin.tenants.reset-password');
     Route::delete('/tenants/{id}', [SuperadminController::class, 'destroyTenant'])->name('superadmin.tenants.destroy');
     Route::get('/plans', [SuperadminController::class, 'plans'])->name('superadmin.plans');
     Route::post('/plans', [SuperadminController::class, 'storePlan'])->name('superadmin.plans.store');
@@ -138,6 +139,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     // 2. Akun Staf (RBAC - Manager & Owner)
     Route::get('/staff', [AdminStaffController::class, 'index'])->name('admin.staff.index');
     Route::post('/staff', [AdminStaffController::class, 'store'])->name('admin.staff.store');
+    Route::post('/staff/{id}/toggle-status', [AdminStaffController::class, 'toggleStatus'])->name('admin.staff.toggle-status');
     Route::post('/staff/{id}/send-verification', [AdminStaffController::class, 'sendVerification'])->name('admin.staff.send-verification');
     Route::delete('/staff/{id}', [AdminStaffController::class, 'destroy'])->name('admin.staff.destroy');
 
@@ -190,11 +192,6 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
     Route::put('/promo/{id}', [ManagerController::class, 'updatePromo'])->name('manager.promo.update');
     Route::delete('/promo/{id}', [ManagerController::class, 'destroyPromo'])->name('manager.promo.destroy');
 
-    // Perencanaan Master Kelas
-    Route::post('/master-classes', [ManagerController::class, 'storeMasterClass'])->name('manager.master-classes.store');
-    Route::put('/master-classes/{id}', [ManagerController::class, 'updateMasterClass'])->name('manager.master-classes.update');
-    Route::delete('/master-classes/{id}', [ManagerController::class, 'destroyMasterClass'])->name('manager.master-classes.destroy');
-
     // Vendors Database
     Route::post('/vendors', [ManagerController::class, 'storeVendor'])->name('manager.vendors.store');
     Route::put('/vendors/{id}', [ManagerController::class, 'updateVendor'])->name('manager.vendors.update');
@@ -203,6 +200,7 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
     // Akun Staf Operasional (Supervisor, Resepsionis/Kasir, dan Personal Trainer)
     Route::get('/staff', [ManagerStaffController::class, 'index'])->name('manager.staff.index');
     Route::post('/staff', [ManagerStaffController::class, 'store'])->name('manager.staff.store');
+    Route::post('/staff/{id}/toggle-status', [ManagerStaffController::class, 'toggleStatus'])->name('manager.staff.toggle-status');
     Route::post('/staff/{id}/send-verification', [ManagerStaffController::class, 'sendVerification'])->name('manager.staff.send-verification');
     Route::delete('/staff/{id}', [ManagerStaffController::class, 'destroy'])->name('manager.staff.destroy');
 });

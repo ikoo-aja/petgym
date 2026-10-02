@@ -25,7 +25,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'tenant_id',
         'must_change_password',
+        'is_active',
     ];
+
+    public function isActive(): bool
+    {
+        return (bool) ($this->is_active ?? true);
+    }
 
     public function isSuperadmin(): bool
     {
@@ -135,6 +141,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'must_change_password' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 }

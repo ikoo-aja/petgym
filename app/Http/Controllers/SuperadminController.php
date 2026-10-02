@@ -260,6 +260,72 @@ class SuperadminController extends Controller
     }
 
     /**
+     * Reset Password Akun Admin / Pengelola Tenant (Pemulihan Darurat).
+     */
+    public function resetTenantAdminPassword(Request $request, $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        
+        $request->validate([
+            'password' => 'nullable|string|min:4',
+        ]);
+
+        // Cari akun admin milik tenant, atau fallback ke user pengelola di tenant tersebut
+        $adminUser = User::where('tenant_id', $tenant->id)
+            ->where('role', 'admin')
+            ->first();
+
+        if (!$adminUser) {
+            $adminUser = User::where('tenant_id', $tenant->id)
+                ->whereIn('role', ['admin', 'owner', 'manager'])
+                ->first();
+        }
+
+        if (!$adminUser) {
+            $slug = $tenant->slug ?: (str_contains($tenant->subdomain, '.') ? explode('.', $tenant->subdomain)[0] : $tenant->subdomain);
+            $adminUser = User::create([
+                'name' => "Admin {$tenant->name}",
+                'email' => "admin.{$slug}@workout.id",
+                'role' => 'admin',
+                'tenant_id' => $tenant->id,
+            ]);
+            $adminUser->markEmailAsVerified();
+        }
+
+        // Tentukan password baru (custom atau generate otomatis)
+        $newPassword = $request->filled('password') 
+            ? $request->password 
+            : ('PetGym-' . strtoupper(Str::random(6)));
+
+        $adminUser->update([
+            'password' => Hash::make($newPassword),
+            'must_change_password' => true,
+            'is_active' => true,
+        ]);
+
+        SystemLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'Reset Password Admin Tenant',
+            'description' => "Superadmin me-reset password akun admin ({$adminUser->email}) untuk tenant {$tenant->name}.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('superadmin.tenants')->with([
+            'success' => "Password akun Admin untuk gym '{$tenant->name}' berhasil di-reset!",
+            'reset_credentials' => [
+                'tenant_name' => $tenant->name,
+                'subdomain' => $tenant->subdomain,
+                'login_url' => $tenant->publicLandingUrl() . '/login',
+                'owner_name' => $tenant->owner_name ?? '-',
+                'owner_email' => $tenant->owner_email ?? '-',
+                'admin_email' => $adminUser->email,
+                'admin_name' => $adminUser->name,
+                'new_password' => $newPassword,
+            ]
+        ]);
+    }
+
+    /**
      * Tampilkan Halaman Paket Sewa.
      */
     public function plans()

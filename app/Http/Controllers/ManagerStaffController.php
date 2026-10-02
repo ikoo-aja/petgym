@@ -186,4 +186,36 @@ class ManagerStaffController extends Controller
 
         return redirect()->route('manager.staff.index')->with('success', "Akun staf {$staffName} berhasil dihapus.");
     }
+
+    /**
+     * Mengaktifkan / Menonaktifkan akun staf operasional (Supervisor, Kasir, Trainer).
+     */
+    public function toggleStatus(Request $request, $id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+
+        if ($user->id == $id) {
+            return redirect()->route('manager.staff.index')->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
+        }
+
+        $staff = User::where('tenant_id', $tenant->id)
+            ->whereIn('role', ['supervisor', 'receptionist', 'trainer'])
+            ->findOrFail($id);
+
+        $newStatus = !$staff->isActive();
+        $staff->update(['is_active' => $newStatus]);
+
+        $statusText = $newStatus ? 'diaktifkan kembali' : 'dinonaktifkan';
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => $newStatus ? 'Aktivasi Staf Operasional' : 'Nonaktifkan Staf Operasional',
+            'description' => "Manager {$user->name} mengubah status akun {$staff->name} ({$staff->role}) menjadi {$statusText}.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('manager.staff.index')->with('success', "Akun staf {$staff->name} berhasil {$statusText}.");
+    }
 }

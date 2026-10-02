@@ -2,10 +2,6 @@
 
 @php
   $featureMeta = [
-    'classes' => [
-      'title' => 'Master Kelas Rencana',
-      'subtitle' => 'Pengaturan jadwal kelas kebugaran rutin dan instruktur pelatih',
-    ],
     'promo' => [
       'title' => 'Promo dan Voucher',
       'subtitle' => 'Pengelolaan kode potongan harga untuk anggota dan kasir',
@@ -25,8 +21,8 @@
   ];
 
   $currentMeta = $featureMeta[$activeTab] ?? [
-    'title' => 'Manajemen Strategis',
-    'subtitle' => 'Pengelolaan operasional dan perencanaan manajerial gym',
+    'title' => 'Promo dan Voucher',
+    'subtitle' => 'Pengelolaan kode potongan harga untuk anggota dan kasir',
   ];
 @endphp
 
@@ -40,71 +36,7 @@
   <!-- Tab Contents -->
   <div class="tab-content" id="managerTabContent">
 
-    <!-- 1. TAB MASTER KELAS GYM -->
-    <div class="tab-pane fade {{ $activeTab === 'classes' ? 'show active' : '' }}" id="classes-sec" role="tabpanel">
-      <div class="card-custom p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="font-weight-bold text-dark mb-1">Daftar Master Kelas</h5>
-            <p class="text-muted small mb-0">Atur jadwal kelas kebugaran rutin dan instruktur pelatih yang bertugas.</p>
-          </div>
-          <button type="button" class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addMasterClassModal">
-            + Tambah Master Kelas
-          </button>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
-              <tr>
-                <th>Nama Kelas</th>
-                <th>Hari Pelaksanaan</th>
-                <th>Jam Mulai & Selesai</th>
-                <th>Durasi Sesi</th>
-                <th>Instruktur / Trainer</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($masterClasses as $mc)
-                <tr>
-                  <td><strong class="text-dark">{{ $mc->name }}</strong></td>
-                  <td><span class="badge badge-info font-weight-bold">{{ $mc->day }}</span></td>
-                  <td>{{ substr($mc->start_time, 0, 5) }} - {{ substr($mc->end_time, 0, 5) }}</td>
-                  <td>{{ $mc->duration_minutes }} Menit</td>
-                  <td>
-                    @if($mc->trainer)
-                      <span class="badge badge-primary font-weight-bold">{{ $mc->trainer->name }}</span>
-                    @else
-                      <span class="text-muted small">Belum Ditugaskan</span>
-                    @endif
-                  </td>
-                  <td>
-                    <button type="button" class="btn btn-xs btn-outline-primary btn-edit-mc"
-                      data-id="{{ $mc->id }}"
-                      data-name="{{ $mc->name }}"
-                      data-day="{{ $mc->day }}"
-                      data-start_time="{{ substr($mc->start_time, 0, 5) }}"
-                      data-duration_minutes="{{ $mc->duration_minutes }}">Ubah</button>
-                    <form action="{{ route('manager.master-classes.destroy', $mc->id) }}" method="POST" class="d-inline" data-confirm="Hapus master kelas ini?">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
-                    </form>
-                  </td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="6" class="text-center py-4 text-muted">Belum ada perencanaan master kelas.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. TAB PROMO & VOUCHER -->
+    <!-- 1. TAB PROMO & VOUCHER -->
     <div class="tab-pane fade {{ $activeTab === 'promo' ? 'show active' : '' }}" id="promo-sec" role="tabpanel">
       <div class="card-custom p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -412,97 +344,6 @@
 <!-- MODALS -->
 <!-- ========================================== -->
 
-<!-- Modal Tambah Master Class -->
-<div class="modal fade" id="addMasterClassModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <form action="{{ route('manager.master-classes.store') }}" method="POST" class="modal-content shadow border-0">
-      @csrf
-      <div class="modal-header bg-light">
-        <h5 class="modal-title font-weight-bold text-dark mb-0">Rencanakan Master Kelas Baru</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body p-4">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark small mb-1">Nama Kelas Kebugaran *</label>
-          <input type="text" name="name" class="form-control" placeholder="Contoh: Yoga Morning, Zumba Aerobic" required>
-        </div>
-        <div class="row">
-          <div class="col-md-6 form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">Hari Pelaksanaan *</label>
-            <select name="day" class="form-control" required>
-              <option value="Senin">Senin</option>
-              <option value="Selasa">Selasa</option>
-              <option value="Rabu">Rabu</option>
-              <option value="Kamis">Kamis</option>
-              <option value="Jumat">Jumat</option>
-              <option value="Sabtu">Sabtu</option>
-              <option value="Minggu">Minggu</option>
-            </select>
-          </div>
-          <div class="col-md-6 form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">Durasi (Menit) *</label>
-            <input type="number" name="duration_minutes" class="form-control" value="60" min="15" required>
-          </div>
-        </div>
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark small mb-1">Jam Mulai *</label>
-          <input type="time" name="start_time" class="form-control" value="08:00" required>
-        </div>
-      </div>
-      <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Data</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Ubah Master Class -->
-<div class="modal fade" id="editMasterClassModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <form id="editMasterClassForm" method="POST" class="modal-content shadow border-0">
-      @csrf
-      @method('PUT')
-      <div class="modal-header bg-light">
-        <h5 class="modal-title font-weight-bold text-dark mb-0">Ubah Rencana Master Kelas</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body p-4">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark small mb-1">Nama Kelas Kebugaran *</label>
-          <input type="text" name="name" id="editMcName" class="form-control" required>
-        </div>
-        <div class="row">
-          <div class="col-md-6 form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">Hari Pelaksanaan *</label>
-            <select name="day" id="editMcDay" class="form-control" required>
-              <option value="Senin">Senin</option>
-              <option value="Selasa">Selasa</option>
-              <option value="Rabu">Rabu</option>
-              <option value="Kamis">Kamis</option>
-              <option value="Jumat">Jumat</option>
-              <option value="Sabtu">Sabtu</option>
-              <option value="Minggu">Minggu</option>
-            </select>
-          </div>
-          <div class="col-md-6 form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">Durasi (Menit) *</label>
-            <input type="number" name="duration_minutes" id="editMcDuration" class="form-control" required>
-          </div>
-        </div>
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark small mb-1">Jam Mulai *</label>
-          <input type="time" name="start_time" id="editMcStart" class="form-control" required>
-        </div>
-      </div>
-      <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <!-- Modal Tambah Promo -->
 <div class="modal fade" id="addPromoModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -724,18 +565,7 @@
 @push('scripts')
 <script>
   $(document).ready(function() {
-    // 1. Edit Master Class Modal
-    $('.btn-edit-mc').on('click', function() {
-      const id = $(this).data('id');
-      $('#editMasterClassForm').attr('action', '/manager/master-classes/' + id);
-      $('#editMcName').val($(this).data('name'));
-      $('#editMcDay').val($(this).data('day'));
-      $('#editMcStart').val($(this).data('start_time'));
-      $('#editMcDuration').val($(this).data('duration_minutes'));
-      $('#editMasterClassModal').modal('show');
-    });
-
-    // 2. Edit Promo Modal
+    // 1. Edit Promo Modal
     $('.btn-edit-promo').on('click', function() {
       const id = $(this).data('id');
       $('#editPromoForm').attr('action', '/manager/promo/' + id);
