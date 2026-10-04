@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use App\Models\GymClass;
 use App\Models\Trainer;
 use App\Models\PromoCode;
@@ -135,14 +136,14 @@ class ManagerController extends Controller
     {
         $tenant = Auth::user()->tenant;
         $request->validate([
-            'code' => 'required|string|unique:promo_codes,code',
-            'description' => 'nullable|string',
+            'code' => ['required', 'string', 'max:50', Rule::unique('promo_codes', 'code')->where('tenant_id', $tenant->id)],
+            'description' => 'nullable|string|max:500',
             'discount_type' => 'required|in:percentage,fixed',
             'discount_value' => 'required|numeric|min:0',
             'min_purchase' => 'required|numeric|min:0',
             'max_uses' => 'required|integer|min:1',
             'valid_from' => 'required|date',
-            'valid_until' => 'required|date',
+            'valid_until' => 'required|date|after_or_equal:valid_from',
         ]);
 
         PromoCode::create(array_merge($request->all(), ['tenant_id' => $tenant->id, 'is_active' => true]));
@@ -155,14 +156,14 @@ class ManagerController extends Controller
         $tenant = Auth::user()->tenant;
         $promo = PromoCode::where('tenant_id', $tenant->id)->findOrFail($id);
         $request->validate([
-            'code' => 'required|string|unique:promo_codes,code,' . $promo->id,
-            'description' => 'nullable|string',
+            'code' => ['required', 'string', 'max:50', Rule::unique('promo_codes', 'code')->where('tenant_id', $tenant->id)->ignore($promo->id)],
+            'description' => 'nullable|string|max:500',
             'discount_type' => 'required|in:percentage,fixed',
             'discount_value' => 'required|numeric|min:0',
             'min_purchase' => 'required|numeric|min:0',
             'max_uses' => 'required|integer|min:1',
             'valid_from' => 'required|date',
-            'valid_until' => 'required|date',
+            'valid_until' => 'required|date|after_or_equal:valid_from',
         ]);
 
         $promo->update(array_merge($request->except(['tenant_id']), ['is_active' => $request->has('is_active')]));

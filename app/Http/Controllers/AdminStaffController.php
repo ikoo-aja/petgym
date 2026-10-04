@@ -55,7 +55,7 @@ class AdminStaffController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'nullable|string|min:4',
-            'role' => 'required|string',
+            'role' => 'required|string|in:manager,owner',
             'phone' => 'nullable|string|max:20',
         ], [
             'name.required'  => 'Nama staf wajib diisi.',
@@ -64,6 +64,7 @@ class AdminStaffController extends Controller
             'email.unique'   => 'Email ini sudah terdaftar, gunakan email lain.',
             'password.min'   => 'Password minimal 4 karakter.',
             'role.required'  => 'Role / jabatan wajib dipilih.',
+            'role.in'        => 'Admin hanya dapat mendaftarkan akun Manager Gym dan Owner.',
         ]);
 
         if ($tenant && !$tenant->canAddStaff()) {
@@ -73,14 +74,6 @@ class AdminStaffController extends Controller
 
         if ($tenant && !$tenant->isStaffRoleAllowed($request->role)) {
             return redirect()->back()->with('error', "Paket {$tenant->plan_name} dirancang untuk gym skala kecil dengan maksimal 5 akun staf (Staf & Resepsionis). Untuk mengelola akun Manager Gym & Personal Trainer, silakan upgrade ke Paket Pro atau Enterprise.");
-        }
-
-        if ($user->isAdmin() && !in_array($request->role, ['manager', 'owner', 'receptionist', 'supervisor'])) {
-            return redirect()->back()->with('error', 'Admin hanya dapat mendaftarkan akun staf resmi gym.');
-        }
-
-        if ($user->isManager() && !in_array($request->role, ['receptionist', 'trainer', 'supervisor'])) {
-            return redirect()->back()->with('error', 'Manager Gym hanya dapat mendaftarkan akun staf operasional (Resepsionis, Supervisor & Personal Trainer).');
         }
 
         // Jika password kosong → generate password default otomatis
@@ -101,21 +94,11 @@ class AdminStaffController extends Controller
             'must_change_password' => true,
         ]);
 
-        // Auto Sync ke tabel profil dedicated berdasarkan role
+        // Auto Sync ke tabel profil dedicated jika role manager
         if ($staff->role === 'manager') {
             Manager::updateOrCreate(
                 ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
                 ['name' => $staff->name, 'email' => $staff->email, 'department' => 'Operasional', 'status' => 'active']
-            );
-        } elseif ($staff->role === 'receptionist') {
-            Receptionist::updateOrCreate(
-                ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
-                ['name' => $staff->name, 'email' => $staff->email, 'shift' => 'Pagi', 'status' => 'active']
-            );
-        } elseif ($staff->role === 'trainer') {
-            Trainer::updateOrCreate(
-                ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
-                ['name' => $staff->name, 'email' => $staff->email, 'phone' => $request->phone, 'specialization' => 'Fitness & Conditioning', 'status' => 'active']
             );
         }
 

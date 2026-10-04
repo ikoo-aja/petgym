@@ -121,22 +121,10 @@ class LoginController extends Controller
                     ->with('warning', 'Silakan ubah kata sandi bawaan Anda sebelum melanjutkan.');
             }
 
-            if ($user->isSuperadmin()) {
-                return redirect()->intended('/superadmin/dashboard')->with('success', 'Selamat datang Superadmin!');
-            }
+            // Bersihkan sisa url.intended dari session agar tidak terjadi cross-role hijack
+            $request->session()->forget('url.intended');
 
-            if ($user->isOwner()) {
-                return redirect()->intended('/owner/dashboard')->with('success', 'Selamat datang Pemilik Gym! Anda dalam mode pemantauan bisnis (Read-Only).');
-            }
-
-            if ($user->isAdmin()) {
-                return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang di Dashboard Admin!');
-            }
-
-            if ($user->isManager()) {
-                return redirect()->intended('/manager/dashboard')->with('success', 'Selamat datang di Dashboard Manager!');
-            }
-
+            // 3d. Khusus Resepsionis: Cek status shift kasir sebelum ke dashboard
             if ($user->isReceptionist()) {
                 $hasOpenShift = ReceptionistShift::where('tenant_id', $user->tenant_id)
                     ->where('user_id', $user->id)
@@ -147,23 +135,24 @@ class LoginController extends Controller
                     return redirect()->route('receptionist.shifts')
                         ->with('info', 'Selamat datang! Silakan buka shift kasir terlebih dahulu dengan memasukkan nominal kas awal sebelum memulai operasional.');
                 }
-
-                return redirect()->intended('/receptionist/dashboard')->with('success', 'Selamat datang di Beranda Resepsionis!');
             }
 
-            if ($user->isSupervisor()) {
-                return redirect()->intended('/supervisor/dashboard')->with('success', 'Selamat datang di Dashboard Supervisor!');
-            }
+            // 3e. Arahkan secara deterministik dan tepat sesuai role
+            $targetRoute = $user->dashboardRoute();
+            $welcomeMessages = [
+                'superadmin'   => 'Selamat datang Superadmin!',
+                'owner'        => 'Selamat datang Pemilik Gym! Anda dalam mode pemantauan bisnis (Read-Only).',
+                'admin'        => 'Selamat datang di Dashboard Admin!',
+                'manager'      => 'Selamat datang di Dashboard Manager!',
+                'supervisor'   => 'Selamat datang di Dashboard Supervisor!',
+                'receptionist' => 'Selamat datang di Beranda Resepsionis!',
+                'trainer'      => 'Selamat datang di Dashboard Personal Trainer!',
+                'member'       => 'Selamat datang di Portal Keanggotaan Member Gym!',
+            ];
 
-            if ($user->role === 'trainer') {
-                return redirect()->intended('/trainer/dashboard')->with('success', 'Selamat datang di Dashboard Personal Trainer!');
-            }
+            $message = $welcomeMessages[$user->role] ?? 'Selamat datang kembali!';
 
-            if ($user->role === 'member') {
-                return redirect()->intended('/member/dashboard')->with('success', 'Selamat datang di Portal Keanggotaan Member Gym!');
-            }
-
-            return redirect()->intended('/member/dashboard')->with('success', 'Selamat datang kembali!');
+            return redirect()->route($targetRoute)->with('success', $message);
         }
 
         // 4. Jika Autentikasi Gagal -> catat percobaan gagal untuk throttle
