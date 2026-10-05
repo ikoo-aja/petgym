@@ -78,6 +78,9 @@ class TenantLandingController extends Controller
             'opening_hours'       => 'nullable|string|max:255',
             'cta_text'            => 'nullable|string|max:100',
             'cta_url'             => 'nullable|string|max:500',
+            'hero_image'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'hero_card_image'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'about_image'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ];
 
         // 2. Warna hanya untuk paket Pro ke atas
@@ -125,13 +128,49 @@ class TenantLandingController extends Controller
             'cta_url'        => $validated['cta_url'] ?? null,
         ];
 
+        // Upload Foto Hero Cover
+        if ($request->hasFile('hero_image')) {
+            $file = $request->file('hero_image');
+            $filename = 'hero_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $uploadPath = public_path('uploads/landing');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            $file->move($uploadPath, $filename);
+            $data['hero_image'] = 'uploads/landing/' . $filename;
+        }
+
+        // Upload Foto Kartu Highlight Studio Hero
+        if ($request->hasFile('hero_card_image')) {
+            $file = $request->file('hero_card_image');
+            $filename = 'hero_card_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $uploadPath = public_path('uploads/landing');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            $file->move($uploadPath, $filename);
+            $data['hero_card_image'] = 'uploads/landing/' . $filename;
+        }
+
+        // Upload Foto Tentang Kami
+        if ($request->hasFile('about_image')) {
+            $file = $request->file('about_image');
+            $filename = 'about_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $uploadPath = public_path('uploads/landing');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            $file->move($uploadPath, $filename);
+            $data['about_image'] = 'uploads/landing/' . $filename;
+        }
+
         if ($tenant->canLanding('colors')) {
             $data['primary_color']   = $validated['primary_color'] ?? null;
             $data['secondary_color'] = $validated['secondary_color'] ?? null;
         }
 
         if ($tenant->canLanding('features')) {
-            $data['features'] = $this->collectRows($request->input('features_title', []), $request->input('features_desc', []), 6);
+            $data['features'] = $this->collectFeatures($request, $tenant->id, 6);
         }
 
         if ($tenant->canLanding('stats')) {
@@ -170,6 +209,56 @@ class TenantLandingController extends Controller
             }
 
             $rows[] = ['label' => $label, 'description' => $desc];
+
+            if (count($rows) >= $max) {
+                break;
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Mengumpulkan baris fitur/fasilitas beserta upload foto per-fitur.
+     */
+    private function collectFeatures(Request $request, int $tenantId, int $max = 6): array
+    {
+        $titles = $request->input('features_title', []);
+        $descriptions = $request->input('features_desc', []);
+        $existingImages = $request->input('features_existing_image', []);
+
+        $rows = [];
+        foreach ($titles as $i => $title) {
+            $title = trim((string) $title);
+            $desc  = trim((string) ($descriptions[$i] ?? ''));
+
+            if ($title === '' && $desc === '') {
+                continue;
+            }
+
+            $imagePath = $existingImages[$i] ?? null;
+
+            // Cek file foto baru untuk baris fitur ke-i
+            $fileInputKey = "features_image_{$i}";
+            if ($request->hasFile($fileInputKey)) {
+                $file = $request->file($fileInputKey);
+                $ext = strtolower($file->getClientOriginalExtension());
+                if ($file->isValid() && in_array($ext, ['jpg', 'jpeg', 'png', 'webp']) && $file->getSize() <= 3145728) {
+                    $filename = 'feature_' . $tenantId . '_' . time() . '_' . $i . '.' . $ext;
+                    $uploadPath = public_path('uploads/landing');
+                    if (!file_exists($uploadPath)) {
+                        mkdir($uploadPath, 0755, true);
+                    }
+                    $file->move($uploadPath, $filename);
+                    $imagePath = 'uploads/landing/' . $filename;
+                }
+            }
+
+            $rows[] = [
+                'label'       => $title,
+                'description' => $desc,
+                'image'       => $imagePath,
+            ];
 
             if (count($rows) >= $max) {
                 break;

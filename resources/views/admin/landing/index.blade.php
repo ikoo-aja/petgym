@@ -10,7 +10,7 @@
   $sections = is_array($settings->sections_enabled) ? $settings->sections_enabled : [];
   $features = is_array($settings->features) ? $settings->features : [];
   $stats    = is_array($settings->stats) ? $settings->stats : [];
-  $rowCount = max(count($features) + 1, 2);
+  $rowCount = count($features) > 0 ? count($features) : 2;
 @endphp
 
 <div class="row">
@@ -81,7 +81,7 @@
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Tagline / Sub Judul</label>
           <textarea name="hero_tagline" rows="2" class="form-control" style="border-radius: 8px;">{{ $settings->hero_tagline }}</textarea>
         </div>
-        <div class="row">
+        <div class="row mb-3">
           <div class="col-md-6 form-group mb-0">
             <label class="font-weight-bold text-dark" style="font-size: 13px;">Teks Tombol CTA</label>
             <input type="text" name="cta_text" class="form-control" value="{{ $settings->cta_text ?: 'Mulai Sekarang' }}" style="border-radius: 8px;">
@@ -91,6 +91,38 @@
             <input type="text" name="cta_url" class="form-control" value="{{ $settings->cta_url ?: route('tenant.login', ['slug' => $tenant->slug]) }}" placeholder="https://..." style="border-radius: 8px;">
           </div>
         </div>
+
+        <div class="form-group mb-0 p-3 border rounded bg-light">
+          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">Foto Cover Banner (Hero Background)</label>
+          @if($settings->hero_image)
+            <div class="mb-2">
+              <img src="{{ asset($settings->hero_image) }}?v={{ time() }}" alt="Current Hero Banner" class="img-thumbnail bg-white" style="max-height: 120px; width: 100%; object-fit: cover; border-radius: 6px;">
+            </div>
+          @else
+            <div class="mb-2">
+              <small class="text-muted d-block mb-1">Foto Default Saat Ini:</small>
+              <img src="{{ asset($tenant->slug === 'powerhouse' ? 'images/bg_2.jpg' : 'images/bg_1.jpg') }}" alt="Default Banner" class="img-thumbnail bg-white" style="max-height: 100px; width: 100%; object-fit: cover; border-radius: 6px; opacity: 0.85;">
+            </div>
+          @endif
+          <input type="file" name="hero_image" class="form-control-file border p-2 rounded bg-white" accept="image/*">
+          <small class="form-text text-muted">Upload foto atmosfer olahraga berkualitas tinggi (JPG, PNG, WEBP. Maks 3MB). Rekomendasi landscape 1920x1080.</small>
+        </div>
+
+        <div class="form-group mb-0 p-3 border rounded bg-light mt-3">
+          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">Foto Kartu Sorotan Fasilitas (Hero Highlight Card)</label>
+          @if($settings->hero_card_image)
+            <div class="mb-2">
+              <img src="{{ asset($settings->hero_card_image) }}?v={{ time() }}" alt="Current Hero Highlight Card" class="img-thumbnail bg-white" style="max-height: 120px; width: 100%; object-fit: cover; border-radius: 6px;">
+            </div>
+          @else
+            <div class="mb-2">
+              <small class="text-muted d-block mb-1">Foto Default Saat Ini:</small>
+              <img src="{{ asset($tenant->slug === 'powerhouse' ? 'images/img_3.jpg' : 'images/img_4.jpg') }}" alt="Default Hero Card" class="img-thumbnail bg-white" style="max-height: 100px; width: 100%; object-fit: cover; border-radius: 6px; opacity: 0.85;">
+            </div>
+          @endif
+          <input type="file" name="hero_card_image" class="form-control-file border p-2 rounded bg-white" accept="image/*">
+          <small class="form-text text-muted">Upload foto untuk kartu fasilitas di sebelah kanan hero (JPG, PNG, WEBP. Maks 3MB). Rekomendasi landscape atau rasio 16:9.</small>
+        </div>
       </div>
 
       <!-- ============ TENTANG ============ -->
@@ -98,36 +130,84 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="font-weight-bold text-dark mb-0">2. Tentang Gym</h6>
         </div>
-        <div class="form-group mb-0">
+        <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Deskripsi Tentang Gym</label>
           <textarea name="about_text" rows="4" class="form-control" style="border-radius: 8px;">{{ $settings->about_text }}</textarea>
+        </div>
+        <div class="form-group mb-0 p-3 border rounded bg-light">
+          <label class="font-weight-bold text-dark d-block" style="font-size: 13px;">Foto Suasana Latihan (Tentang Kami)</label>
+          @if($settings->about_image)
+            <div class="mb-2">
+              <img src="{{ asset($settings->about_image) }}?v={{ time() }}" alt="Current About Photo" class="img-thumbnail bg-white" style="max-height: 120px; object-fit: cover; border-radius: 6px;">
+            </div>
+          @else
+            <div class="mb-2">
+              <small class="text-muted d-block mb-1">Foto Default Saat Ini:</small>
+              <img src="{{ asset($tenant->slug === 'powerhouse' ? 'images/img_1.jpg' : 'images/img_2.jpg') }}" alt="Default About Photo" class="img-thumbnail bg-white" style="max-height: 100px; object-fit: cover; border-radius: 6px; opacity: 0.85;">
+            </div>
+          @endif
+          <input type="file" name="about_image" class="form-control-file border p-2 rounded bg-white" accept="image/*">
+          <small class="form-text text-muted">Upload foto aktivitas member atau trainer saat berolahraga (JPG, PNG, WEBP. Maks 3MB). Rasio ideal 4:3.</small>
         </div>
       </div>
 
       <!-- ============ FITUR UNGGULAN ============ -->
       <div class="card-custom" id="section-features">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="font-weight-bold text-dark mb-0">3. Fitur Unggulan</h6>
+          <div>
+            <h6 class="font-weight-bold text-dark mb-0">3. Fasilitas & Fitur Unggulan</h6>
+            <small class="text-muted">Kustomisasi judul, deskripsi, dan foto masing-masing fasilitas di landing page.</small>
+          </div>
+          <span class="badge badge-light border text-muted">Maksimal 6</span>
         </div>
 
         @if($tenant->canLanding('features'))
           <div id="featureRows">
             @for($i = 0; $i < $rowCount; $i++)
-            <div class="feature-row row mb-2 align-items-center">
-              <div class="col-md-5">
-                <input type="text" name="features_title[]" class="form-control" placeholder="Judul fitur (mis. Kelas Zumba)" value="{{ $features[$i]['label'] ?? '' }}" style="border-radius: 8px;">
+            <div class="feature-row card p-3 mb-3 border bg-light" style="border-radius: 8px;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="font-weight-bold text-secondary feature-index-label" style="font-size: 13px;">Fasilitas #{{ $i + 1 }}</span>
+                <button type="button" class="btn btn-sm btn-outline-danger btn-remove-feature" style="border-radius: 6px; font-size: 12px; padding: 2px 8px;">
+                  &times; Hapus
+                </button>
               </div>
-              <div class="col-md-6">
-                <input type="text" name="features_desc[]" class="form-control" placeholder="Deskripsi singkat" value="{{ $features[$i]['description'] ?? '' }}" style="border-radius: 8px;">
-              </div>
-              <div class="col-md-1 text-right">
-                <button type="button" class="btn btn-sm btn-outline-danger btn-remove-feature" style="border-radius: 6px;">&times;</button>
+              <div class="row">
+                <div class="col-md-7">
+                  <div class="form-group mb-2">
+                    <label class="font-weight-bold text-dark mb-1" style="font-size: 12.5px;">Nama Fasilitas</label>
+                    <input type="text" name="features_title[]" class="form-control" placeholder="mis. Kelas Terjadwal / Area Beban Bebas" value="{{ $features[$i]['label'] ?? '' }}" style="border-radius: 6px; font-size: 13.5px;">
+                  </div>
+                  <div class="form-group mb-0">
+                    <label class="font-weight-bold text-dark mb-1" style="font-size: 12.5px;">Deskripsi Singkat</label>
+                    <textarea name="features_desc[]" rows="2" class="form-control" placeholder="Deskripsi ringkas mengenai fasilitas ini..." style="border-radius: 6px; font-size: 13px;">{{ $features[$i]['description'] ?? '' }}</textarea>
+                  </div>
+                </div>
+                <div class="col-md-5">
+                  <label class="font-weight-bold text-dark mb-1" style="font-size: 12.5px;">Foto Fasilitas</label>
+                  <input type="hidden" name="features_existing_image[]" value="{{ $features[$i]['image'] ?? '' }}">
+                  @php
+                    $featImg = $features[$i]['image'] ?? null;
+                    $defaultFeatImg = 'images/img_' . (($i % 5) + 1) . '.jpg';
+                  @endphp
+                  <div class="mb-2">
+                    @if($featImg)
+                      <img src="{{ asset($featImg) }}?v={{ time() }}" alt="Foto Fasilitas" class="img-thumbnail bg-white feature-preview-img" style="height: 65px; width: 100%; object-fit: cover; border-radius: 6px;">
+                    @else
+                      <div class="d-flex align-items-center">
+                        <img src="{{ asset($defaultFeatImg) }}" alt="Default Fasilitas" class="img-thumbnail bg-white mr-2 feature-preview-img" style="height: 55px; width: 75px; object-fit: cover; border-radius: 6px; opacity: 0.85;">
+                        <small class="text-muted" style="font-size: 11px;">Default sistem</small>
+                      </div>
+                    @endif
+                  </div>
+                  <input type="file" name="features_image_{{ $i }}" class="form-control-file border p-1 rounded bg-white" accept="image/*" style="font-size: 12px;">
+                  <small class="form-text text-muted" style="font-size: 11px;">Ganti foto (JPG, PNG, WEBP. Maks 2MB).</small>
+                </div>
               </div>
             </div>
             @endfor
           </div>
-          <button type="button" class="btn btn-sm btn-outline-primary mt-1" id="btnAddFeature" style="border-radius: 6px;">
-            <i class="icon-plus mr-1"></i>Tambah Fitur
+          <button type="button" class="btn btn-sm btn-outline-primary mt-1" id="btnAddFeature" style="border-radius: 6px; font-weight: 600;">
+            <i class="icon-plus mr-1"></i> Tambah Fasilitas
           </button>
         @else
           <p class="text-muted small mb-2">Daftar fitur unggulan gym Anda.</p>
@@ -282,22 +362,76 @@
 @section('scripts')
 <script>
   $(document).ready(function() {
-    // Tambah baris fitur (maks 6)
+    function reindexFeatures() {
+      $('#featureRows .feature-row').each(function(idx) {
+        $(this).find('.feature-index-label').text('Fasilitas #' + (idx + 1));
+        $(this).find('input[type="file"]').attr('name', 'features_image_' + idx);
+      });
+    }
+
+    // Tambah baris fasilitas (maks 6)
     $('#btnAddFeature').on('click', function() {
       var rows = $('#featureRows .feature-row');
-      if (rows.length >= 6) { showToast('Peringatan', 'Maksimal 6 fitur unggulan.', 'warning'); return; }
-      $('#featureRows').append(
-        '<div class="feature-row row mb-2 align-items-center">' +
-          '<div class="col-md-5"><input type="text" name="features_title[]" class="form-control" placeholder="Judul fitur" style="border-radius: 8px;"></div>' +
-          '<div class="col-md-6"><input type="text" name="features_desc[]" class="form-control" placeholder="Deskripsi singkat" style="border-radius: 8px;"></div>' +
-          '<div class="col-md-1 text-right"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-feature" style="border-radius: 6px;">&times;</button></div>' +
-        '</div>'
-      );
+      if (rows.length >= 6) {
+        if (typeof showToast === 'function') {
+          showToast('Peringatan', 'Maksimal 6 fasilitas unggulan.', 'warning');
+        } else {
+          alert('Maksimal 6 fasilitas unggulan.');
+        }
+        return;
+      }
+
+      var nextIdx = rows.length;
+      var defaultImgNum = (nextIdx % 5) + 1;
+      var defaultImgUrl = "{{ asset('images') }}/img_" + defaultImgNum + ".jpg";
+
+      var html = '' +
+        '<div class="feature-row card p-3 mb-3 border bg-light" style="border-radius: 8px;">' +
+          '<div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<span class="font-weight-bold text-secondary feature-index-label" style="font-size: 13px;">Fasilitas #' + (nextIdx + 1) + '</span>' +
+            '<button type="button" class="btn btn-sm btn-outline-danger btn-remove-feature" style="border-radius: 6px; font-size: 12px; padding: 2px 8px;">&times; Hapus</button>' +
+          '</div>' +
+          '<div class="row">' +
+            '<div class="col-md-7">' +
+              '<div class="form-group mb-2">' +
+                '<label class="font-weight-bold text-dark mb-1" style="font-size: 12.5px;">Nama Fasilitas</label>' +
+                '<input type="text" name="features_title[]" class="form-control" placeholder="mis. Fasilitas Kebugaran" style="border-radius: 6px; font-size: 13.5px;">' +
+              '</div>' +
+              '<div class="form-group mb-0">' +
+                '<label class="font-weight-bold text-dark mb-1" style="font-size: 12.5px;">Deskripsi Singkat</label>' +
+                '<textarea name="features_desc[]" rows="2" class="form-control" placeholder="Deskripsi ringkas mengenai fasilitas ini..." style="border-radius: 6px; font-size: 13px;"></textarea>' +
+              '</div>' +
+            '</div>' +
+            '<div class="col-md-5">' +
+              '<label class="font-weight-bold text-dark mb-1" style="font-size: 12.5px;">Foto Fasilitas</label>' +
+              '<input type="hidden" name="features_existing_image[]" value="">' +
+              '<div class="mb-2">' +
+                '<div class="d-flex align-items-center">' +
+                  '<img src="' + defaultImgUrl + '" alt="Default Fasilitas" class="img-thumbnail bg-white mr-2 feature-preview-img" style="height: 55px; width: 75px; object-fit: cover; border-radius: 6px; opacity: 0.85;">' +
+                  '<small class="text-muted" style="font-size: 11px;">Default sistem</small>' +
+                '</div>' +
+              '</div>' +
+              '<input type="file" name="features_image_' + nextIdx + '" class="form-control-file border p-1 rounded bg-white" accept="image/*" style="font-size: 12px;">' +
+              '<small class="form-text text-muted" style="font-size: 11px;">Ganti foto (JPG, PNG, WEBP. Maks 2MB).</small>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      $('#featureRows').append(html);
+      reindexFeatures();
     });
 
     $(document).on('click', '.btn-remove-feature', function() {
-      if ($('#featureRows .feature-row').length <= 1) return;
+      if ($('#featureRows .feature-row').length <= 1) {
+        if (typeof showToast === 'function') {
+          showToast('Info', 'Minimal harus ada 1 fasilitas.', 'info');
+        } else {
+          alert('Minimal harus ada 1 fasilitas.');
+        }
+        return;
+      }
       $(this).closest('.feature-row').remove();
+      reindexFeatures();
     });
 
     $(document).on('click', '.btn-remove-stat', function() {
