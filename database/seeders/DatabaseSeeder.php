@@ -19,18 +19,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. User Superadmin
+        // 1. User Superadmin (Master Platform Owner)
+        $superadminEmail = env('SUPERADMIN_EMAIL', 'superadmin@petgym.website');
+        $superadminPass  = env('SUPERADMIN_PASSWORD', 'SuperAdmin#2026!');
+        $superadminName  = env('SUPERADMIN_NAME', 'Super Administrator');
+
         $admin = User::updateOrCreate(
-            ['email' => 'superadmin@petgym.com'],
+            ['email' => $superadminEmail],
             [
-                'name' => 'superadmin',
-                'password' => Hash::make('1234'),
+                'name' => $superadminName,
+                'password' => Hash::make($superadminPass),
                 'role' => 'superadmin',
                 'email_verified_at' => now(),
             ]
         );
 
-        // 2. Plans (Paket Sewa)
+        // 2. Master Plans (Paket Sewa SaaS)
         $basicPlan = Plan::updateOrCreate(
             ['name' => 'Paket Basic'],
             [
@@ -61,7 +65,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 3. Tenants (Penyewa Gym)
+        // Hanya seed data dummy testing jika SEED_DUMMY_DATA bernilai true
+        $seedDummy = filter_var(env('SEED_DUMMY_DATA', true), FILTER_VALIDATE_BOOLEAN);
+        if (!$seedDummy) {
+            return;
+        }
+
+        // 3. Tenants (Penyewa Gym Dummy)
         $tenantsData = [
             [
                 'name' => 'FitLife Studio',
