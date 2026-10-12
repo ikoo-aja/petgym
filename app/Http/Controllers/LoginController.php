@@ -347,8 +347,7 @@ class LoginController extends Controller
             report($e);
         }
 
-        Auth::login($user);
-
-        return redirect()->route('verification.notice');
+        $tenantLoginUrl = $tenant ? $tenant->publicLandingUrl() . '/login' : route('member.login');
+        return redirect($tenantLoginUrl)->with('success', 'Pendaftaran akun member berhasil! Tautan verifikasi email telah dikirim ke ' . $user->email . '. Silakan verifikasi email Anda sebelum masuk.');
     }
 }

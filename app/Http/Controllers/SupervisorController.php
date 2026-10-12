@@ -211,27 +211,33 @@ class SupervisorController extends Controller
         $tenant = Auth::user()->tenant;
         $transaction = PosTransaction::where('tenant_id', $tenant->id)->findOrFail($id);
 
-        $transaction->update(['void_status' => 'approved']);
+        if ($transaction->void_status !== 'pending') {
+            return redirect()->route('supervisor.features', ['tab' => 'void'])->with('error', "Permintaan pembatalan transaksi invoice {$transaction->invoice_number} sudah diproses sebelumnya.");
+        }
 
-        // Kembalikan stok barang jika tipe transaksi inventaris ritel
-        if ($transaction->type === 'inventory') {
-            foreach ($transaction->items as $item) {
-                if ($item->product_id) {
-                    $prod = Product::find($item->product_id);
-                    if ($prod) {
-                        $prod->increment('stock', $item->qty);
+        DB::transaction(function () use ($tenant, $transaction) {
+            $transaction->update(['void_status' => 'approved']);
+
+            // Kembalikan stok barang jika tipe transaksi inventaris ritel
+            if ($transaction->type === 'inventory') {
+                foreach ($transaction->items as $item) {
+                    if ($item->product_id) {
+                        $prod = Product::where('tenant_id', $tenant->id)->find($item->product_id);
+                        if ($prod) {
+                            $prod->increment('stock', $item->qty);
+                        }
                     }
                 }
             }
-        }
 
-        StaffLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => Auth::id(),
-            'action' => 'Persetujuan Pembatalan Transaksi',
-            'description' => "Supervisor menyetujui pembatalan transaksi invoice {$transaction->invoice_number}",
-            'ip_address' => request()->ip(),
-        ]);
+            StaffLog::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => Auth::id(),
+                'action' => 'Persetujuan Pembatalan Transaksi',
+                'description' => "Supervisor menyetujui pembatalan transaksi invoice {$transaction->invoice_number}",
+                'ip_address' => request()->ip(),
+            ]);
+        });
 
         return redirect()->route('supervisor.features', ['tab' => 'void'])->with('success', "Permintaan pembatalan transaksi untuk invoice {$transaction->invoice_number} berhasil disetujui.");
     }
@@ -241,15 +247,21 @@ class SupervisorController extends Controller
         $tenant = Auth::user()->tenant;
         $transaction = PosTransaction::where('tenant_id', $tenant->id)->findOrFail($id);
 
-        $transaction->update(['void_status' => 'rejected']);
+        if ($transaction->void_status !== 'pending') {
+            return redirect()->route('supervisor.features', ['tab' => 'void'])->with('error', "Permintaan pembatalan transaksi invoice {$transaction->invoice_number} sudah diproses sebelumnya.");
+        }
 
-        StaffLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => Auth::id(),
-            'action' => 'Penolakan Pembatalan Transaksi',
-            'description' => "Supervisor menolak pembatalan transaksi invoice {$transaction->invoice_number}",
-            'ip_address' => request()->ip(),
-        ]);
+        DB::transaction(function () use ($tenant, $transaction) {
+            $transaction->update(['void_status' => 'rejected']);
+
+            StaffLog::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => Auth::id(),
+                'action' => 'Penolakan Pembatalan Transaksi',
+                'description' => "Supervisor menolak pembatalan transaksi invoice {$transaction->invoice_number}",
+                'ip_address' => request()->ip(),
+            ]);
+        });
 
         return redirect()->route('supervisor.features', ['tab' => 'void'])->with('success', "Permintaan pembatalan transaksi untuk invoice {$transaction->invoice_number} ditolak.");
     }
@@ -430,15 +442,18 @@ class SupervisorController extends Controller
             'next_service_date' => 'nullable|date',
         ]);
 
-        EquipmentMaintenanceLog::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
-
-        // Reset status alat menjadi berfungsi
+        // Validasi kepemilikan alat gym terhadap tenant
         $equipment = GymEquipment::where('tenant_id', $tenant->id)->findOrFail($request->gym_equipment_id);
-        $equipment->update([
-            'status' => 'berfungsi',
-            'next_service_date' => $request->next_service_date,
-        ]);
 
+        DB::transaction(function () use ($request, $tenant, $equipment) {
+            EquipmentMaintenanceLog::create(array_merge($request->all(), ['tenant_id' => $tenant->id]));
+
+            // Reset status alat menjadi berfungsi
+            $equipment->update([
+                'status' => 'berfungsi',
+                'next_service_date' => $request->next_service_date,
+            ]);
+        });
         return redirect()->route('supervisor.features', ['tab' => 'equipment'])->with('success', 'Log perbaikan alat berhasil dicatat dan status alat telah di-reset.');
     }
 
@@ -491,40 +506,44 @@ class SupervisorController extends Controller
             'vendor_name' => 'nullable|string|max:255',
         ]);
 
-        $product = Product::create([
-            'tenant_id' => $tenant->id,
-            'name' => $request->name,
-            'category' => $request->category,
-            'price' => $request->price,
-            'cost_price' => $request->cost_price,
-            'stock' => $request->warehouse_stock, // Stok yang langsung siap ditransaksikan kasir
-            'warehouse_stock' => $request->warehouse_stock,
-            'vendor_name' => $request->vendor_name,
-        ]);
-
-        // Catat Mutasi Masuk ke Gudang
-        if ($request->warehouse_stock > 0) {
-            StockMutation::create([
+        $product = DB::transaction(function () use ($request, $tenant, $user) {
+            $product = Product::create([
                 'tenant_id' => $tenant->id,
-                'product_id' => $product->id,
-                'user_id' => $user->id,
-                'type' => 'in_vendor',
-                'qty' => $request->warehouse_stock,
-                'from_location' => 'vendor',
-                'to_location' => 'gudang',
-                'unit_cost' => $request->cost_price,
-                'unit_price' => $request->price,
-                'notes' => 'Penerimaan stok awal dari vendor: ' . ($request->vendor_name ?: 'Vendor Mitra'),
+                'name' => $request->name,
+                'category' => $request->category,
+                'price' => $request->price,
+                'cost_price' => $request->cost_price,
+                'stock' => $request->warehouse_stock, // Stok yang langsung siap ditransaksikan kasir
+                'warehouse_stock' => $request->warehouse_stock,
+                'vendor_name' => $request->vendor_name,
             ]);
-        }
 
-        StaffLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
-            'action' => 'Input Produk Gudang (Vendor)',
-            'description' => "Supervisor {$user->name} mendaftarkan produk baru ke inventaris: {$product->name} (Stok: {$product->stock} pcs, Modal: Rp " . number_format($product->cost_price, 0, ',', '.') . ") dari Vendor " . ($product->vendor_name ?: '-'),
-            'ip_address' => $request->ip(),
-        ]);
+            // Catat Mutasi Masuk ke Gudang
+            if ($request->warehouse_stock > 0) {
+                StockMutation::create([
+                    'tenant_id' => $tenant->id,
+                    'product_id' => $product->id,
+                    'user_id' => $user->id,
+                    'type' => 'in_vendor',
+                    'qty' => $request->warehouse_stock,
+                    'from_location' => 'vendor',
+                    'to_location' => 'gudang',
+                    'unit_cost' => $request->cost_price,
+                    'unit_price' => $request->price,
+                    'notes' => 'Penerimaan stok awal dari vendor: ' . ($request->vendor_name ?: 'Vendor Mitra'),
+                ]);
+            }
+
+            StaffLog::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'action' => 'Input Produk Gudang (Vendor)',
+                'description' => "Supervisor {$user->name} mendaftarkan produk baru ke inventaris: {$product->name} (Stok: {$product->stock} pcs, Modal: Rp " . number_format($product->cost_price, 0, ',', '.') . ") dari Vendor " . ($product->vendor_name ?: '-'),
+                'ip_address' => $request->ip(),
+            ]);
+
+            return $product;
+        });
 
         return redirect()->route('supervisor.features', ['tab' => 'stock'])->with('success', "Produk '{$product->name}' berhasil didaftarkan ke inventaris (Stok: {$product->stock} pcs).");
     }
@@ -589,40 +608,46 @@ class SupervisorController extends Controller
             'qty_add.min' => 'Jumlah barang masuk minimal 1 pcs.',
         ]);
 
-        $oldStock = $product->stock;
-        $product->increment('stock', $request->qty_add);
-        $product->increment('warehouse_stock', $request->qty_add);
-
-        if ($request->filled('cost_price') && $request->cost_price > 0) {
-            $product->update(['cost_price' => $request->cost_price]);
-        }
-        if ($request->filled('vendor_name')) {
-            $product->update(['vendor_name' => $request->vendor_name]);
-        }
+        $oldStock = (int) $product->stock;
+        $oldWarehouseStock = (int) $product->warehouse_stock;
 
         $vendorText = $request->vendor_name ?: ($product->vendor_name ?: 'Vendor Mitra');
         $noteText = $request->filled('notes') ? " ({$request->notes})" : "";
 
-        StockMutation::create([
-            'tenant_id' => $tenant->id,
-            'product_id' => $product->id,
-            'user_id' => $user->id,
-            'type' => 'in_vendor',
-            'qty' => $request->qty_add,
-            'from_location' => 'vendor',
-            'to_location' => 'gudang',
-            'unit_cost' => $product->cost_price,
-            'unit_price' => $product->price,
-            'notes' => "Restock kiriman dari vendor: {$vendorText}{$noteText}",
-        ]);
+        DB::transaction(function () use ($request, $product, $tenant, $user, $oldWarehouseStock, $oldStock, $vendorText, $noteText) {
+            $product->increment('stock', $request->qty_add);
+            $product->increment('warehouse_stock', $request->qty_add);
 
-        StaffLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
-            'action' => 'Penerimaan Stok Vendor ke Gudang',
-            'description' => "Supervisor {$user->name} menerima kiriman vendor +{$request->qty_add} pcs untuk '{$product->name}' ke Gudang (Stok Gudang: {$oldWarehouseStock} -> {$product->warehouse_stock} pcs) dari {$vendorText}",
-            'ip_address' => $request->ip(),
-        ]);
+            if ($request->filled('cost_price') && $request->cost_price > 0) {
+                $product->update(['cost_price' => $request->cost_price]);
+            }
+            if ($request->filled('vendor_name')) {
+                $product->update(['vendor_name' => $request->vendor_name]);
+            }
+
+            $product->refresh();
+
+            StockMutation::create([
+                'tenant_id' => $tenant->id,
+                'product_id' => $product->id,
+                'user_id' => $user->id,
+                'type' => 'in_vendor',
+                'qty' => $request->qty_add,
+                'from_location' => 'vendor',
+                'to_location' => 'gudang',
+                'unit_cost' => $product->cost_price,
+                'unit_price' => $product->price,
+                'notes' => "Restock kiriman dari vendor: {$vendorText}{$noteText}",
+            ]);
+
+            StaffLog::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'action' => 'Penerimaan Stok Vendor ke Gudang',
+                'description' => "Supervisor {$user->name} menerima kiriman vendor +{$request->qty_add} pcs untuk '{$product->name}' ke Gudang (Stok Gudang: {$oldWarehouseStock} -> {$product->warehouse_stock} pcs) dari {$vendorText}",
+                'ip_address' => $request->ip(),
+            ]);
+        });
 
         return redirect()->route('supervisor.features', ['tab' => 'stock'])->with('success', "Stok gudang '{$product->name}' berhasil ditambah +{$request->qty_add} pcs dari Vendor {$vendorText}.");
     }

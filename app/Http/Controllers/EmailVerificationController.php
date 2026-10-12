@@ -46,38 +46,23 @@ class EmailVerificationController extends Controller
         }
 
         $tenant = $user->tenant;
-        $tenantLoginUrl = $tenant ? $tenant->publicLandingUrl() . '/login' : route('member.login');
 
-        // Jika user adalah member gym
-        if ($user->role === 'member') {
-            if (Auth::check() && Auth::id() === $user->id) {
-                return redirect()->route('member.dashboard')
-                    ->with('success', "Email berhasil diverifikasi! Selamat datang di Portal Keanggotaan " . ($tenant ? $tenant->name : 'Gym') . ".");
-            }
-
-            return redirect($tenantLoginUrl)
-                ->with('success', "Email berhasil diverifikasi! Silakan masuk ke akun member Anda.");
-        }
-
-        // Jika user sudah login → redirect ke dashboard sendiri
-        if (Auth::check() && Auth::id() === $user->id) {
-            if ($user->must_change_password) {
-                return redirect()->route('password.change')
-                    ->with('success', 'Email berhasil diverifikasi. Silakan ubah kata sandi bawaan Anda.');
-            }
-            return redirect()->route($user->dashboardRoute())
-                ->with('success', 'Email berhasil diverifikasi!');
-        }
-
-        // Jika admin login klik tautan verifikasi staf → kembali ke dashboard admin
+        // Logout jika ada sesi login aktif agar user wajib login ulang dengan kredensialnya
         if (Auth::check()) {
-            return redirect()->route(Auth::user()->dashboardRoute())
-                ->with('success', "Email akun {$user->name} berhasil diverifikasi.");
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
         }
 
-        // Belum login → ke halaman login
+        // Arahkan ke URL login yang tepat sesuai role
+        if ($user->role === 'member') {
+            $memberLoginUrl = $tenant ? $tenant->publicLandingUrl() . '/login' : route('member.login');
+            return redirect($memberLoginUrl)
+                ->with('success', 'Email berhasil diverifikasi! Silakan masuk dengan email dan kata sandi Anda.');
+        }
+
         return redirect()->route('login')
-            ->with('success', 'Email berhasil diverifikasi. Silakan masuk.');
+            ->with('success', 'Email berhasil diverifikasi! Silakan masuk dengan email dan kata sandi Anda.');
     }
 
     /**

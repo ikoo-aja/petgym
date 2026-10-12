@@ -226,6 +226,17 @@
           <a class="nav-link {{ request()->routeIs('superadmin.billing') ? 'active' : '' }}" href="{{ route('superadmin.billing') }}"><span class="icon-credit-card"></span> Keuangan & Tagihan</a>
         </li>
         <li class="nav-item">
+          @php
+            $pendingResetBadges = \App\Models\AdminPasswordResetRequest::where('status', 'pending')->count();
+          @endphp
+          <a class="nav-link {{ request()->routeIs('superadmin.password-resets*') ? 'active' : '' }} d-flex justify-content-between align-items-center" href="{{ route('superadmin.password-resets') }}">
+            <span><span class="icon-lock"></span> Reset Password Admin</span>
+            @if($pendingResetBadges > 0)
+              <span class="badge badge-warning text-dark badge-pill px-2" style="font-size: 10px;">{{ $pendingResetBadges }}</span>
+            @endif
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link {{ request()->routeIs('superadmin.announcements') ? 'active' : '' }}" href="{{ route('superadmin.announcements') }}"><span class="icon-notifications"></span> Pengumuman</a>
         </li>
         <li class="nav-item">

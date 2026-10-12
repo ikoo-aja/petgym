@@ -10,7 +10,8 @@ use App\Models\Manager;
 use App\Models\Receptionist;
 use App\Models\Trainer;
 use App\Models\StaffLog;
-
+use App\Models\AdminPasswordResetRequest;
+use Illuminate\Support\Facades\Password;
 class AdminStaffController extends Controller
 {
     /**
@@ -35,7 +36,8 @@ class AdminStaffController extends Controller
         $user = Auth::user();
         $tenant = $user->tenant;
 
-        $staffs = User::where('tenant_id', $tenant->id)
+        $staffs = User::with('latestPendingPasswordReset')
+            ->where('tenant_id', $tenant->id)
             ->whereIn('role', ['admin', 'manager', 'owner'])
             ->latest()
             ->get();
@@ -240,5 +242,124 @@ class AdminStaffController extends Controller
         ]);
 
         return redirect()->route('admin.staff.index')->with('success', "Akun {$staff->name} berhasil {$statusText}.");
+    }
+
+    /**
+     * Tampilkan Halaman Permohonan Reset Password Staf & Member Gym (Approval Admin).
+     */
+    public function passwordResets(Request $request)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+
+        if (!$tenant) {
+            return redirect()->route('admin.dashboard')->with('error', 'Data gym Anda tidak ditemukan.');
+        }
+
+        $query = AdminPasswordResetRequest::with(['user', 'approver'])
+            ->where('tenant_id', $tenant->id)
+            ->where('target_type', 'admin');
+
+        if ($request->filled('status') && $request->query('status') !== 'all') {
+            $query->where('status', $request->query('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('email', 'like', "%{$search}%")
+                  ->orWhere('admin_name', 'like', "%{$search}%")
+                  ->orWhere('user_role', 'like', "%{$search}%");
+            });
+        }
+
+        $requests = $query->latest('id')->paginate(15)->withQueryString();
+        $pendingCount = AdminPasswordResetRequest::where('tenant_id', $tenant->id)
+            ->where('target_type', 'admin')
+            ->where('status', 'pending')
+            ->count();
+
+        return view('admin.staff.password-resets', compact('requests', 'pendingCount', 'tenant'));
+    }
+
+    /**
+     * Setujui Permohonan Reset Password Staf / Member dan Kirim Tautan Reset ke Email.
+     */
+    public function approvePasswordReset(Request $request, $id)
+    {
+        $admin = Auth::user();
+        $tenant = $admin->tenant;
+
+        $resetReq = AdminPasswordResetRequest::where('tenant_id', $tenant->id)
+            ->where('target_type', 'admin')
+            ->findOrFail($id);
+
+        if ($resetReq->status !== 'pending') {
+            return redirect()->back()->with('error', 'Permohonan reset password ini sudah pernah diproses sebelumnya.');
+        }
+
+        $user = $resetReq->user;
+        if (!$user) {
+            return redirect()->back()->with('error', 'Data pengguna tidak ditemukan.');
+        }
+
+        try {
+            $status = Password::sendResetLink(['email' => $user->email]);
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal mengirim email tautan reset password. Periksa koneksi SMTP server email.');
+        }
+
+        $resetReq->update([
+            'status'           => 'approved',
+            'approved_by'      => $admin->id,
+            'approved_at'      => now(),
+            'token_expires_at' => now()->addMinutes(60),
+            'notes'            => $request->notes,
+        ]);
+
+        StaffLog::create([
+            'tenant_id'   => $tenant->id,
+            'user_id'     => $admin->id,
+            'action'      => 'Approve Reset Password Pengguna',
+            'description' => "Admin {$admin->name} menyetujui permohonan reset password untuk {$user->name} ({$user->role} - {$user->email}). Tautan reset dikirim ke email.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->back()->with('success', "Permohonan reset password untuk {$user->name} ({$user->email}) berhasil disetujui! Tautan pembuatan kata sandi baru telah dikirimkan ke email.");
+    }
+
+    /**
+     * Tolak Permohonan Reset Password Staf / Member Gym.
+     */
+    public function rejectPasswordReset(Request $request, $id)
+    {
+        $admin = Auth::user();
+        $tenant = $admin->tenant;
+
+        $resetReq = AdminPasswordResetRequest::where('tenant_id', $tenant->id)
+            ->where('target_type', 'admin')
+            ->findOrFail($id);
+
+        if ($resetReq->status !== 'pending') {
+            return redirect()->back()->with('error', 'Permohonan reset password ini sudah pernah diproses sebelumnya.');
+        }
+
+        $resetReq->update([
+            'status'      => 'rejected',
+            'approved_by' => $admin->id,
+            'approved_at' => now(),
+            'notes'       => $request->notes ?: 'Ditolak oleh Admin Gym.',
+        ]);
+
+        StaffLog::create([
+            'tenant_id'   => $tenant->id,
+            'user_id'     => $admin->id,
+            'action'      => 'Tolak Reset Password Pengguna',
+            'description' => "Admin {$admin->name} menolak permohonan reset password untuk {$resetReq->admin_name} ({$resetReq->email}).",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->back()->with('success', "Permohonan reset password untuk '{$resetReq->admin_name}' berhasil ditolak.");
     }
 }

@@ -113,7 +113,9 @@ class ManagerController extends Controller
 
         // 3. Laporan Rekapitulasi Kas Harian
         $dailyCashRecap = PosTransaction::where('tenant_id', $tenant->id)
+            ->with(['user', 'member'])
             ->whereDate('created_at', Carbon::today())
+            ->latest()
             ->get();
 
         // 4. Database Vendor & Mitra Eksternal

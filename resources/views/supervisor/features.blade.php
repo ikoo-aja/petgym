@@ -258,12 +258,9 @@
             <h5 class="font-weight-bold text-dark mb-1">Daftar Inventaris Peralatan Gym</h5>
             <p class="text-muted small mb-0">Pantau kondisi fisik mesin beban, alat kardio, dan perlengkapan gym.</p>
           </div>
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-success font-weight-bold px-3 py-2 mr-2" data-toggle="modal" data-target="#addEquipmentModal" style="border-radius: 8px;">
+          <div>
+            <button type="button" class="btn btn-sm btn-success font-weight-bold px-3 py-2" data-toggle="modal" data-target="#addEquipmentModal" style="border-radius: 8px;">
               + Tambah Alat Baru
-            </button>
-            <button type="button" class="btn btn-sm btn-primary font-weight-bold px-3 py-2" data-toggle="modal" data-target="#addMaintenanceModal" style="border-radius: 8px;">
-              + Catat Servis / Perbaikan Alat
             </button>
           </div>
         </div>

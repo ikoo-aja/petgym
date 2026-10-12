@@ -119,6 +119,17 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Trainer::class);
     }
+    public function passwordResetRequests()
+    {
+        return $this->hasMany(AdminPasswordResetRequest::class, 'user_id');
+    }
+
+    public function latestPendingPasswordReset()
+    {
+        return $this->hasOne(AdminPasswordResetRequest::class, 'user_id')
+            ->where('status', 'pending')
+            ->latestOfMany();
+    }
 
     /**
      * The attributes that should be hidden for serialization.

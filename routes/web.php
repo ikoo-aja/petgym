@@ -123,6 +123,10 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::post('/billing/{id}/reject', [SuperadminController::class, 'rejectRenewal'])->name('superadmin.billing.reject');
     Route::post('/billing/{id}/verify-dp', [SuperadminController::class, 'verifyDpPayment'])->name('superadmin.billing.verify-dp');
     Route::post('/billing/{id}/verify', [SuperadminController::class, 'verifyInvoice'])->name('superadmin.billing.verify');
+    // Approval Reset Password Admin Tenant
+    Route::get('/password-resets', [SuperadminController::class, 'passwordResets'])->name('superadmin.password-resets');
+    Route::post('/password-resets/{id}/approve', [SuperadminController::class, 'approvePasswordReset'])->name('superadmin.password-resets.approve');
+    Route::post('/password-resets/{id}/reject', [SuperadminController::class, 'rejectPasswordReset'])->name('superadmin.password-resets.reject');
     Route::get('/announcements', [SuperadminController::class, 'announcements'])->name('superadmin.announcements');
     Route::post('/announcements', [SuperadminController::class, 'storeAnnouncement'])->name('superadmin.announcements.store');
     Route::put('/announcements/{id}', [SuperadminController::class, 'updateAnnouncement'])->name('superadmin.announcements.update');
@@ -146,6 +150,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(fu
     Route::post('/staff/{id}/toggle-status', [AdminStaffController::class, 'toggleStatus'])->name('admin.staff.toggle-status');
     Route::post('/staff/{id}/send-verification', [AdminStaffController::class, 'sendVerification'])->name('admin.staff.send-verification');
     Route::delete('/staff/{id}', [AdminStaffController::class, 'destroy'])->name('admin.staff.destroy');
+    // 2b. Approval Reset Password Pengguna Gym (Owner, Manager, Supervisor, PT, Resepsionis, Member)
+    Route::get('/password-resets', [AdminStaffController::class, 'passwordResets'])->name('admin.password-resets');
+    Route::post('/password-resets/{id}/approve', [AdminStaffController::class, 'approvePasswordReset'])->name('admin.password-resets.approve');
+    Route::post('/password-resets/{id}/reject', [AdminStaffController::class, 'rejectPasswordReset'])->name('admin.password-resets.reject');
 
     // 3. Pengaturan Gym
     Route::get('/settings', [AdminSettingController::class, 'index'])->name('admin.settings.index');
@@ -207,6 +215,8 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
     Route::post('/staff/{id}/toggle-status', [ManagerStaffController::class, 'toggleStatus'])->name('manager.staff.toggle-status');
     Route::post('/staff/{id}/send-verification', [ManagerStaffController::class, 'sendVerification'])->name('manager.staff.send-verification');
     Route::delete('/staff/{id}', [ManagerStaffController::class, 'destroy'])->name('manager.staff.destroy');
+    Route::post('/staff/password-resets/{id}/approve', [ManagerStaffController::class, 'approvePasswordReset'])->name('manager.staff.password-resets.approve');
+    Route::post('/staff/password-resets/{id}/reject', [ManagerStaffController::class, 'rejectPasswordReset'])->name('manager.staff.password-resets.reject');
 });
 
 // Group Supervisor (Pengawas Operasional Lapangan Gym)

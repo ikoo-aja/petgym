@@ -37,6 +37,9 @@ class AdminController extends Controller
         $websiteVisits = 1420;
         $visitsGrowth = 12;
 
+        // 2. Pesan Masuk / Pendaftar Baru (Leads)
+        $unreadLeadsCount = 0;
+
         // 3. Pengumuman & Notifikasi dari Superadmin
         $announcements = Announcement::where('status', 'Active')
             ->latest()
@@ -50,6 +53,11 @@ class AdminController extends Controller
             ->whereIn('role', ['owner', 'manager', 'supervisor', 'receptionist', 'trainer'])
             ->count();
 
+        // 5. Permohonan Reset Password Pending dari Staf & Member
+        $pendingResetCount = \App\Models\AdminPasswordResetRequest::where('tenant_id', $tenant->id)
+            ->where('target_type', 'admin')
+            ->where('status', 'pending')
+            ->count();
         return view('admin.dashboard', compact(
             'user',
             'tenant',
@@ -61,7 +69,8 @@ class AdminController extends Controller
             'landingUrl',
             'ownerUser',
             'managerUser',
-            'totalStaffCount'
+            'totalStaffCount',
+            'pendingResetCount'
         ));
     }
 }

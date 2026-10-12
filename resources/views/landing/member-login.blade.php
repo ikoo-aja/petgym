@@ -108,6 +108,12 @@
 
           <form action="{{ route('tenant.login', ['slug' => $tenant->slug]) }}" method="POST" class="bg-white p-4 p-md-5 card-login">
             @csrf
+            <!-- Alert Sukses (Verifikasi Email, Registrasi, dll) -->
+            @if(session('success'))
+              <div class="alert alert-success py-2 mb-4" role="alert" style="border-radius: 8px;">
+                <small class="font-weight-bold"><i class="icon-check-circle mr-1"></i> {{ session('success') }}</small>
+              </div>
+            @endif
 
             <!-- Alert Error -->
             @if($errors->has('email'))
@@ -126,7 +132,7 @@
             <div class="form-group mb-3">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label for="password" class="text-dark font-weight-bold small mb-0">Kata Sandi</label>
-                <a href="javascript:void(0)" id="btnForgotPw" class="small font-weight-bold" style="color: var(--brand);">Lupa kata sandi?</a>
+                <a href="{{ route('password.request') }}" class="small font-weight-bold" style="color: var(--brand);">Lupa kata sandi?</a>
               </div>
               <div class="input-group">
                 <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan kata sandi Anda" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">

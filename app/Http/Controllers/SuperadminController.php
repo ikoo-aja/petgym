@@ -10,11 +10,12 @@ use App\Models\Announcement;
 use App\Models\SystemLog;
 use App\Models\User;
 use App\Models\TenantRegistration;
+use App\Models\AdminPasswordResetRequest;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-
 class SuperadminController extends Controller
 {
     /**
@@ -33,6 +34,7 @@ class SuperadminController extends Controller
                                       ->whereBetween('expires_at', [now(), now()->addDays(7)])
                                       ->count();
         $pendingRegistrationsCount = TenantRegistration::where('status', 'pending')->count();
+        $pendingPasswordResetsCount = AdminPasswordResetRequest::where('status', 'pending')->count();
 
         $recentLogs = SystemLog::latest()->take(5)->get();
 
@@ -62,6 +64,7 @@ class SuperadminController extends Controller
             'newTenantsCount',
             'expiringTenantsCount',
             'pendingRegistrationsCount',
+            'pendingPasswordResetsCount',
             'recentLogs',
             'planDistribution',
             'monthlyStats'
@@ -556,6 +559,104 @@ class SuperadminController extends Controller
     public function verifyDpPayment(Request $request, $id)
     {
         return $this->approveRenewal($request, $id);
+    }
+    /**
+     * Tampilkan Halaman Permohonan Reset Password Admin Tenant.
+     */
+    public function passwordResets(Request $request)
+    {
+        $query = AdminPasswordResetRequest::with(['user', 'tenant', 'approver']);
+
+        if ($request->filled('status') && $request->query('status') !== 'all') {
+            $query->where('status', $request->query('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('email', 'like', "%{$search}%")
+                  ->orWhere('admin_name', 'like', "%{$search}%")
+                  ->orWhereHas('tenant', function ($t) use ($search) {
+                      $t->where('name', 'like', "%{$search}%")
+                        ->orWhere('subdomain', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $requests = $query->latest('id')->paginate(15)->withQueryString();
+        $pendingCount = AdminPasswordResetRequest::where('status', 'pending')->count();
+
+        return view('superadmin.password-resets', compact('requests', 'pendingCount'));
+    }
+
+    /**
+     * Setujui Permohonan Reset Password Admin Tenant dan Kirim Tautan Reset ke Email.
+     */
+    public function approvePasswordReset(Request $request, $id)
+    {
+        $resetReq = AdminPasswordResetRequest::findOrFail($id);
+
+        if ($resetReq->status !== 'pending') {
+            return redirect()->back()->with('error', 'Permohonan reset password ini sudah pernah diproses sebelumnya.');
+        }
+
+        $user = $resetReq->user;
+        if (!$user) {
+            return redirect()->back()->with('error', 'Pengguna akun admin tidak ditemukan.');
+        }
+
+        // Kirim link reset password bawaan Laravel
+        try {
+            $status = Password::sendResetLink(['email' => $user->email]);
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal mengirim email tautan reset password. Periksa koneksi SMTP server email.');
+        }
+
+        $resetReq->update([
+            'status'           => 'approved',
+            'approved_by'      => Auth::id(),
+            'approved_at'      => now(),
+            'token_expires_at' => now()->addMinutes(60),
+            'notes'            => $request->notes,
+        ]);
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Approve Reset Password Admin',
+            'description' => "Superadmin menyetujui permohonan reset password Admin {$user->name} ({$user->email}) dan mengirimkan tautan reset ke email.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->back()->with('success', "Permohonan reset password untuk Admin '{$user->name}' ({$user->email}) berhasil disetujui! Tautan pembuatan kata sandi baru telah dikirimkan ke email yang bersangkutan.");
+    }
+
+    /**
+     * Tolak Permohonan Reset Password Admin Tenant.
+     */
+    public function rejectPasswordReset(Request $request, $id)
+    {
+        $resetReq = AdminPasswordResetRequest::findOrFail($id);
+
+        if ($resetReq->status !== 'pending') {
+            return redirect()->back()->with('error', 'Permohonan reset password ini sudah pernah diproses sebelumnya.');
+        }
+
+        $resetReq->update([
+            'status'      => 'rejected',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+            'notes'       => $request->notes ?: 'Ditolak oleh Superadmin.',
+        ]);
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Tolak Reset Password Admin',
+            'description' => "Superadmin menolak permohonan reset password Admin {$resetReq->admin_name} ({$resetReq->email}).",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->back()->with('success', "Permohonan reset password Admin '{$resetReq->admin_name}' berhasil ditolak.");
     }
 
     /**

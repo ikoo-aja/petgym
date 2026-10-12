@@ -9,7 +9,8 @@ use App\Models\User;
 use App\Models\Receptionist;
 use App\Models\Trainer;
 use App\Models\StaffLog;
-
+use App\Models\AdminPasswordResetRequest;
+use Illuminate\Support\Facades\Password;
 class ManagerStaffController extends Controller
 {
     /**
@@ -35,7 +36,8 @@ class ManagerStaffController extends Controller
         $user = Auth::user();
         $tenant = $user->tenant;
 
-        $staffs = User::where('tenant_id', $tenant->id)
+        $staffs = User::with('latestPendingPasswordReset')
+            ->where('tenant_id', $tenant->id)
             ->whereIn('role', ['supervisor', 'receptionist', 'trainer'])
             ->latest()
             ->get();
@@ -57,6 +59,7 @@ class ManagerStaffController extends Controller
             'password' => 'nullable|string|min:4',
             'role' => 'required|string|in:supervisor,receptionist,trainer',
             'phone' => 'nullable|string|max:20',
+            'specialization' => 'nullable|string|max:255',
         ], [
             'name.required' => 'Nama staf wajib diisi.',
             'email.required' => 'Email login wajib diisi.',
@@ -65,7 +68,6 @@ class ManagerStaffController extends Controller
             'role.required' => 'Role / jabatan wajib dipilih.',
             'role.in' => 'Manager dapat mendaftarkan akun staf operasional (Supervisor, Resepsionis & Personal Trainer).',
         ]);
-
         if ($tenant && !$tenant->canAddStaff()) {
             $maxStaff = $tenant->maxStaff();
             return redirect()->back()->with('error', "Gagal menambahkan akun staf: Kuota maksimal karyawan untuk {$tenant->plan_name} ({$maxStaff} Akun Karyawan) telah tercapai. Silakan hubungi Admin untuk upgrade paket.");
@@ -99,7 +101,13 @@ class ManagerStaffController extends Controller
         } elseif ($staff->role === 'trainer') {
             Trainer::updateOrCreate(
                 ['tenant_id' => $tenant->id, 'user_id' => $staff->id],
-                ['name' => $staff->name, 'email' => $staff->email, 'phone' => $request->phone, 'specialization' => 'Fitness & Conditioning', 'status' => 'active']
+                [
+                    'name' => $staff->name,
+                    'email' => $staff->email,
+                    'phone' => $request->phone,
+                    'specialization' => $request->specialization ?: 'Fitness & Conditioning',
+                    'status' => 'active',
+                ]
             );
         }
 
@@ -217,5 +225,91 @@ class ManagerStaffController extends Controller
         ]);
 
         return redirect()->route('manager.staff.index')->with('success', "Akun staf {$staff->name} berhasil {$statusText}.");
+    }
+
+    /**
+     * Setujui Permohonan Reset Password Staf Operasional dan Kirim Tautan Reset ke Email.
+     */
+    public function approvePasswordReset(Request $request, $id)
+    {
+        $manager = Auth::user();
+        $tenant = $manager->tenant;
+
+        $resetReq = AdminPasswordResetRequest::where('tenant_id', $tenant->id)
+            ->where('target_type', 'admin')
+            ->findOrFail($id);
+
+        if ($resetReq->status !== 'pending') {
+            return redirect()->back()->with('error', 'Permohonan reset password ini sudah pernah diproses sebelumnya.');
+        }
+
+        $user = $resetReq->user;
+        if (!$user) {
+            return redirect()->back()->with('error', 'Data pengguna tidak ditemukan.');
+        }
+
+        // Batasi scope approval manager hanya untuk staf operasional
+        if (!in_array($user->role, ['supervisor', 'receptionist', 'trainer'])) {
+            return redirect()->back()->with('error', 'Manager hanya dapat menyetujui reset password untuk staf operasional.');
+        }
+
+        try {
+            $status = Password::sendResetLink(['email' => $user->email]);
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()->with('error', 'Gagal mengirim email tautan reset password. Periksa koneksi SMTP server email.');
+        }
+
+        $resetReq->update([
+            'status'           => 'approved',
+            'approved_by'      => $manager->id,
+            'approved_at'      => now(),
+            'token_expires_at' => now()->addMinutes(60),
+            'notes'            => $request->notes,
+        ]);
+
+        StaffLog::create([
+            'tenant_id'   => $tenant->id,
+            'user_id'     => $manager->id,
+            'action'      => 'Approve Reset Password Staf',
+            'description' => "Manager {$manager->name} menyetujui permohonan reset password untuk {$user->name} ({$user->role} - {$user->email}). Tautan reset dikirim ke email.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->back()->with('success', "Permohonan reset password untuk {$user->name} ({$user->email}) berhasil disetujui! Tautan pembuatan kata sandi baru telah dikirimkan ke email.");
+    }
+
+    /**
+     * Tolak Permohonan Reset Password Staf Operasional.
+     */
+    public function rejectPasswordReset(Request $request, $id)
+    {
+        $manager = Auth::user();
+        $tenant = $manager->tenant;
+
+        $resetReq = AdminPasswordResetRequest::where('tenant_id', $tenant->id)
+            ->where('target_type', 'admin')
+            ->findOrFail($id);
+
+        if ($resetReq->status !== 'pending') {
+            return redirect()->back()->with('error', 'Permohonan reset password ini sudah pernah diproses sebelumnya.');
+        }
+
+        $resetReq->update([
+            'status'      => 'rejected',
+            'approved_by' => $manager->id,
+            'approved_at' => now(),
+            'notes'       => $request->notes ?: 'Ditolak oleh Manager Gym.',
+        ]);
+
+        StaffLog::create([
+            'tenant_id'   => $tenant->id,
+            'user_id'     => $manager->id,
+            'action'      => 'Tolak Reset Password Staf',
+            'description' => "Manager {$manager->name} menolak permohonan reset password untuk {$resetReq->admin_name} ({$resetReq->email}).",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->back()->with('success', "Permohonan reset password untuk '{$resetReq->admin_name}' berhasil ditolak.");
     }
 }

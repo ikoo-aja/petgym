@@ -1,10 +1,10 @@
-@extends('layouts.layout')
+@extends('layouts.admin')
 
 @php
   $featureMeta = [
     'promo' => [
       'title' => 'Promo dan Voucher',
-      'subtitle' => 'Pengelolaan kode potongan harga untuk anggota dan kasir',
+      'subtitle' => 'Pengelolaan kode potongan harga untuk anggota dan transaksi kasir',
     ],
     'performance' => [
       'title' => 'Kinerja Karyawan',
@@ -16,14 +16,11 @@
     ],
     'vendor' => [
       'title' => 'Database Vendor Mitra',
-      'subtitle' => 'Daftar kontak penyedia peralatan dan mitra operasional gym',
+      'subtitle' => 'Daftar kontak penyedia peralatan, suplemen, dan mitra operasional gym',
     ],
   ];
 
-  $currentMeta = $featureMeta[$activeTab] ?? [
-    'title' => 'Promo dan Voucher',
-    'subtitle' => 'Pengelolaan kode potongan harga untuk anggota dan kasir',
-  ];
+  $currentMeta = $featureMeta[$activeTab] ?? $featureMeta['promo'];
 @endphp
 
 @section('title', $currentMeta['title'] . ' — PetGym')
@@ -33,395 +30,315 @@
 @section('content')
 <div class="container-fluid p-0">
 
-  <!-- Tab Contents -->
-  <div class="tab-content" id="managerTabContent">
-
-    <!-- 1. TAB PROMO & VOUCHER -->
-    <div class="tab-pane fade {{ $activeTab === 'promo' ? 'show active' : '' }}" id="promo-sec" role="tabpanel">
-      <div class="card-custom p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="font-weight-bold text-dark mb-1">Daftar Voucher Promo</h5>
-            <p class="text-muted small mb-0">Kelola voucher potongan harga untuk pendaftaran anggota dan transaksi kasir.</p>
-          </div>
-          <button type="button" class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addPromoModal">
-            + Tambah Voucher Promo
-          </button>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
-              <tr>
-                <th>Kode Voucher</th>
-                <th>Nilai Diskon</th>
-                <th>Minimal Belanja</th>
-                <th>Batas Penggunaan</th>
-                <th>Masa Berlaku</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($promoCodes as $promo)
-                <tr>
-                  <td>
-                    <span class="badge badge-secondary px-2 py-1 font-weight-bold" style="letter-spacing: 1px; font-size: 13px;">{{ $promo->code }}</span>
-                    @if($promo->description)
-                      <small class="d-block text-muted">{{ $promo->description }}</small>
-                    @endif
-                  </td>
-                  <td class="font-weight-bold text-success">
-                    @if($promo->discount_type === 'percentage')
-                      {{ $promo->discount_value }}%
-                    @else
-                      Rp {{ number_format($promo->discount_value, 0, ',', '.') }}
-                    @endif
-                  </td>
-                  <td>Rp {{ number_format($promo->min_purchase, 0, ',', '.') }}</td>
-                  <td>{{ $promo->used_count }} / {{ $promo->max_uses }} kali</td>
-                  <td><small>{{ $promo->valid_from->format('d M Y') }} s/d {{ $promo->valid_until->format('d M Y') }}</small></td>
-                  <td>
-                    @if($promo->is_active && $promo->valid_until->isFuture() && $promo->used_count < $promo->max_uses)
-                      <span class="badge badge-success">Aktif</span>
-                    @else
-                      <span class="badge badge-secondary">Kedaluwarsa / Nonaktif</span>
-                    @endif
-                  </td>
-                  <td>
-                    <button type="button" class="btn btn-xs btn-outline-primary btn-edit-promo"
-                      data-id="{{ $promo->id }}"
-                      data-code="{{ $promo->code }}"
-                      data-description="{{ $promo->description }}"
-                      data-discount_type="{{ $promo->discount_type }}"
-                      data-discount_value="{{ $promo->discount_value }}"
-                      data-min_purchase="{{ $promo->min_purchase }}"
-                      data-max_uses="{{ $promo->max_uses }}"
-                      data-valid_from="{{ $promo->valid_from->format('Y-m-d') }}"
-                      data-valid_until="{{ $promo->valid_until->format('Y-m-d') }}"
-                      data-is_active="{{ $promo->is_active ? '1' : '0' }}">Ubah</button>
-                    <form action="{{ route('manager.promo.destroy', $promo->id) }}" method="POST" class="d-inline" data-confirm="Hapus voucher promo ini?">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
-                    </form>
-                  </td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="7" class="text-center py-4 text-muted">Belum ada voucher promo yang dibuat.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
+  <!-- ============================================================== -->
+  <!-- 1. TAB PROMO & VOUCHER -->
+  <!-- ============================================================== -->
+  @if($activeTab === 'promo')
+  <div class="card-custom p-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3" style="gap: 12px;">
+      <div>
+        <h5 class="font-weight-bold text-dark mb-1">Daftar Voucher Promo</h5>
+        <p class="text-muted small mb-0">Kelola voucher potongan harga untuk pendaftaran anggota dan transaksi kasir.</p>
       </div>
+      <button type="button" class="btn btn-sm btn-primary font-weight-bold px-3 py-2" data-toggle="modal" data-target="#addPromoModal" style="border-radius: 8px;">
+        <i class="icon-plus mr-1"></i> Tambah Voucher Promo
+      </button>
     </div>
 
-    <!-- 3. TAB KINERJA KARYAWAN -->
-    <div class="tab-pane fade {{ $activeTab === 'performance' ? 'show active' : '' }}" id="performance-sec" role="tabpanel">
-      <div class="row">
-        <!-- Evaluasi Kasir Resepsionis -->
-        <div class="col-lg-6 mb-4">
-          <div class="card-custom p-4 h-100">
-            <h5 class="font-weight-bold text-dark mb-1"><i class="icon-shopping-cart text-primary mr-1"></i> Penjualan Kasir Bulan Ini</h5>
-            <p class="text-muted small mb-3">Total omset dan volume transaksi penjualan yang diproses staf kasir.</p>
-
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-                  <tr>
-                    <th>Staf Kasir</th>
-                    <th>Jumlah Transaksi</th>
-                    <th>Total Omset</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @forelse($receptionistPerformance as $rp)
-                    <tr>
-                      <td><strong class="text-dark">{{ $rp->user->name ?? 'Kasir #' . $rp->user_id }}</strong></td>
-                      <td><span class="badge badge-info font-weight-bold">{{ $rp->total_transactions }} Transaksi</span></td>
-                      <td><span class="font-weight-bold text-success">Rp {{ number_format($rp->total_sales, 0, ',', '.') }}</span></td>
-                    </tr>
-                  @empty
-                    <tr>
-                      <td colspan="3" class="text-center py-4 text-muted">Belum ada data transaksi kasir bulan ini.</td>
-                    </tr>
-                  @endforelse
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Evaluasi Trainer / Instruktur -->
-        <div class="col-lg-6 mb-4">
-          <div class="card-custom p-4 h-100">
-            <h5 class="font-weight-bold text-dark mb-1"><i class="icon-people text-success mr-1"></i> Keaktifan Instruktur Kelas</h5>
-            <p class="text-muted small mb-3">Jumlah kelas kebugaran yang dipimpin oleh instruktur pelatih.</p>
-
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-                  <tr>
-                    <th>Nama Instruktur</th>
-                    <th>Spesialisasi</th>
-                    <th>Kelas Dipimpin</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @forelse($trainerPerformance as $tp)
-                    <tr>
-                      <td><strong class="text-dark">{{ $tp->trainer->name ?? 'Trainer #' . $tp->trainer_id }}</strong></td>
-                      <td>{{ $tp->trainer->specialization ?? 'Pelatih Kebugaran' }}</td>
-                      <td><span class="badge badge-success font-weight-bold">{{ $tp->total_classes }} Kelas Aktif</span></td>
-                    </tr>
-                  @empty
-                    <tr>
-                      <td colspan="3" class="text-center py-4 text-muted">Belum ada alokasi kelas untuk instruktur.</td>
-                    </tr>
-                  @endforelse
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
+          <tr>
+            <th>Kode Voucher</th>
+            <th>Nilai Diskon</th>
+            <th>Minimal Belanja</th>
+            <th>Batas Penggunaan</th>
+            <th>Masa Berlaku</th>
+            <th>Status</th>
+            <th class="text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse($promoCodes as $promo)
+            <tr>
+              <td>
+                <span class="badge badge-secondary px-2 py-1 font-weight-bold text-dark" style="letter-spacing: 0.8px; font-size: 12.5px;">{{ $promo->code }}</span>
+                @if($promo->description)
+                  <small class="d-block text-muted mt-1">{{ $promo->description }}</small>
+                @endif
+              </td>
+              <td class="font-weight-bold text-success">
+                @if($promo->discount_type === 'percentage')
+                  {{ (float)$promo->discount_value }}%
+                @else
+                  Rp {{ number_format($promo->discount_value, 0, ',', '.') }}
+                @endif
+              </td>
+              <td class="text-dark">Rp {{ number_format($promo->min_purchase, 0, ',', '.') }}</td>
+              <td class="text-dark">{{ $promo->used_count }} / {{ $promo->max_uses }} kali</td>
+              <td><small class="text-muted">{{ $promo->valid_from->format('d M Y') }} s/d {{ $promo->valid_until->format('d M Y') }}</small></td>
+              <td>
+                @if($promo->is_active && $promo->valid_until->isFuture() && $promo->used_count < $promo->max_uses)
+                  <span class="badge badge-success px-2 py-1 font-weight-bold">Aktif</span>
+                @else
+                  <span class="badge badge-secondary px-2 py-1 font-weight-bold">Kedaluwarsa / Nonaktif</span>
+                @endif
+              </td>
+              <td class="text-right">
+                <button type="button" class="btn btn-sm btn-outline-primary btn-edit-promo mr-1 font-weight-bold px-2 py-1"
+                  data-id="{{ $promo->id }}"
+                  data-code="{{ $promo->code }}"
+                  data-description="{{ $promo->description }}"
+                  data-discount_type="{{ $promo->discount_type }}"
+                  data-discount_value="{{ (float)$promo->discount_value }}"
+                  data-min_purchase="{{ (float)$promo->min_purchase }}"
+                  data-max_uses="{{ $promo->max_uses }}"
+                  data-valid_from="{{ $promo->valid_from->format('Y-m-d') }}"
+                  data-valid_until="{{ $promo->valid_until->format('Y-m-d') }}"
+                  data-is_active="{{ $promo->is_active ? '1' : '0' }}"
+                  style="border-radius: 6px; font-size: 12px;">Ubah</button>
+                <form action="{{ route('manager.promo.destroy', $promo->id) }}" method="POST" class="d-inline" data-confirm="Hapus voucher promo ini?">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">Hapus</button>
+                </form>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">Belum ada voucher promo yang dibuat.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
     </div>
-
-    <!-- 4. TAB REKAP KAS KEUANGAN -->
-    <div class="tab-pane fade {{ $activeTab === 'cash' ? 'show active' : '' }}" id="cash-sec" role="tabpanel">
-      <div class="card-custom p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="font-weight-bold text-dark mb-1">Rekap Transaksi Kas Harian</h5>
-            <p class="text-muted small mb-0">Rincian transaksi kasir hari ini berdasarkan metode pembayaran.</p>
-          </div>
-          <span class="badge badge-info px-3 py-2 font-weight-bold">
-            Total Transaksi: {{ $dailyCashRecap->count() }}
-          </span>
-        </div>
-
-        @php
-          $totalToday = $dailyCashRecap->sum('total_amount');
-          $cashTotal = $dailyCashRecap->where('payment_method', 'cash')->sum('total_amount');
-          $qrisTotal = $dailyCashRecap->where('payment_method', 'qris')->sum('total_amount');
-          $transferTotal = $dailyCashRecap->where('payment_method', 'transfer')->sum('total_amount');
-          $cardTotal = $dailyCashRecap->where('payment_method', 'debit_card')->sum('total_amount');
-        @endphp
-
-        <div class="row mb-4">
-          <div class="col-md-3 mb-2 mb-md-0">
-            <div class="p-3 bg-light rounded border text-center">
-              <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Total Omset Hari Ini</small>
-              <h4 class="font-weight-bold text-primary mt-1 mb-0">Rp {{ number_format($totalToday, 0, ',', '.') }}</h4>
-            </div>
-          </div>
-          <div class="col-md-3 mb-2 mb-md-0">
-            <div class="p-3 bg-light rounded border text-center">
-              <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Uang Tunai</small>
-              <h4 class="font-weight-bold text-success mt-1 mb-0">Rp {{ number_format($cashTotal, 0, ',', '.') }}</h4>
-            </div>
-          </div>
-          <div class="col-md-3 mb-2 mb-md-0">
-            <div class="p-3 bg-light rounded border text-center">
-              <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Pembayaran Digital</small>
-              <h4 class="font-weight-bold text-info mt-1 mb-0">Rp {{ number_format($qrisTotal, 0, ',', '.') }}</h4>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="p-3 bg-light rounded border text-center">
-              <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Transfer dan Debit</small>
-              <h4 class="font-weight-bold text-dark mt-1 mb-0">Rp {{ number_format($transferTotal + $cardTotal, 0, ',', '.') }}</h4>
-            </div>
-          </div>
-        </div>
-
-        <h6 class="font-weight-bold text-dark mb-3 border-top pt-3">Rincian Transaksi Kasir Hari Ini</h6>
-        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-              <tr>
-                <th>Invoice</th>
-                <th>Waktu</th>
-                <th>Kasir</th>
-                <th>Pelanggan</th>
-                <th>Metode Bayar</th>
-                <th>Nominal</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($dailyCashRecap as $tx)
-                <tr>
-                  <td class="font-weight-bold text-dark">{{ $tx->invoice_number }}</td>
-                  <td>{{ $tx->created_at->format('H:i:s') }}</td>
-                  <td>{{ $tx->user->name ?? 'Kasir Staf' }}</td>
-                  <td>{{ $tx->member->name ?? 'Pelanggan Umum' }}</td>
-                  <td><span class="badge badge-secondary font-weight-bold" style="text-transform: uppercase;">{{ $tx->payment_method }}</span></td>
-                  <td class="font-weight-bold text-success">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="6" class="text-center py-3 text-muted">Belum ada transaksi kasir hari ini.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 5. TAB DATABASE VENDOR & INVENTARIS PASOKAN -->
-    <div class="tab-pane fade {{ $activeTab === 'vendor' ? 'show active' : '' }}" id="vendor-sec" role="tabpanel">
-      <!-- KPI Valuation Cards -->
-      <div class="row mb-4">
-        <div class="col-md-4 mb-3 mb-md-0">
-          <div class="card-custom p-3 border-left border-primary" style="border-left-width: 4px !important;">
-            <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Valuasi Stok Gudang</span>
-            <h4 class="font-weight-bold text-primary mb-0">Rp {{ number_format($totalWarehouseValuation, 0, ',', '.') }}</h4>
-            <small class="text-muted">{{ $products->sum('warehouse_stock') }} pcs di ruang gudang</small>
-          </div>
-        </div>
-        <div class="col-md-4 mb-3 mb-md-0">
-          <div class="card-custom p-3 border-left border-info" style="border-left-width: 4px !important;">
-            <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Valuasi Stok Etalase</span>
-            <h4 class="font-weight-bold text-info mb-0">Rp {{ number_format($totalDisplayValuation, 0, ',', '.') }}</h4>
-            <small class="text-muted">{{ $products->sum('stock') }} pcs dipajang di kasir</small>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card-custom p-3 border-left border-success" style="border-left-width: 4px !important;">
-            <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Total Aset Inventaris</span>
-            <h4 class="font-weight-bold text-success mb-0">Rp {{ number_format($totalInventoryValuation, 0, ',', '.') }}</h4>
-            <small class="text-muted">Total {{ $products->count() }} jenis produk ritel</small>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card Database Kontak Vendor -->
-      <div class="card-custom p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="font-weight-bold text-dark mb-1">Daftar Rekanan Vendor &amp; Pemasok</h5>
-            <p class="text-muted small mb-0">Informasi kontak penyedia alat kebugaran, suplemen, kebersihan, dan teknisi servis.</p>
-          </div>
-          <button type="button" class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addVendorModal">
-            + Tambah Kontak Vendor
-          </button>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
-              <tr>
-                <th>Nama Vendor / Perusahaan</th>
-                <th>Kategori Layanan</th>
-                <th>Nomor Telepon / WA</th>
-                <th>Email</th>
-                <th>Alamat</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($vendors as $v)
-                <tr>
-                  <td>
-                    <strong class="text-dark">{{ $v->name }}</strong>
-                    @if($v->notes)
-                      <small class="d-block text-muted">{{ $v->notes }}</small>
-                    @endif
-                  </td>
-                  <td><span class="badge badge-secondary">{{ $v->category }}</span></td>
-                  <td class="font-weight-bold">{{ $v->phone ?? '-' }}</td>
-                  <td>{{ $v->email ?? '-' }}</td>
-                  <td style="max-width: 200px;" class="small text-muted">{{ $v->address ?? '-' }}</td>
-                  <td>
-                    <button type="button" class="btn btn-xs btn-outline-primary btn-edit-vendor"
-                      data-id="{{ $v->id }}"
-                      data-name="{{ $v->name }}"
-                      data-category="{{ $v->category }}"
-                      data-phone="{{ $v->phone }}"
-                      data-email="{{ $v->email }}"
-                      data-address="{{ $v->address }}"
-                      data-notes="{{ $v->notes }}">Ubah</button>
-                    <form action="{{ route('manager.vendors.destroy', $v->id) }}" method="POST" class="d-inline" data-confirm="Hapus vendor ini?">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-xs btn-outline-danger">Hapus</button>
-                    </form>
-                  </td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="6" class="text-center py-4 text-muted">Belum ada buku kontak vendor mitra.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Card Pasokan Produk Berdasarkan Vendor -->
-      <div class="card-custom p-4">
-        <h6 class="font-weight-bold text-dark mb-3">Monitoring Pasokan Produk dari Vendor</h6>
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
-              <tr>
-                <th>Nama Produk</th>
-                <th>Kategori</th>
-                <th>Vendor Mitra</th>
-                <th>Harga Beli (HPP)</th>
-                <th>Harga Jual Kasir</th>
-                <th class="text-center">Stok Gudang</th>
-                <th class="text-center">Stok Etalase</th>
-                <th class="text-center">Total Stok</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($products as $p)
-                <tr>
-                  <td class="font-weight-bold text-dark">{{ $p->name }}</td>
-                  <td><span class="badge badge-light border">{{ ucfirst($p->category ?? 'Ritel') }}</span></td>
-                  <td class="font-weight-500 text-dark">{{ $p->vendor_name ?: '-' }}</td>
-                  <td class="text-muted">Rp {{ number_format($p->cost_price ?: 0, 0, ',', '.') }}</td>
-                  <td class="font-weight-bold text-success">Rp {{ number_format($p->price, 0, ',', '.') }}</td>
-                  <td class="text-center">
-                    <span class="badge {{ $p->warehouse_stock <= 5 ? 'badge-danger' : 'badge-primary' }} px-2 py-1">
-                      {{ $p->warehouse_stock }} pcs
-                    </span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge {{ $p->stock <= 10 ? 'badge-warning text-dark' : 'badge-success' }} px-2 py-1">
-                      {{ $p->stock }} pcs
-                    </span>
-                  </td>
-                  <td class="text-center font-weight-bold text-dark">{{ $p->warehouse_stock + $p->stock }} pcs</td>
-                  <td>
-                    @if(($p->warehouse_stock + $p->stock) == 0)
-                      <span class="badge badge-danger">Habis Total</span>
-                    @elseif($p->warehouse_stock == 0)
-                      <span class="badge badge-warning text-dark">Gudang Kosong</span>
-                    @elseif($p->stock == 0)
-                      <span class="badge badge-info">Belum Dipajang</span>
-                    @else
-                      <span class="badge badge-success">Tersedia</span>
-                    @endif
-                  </td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="9" class="text-center py-3 text-muted">Belum ada data produk inventaris.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
   </div>
+  @endif
+
+  <!-- ============================================================== -->
+  <!-- 2. TAB KINERJA KARYAWAN -->
+  <!-- ============================================================== -->
+  @if($activeTab === 'performance')
+  <div class="row">
+    <!-- Evaluasi Kasir Resepsionis -->
+    <div class="col-lg-6 mb-4">
+      <div class="card-custom p-4 h-100">
+        <h5 class="font-weight-bold text-dark mb-1"><i class="icon-shopping-cart text-primary mr-1"></i> Penjualan Kasir Bulan Ini</h5>
+        <p class="text-muted small mb-3">Total omset dan volume transaksi penjualan yang diproses staf kasir.</p>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
+              <tr>
+                <th>Staf Kasir</th>
+                <th>Jumlah Transaksi</th>
+                <th>Total Omset</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($receptionistPerformance as $rp)
+                <tr>
+                  <td><strong class="text-dark">{{ $rp->user->name ?? 'Kasir #' . $rp->user_id }}</strong></td>
+                  <td><span class="badge badge-info font-weight-bold px-2 py-1">{{ $rp->total_transactions }} Transaksi</span></td>
+                  <td><span class="font-weight-bold text-success">Rp {{ number_format($rp->total_sales, 0, ',', '.') }}</span></td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-muted">Belum ada data transaksi kasir bulan ini.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evaluasi Trainer / Instruktur -->
+    <div class="col-lg-6 mb-4">
+      <div class="card-custom p-4 h-100">
+        <h5 class="font-weight-bold text-dark mb-1"><i class="icon-people text-success mr-1"></i> Keaktifan Instruktur Kelas</h5>
+        <p class="text-muted small mb-3">Jumlah kelas kebugaran yang dipimpin oleh instruktur pelatih.</p>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
+              <tr>
+                <th>Nama Instruktur</th>
+                <th>Spesialisasi</th>
+                <th>Kelas Dipimpin</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($trainerPerformance as $tp)
+                <tr>
+                  <td><strong class="text-dark">{{ $tp->trainer->name ?? 'Trainer #' . $tp->trainer_id }}</strong></td>
+                  <td>{{ $tp->trainer->specialization ?? 'Pelatih Kebugaran' }}</td>
+                  <td><span class="badge badge-success font-weight-bold px-2 py-1">{{ $tp->total_classes }} Kelas Aktif</span></td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-muted">Belum ada alokasi kelas untuk instruktur.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
+
+  <!-- ============================================================== -->
+  <!-- 3. TAB REKAP KAS KEUANGAN -->
+  <!-- ============================================================== -->
+  @if($activeTab === 'cash')
+  <div class="card-custom p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="font-weight-bold text-dark mb-1">Rekap Transaksi Kas Harian</h5>
+        <p class="text-muted small mb-0">Rincian transaksi kasir hari ini berdasarkan metode pembayaran.</p>
+      </div>
+      <span class="badge badge-info px-3 py-2 font-weight-bold" style="border-radius: 8px; font-size: 12px;">
+        Total Transaksi: {{ $dailyCashRecap->count() }}
+      </span>
+    </div>
+
+    @php
+      $totalToday = $dailyCashRecap->sum('total_amount');
+      $cashTotal = $dailyCashRecap->where('payment_method', 'cash')->sum('total_amount');
+      $qrisTotal = $dailyCashRecap->where('payment_method', 'qris')->sum('total_amount');
+      $transferTotal = $dailyCashRecap->where('payment_method', 'transfer')->sum('total_amount');
+      $cardTotal = $dailyCashRecap->where('payment_method', 'debit_card')->sum('total_amount');
+    @endphp
+
+    <div class="row mb-4">
+      <div class="col-md-3 mb-2 mb-md-0">
+        <div class="p-3 bg-light rounded border text-center">
+          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Total Omset Hari Ini</small>
+          <h4 class="font-weight-bold text-primary mt-1 mb-0">Rp {{ number_format($totalToday, 0, ',', '.') }}</h4>
+        </div>
+      </div>
+      <div class="col-md-3 mb-2 mb-md-0">
+        <div class="p-3 bg-light rounded border text-center">
+          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Uang Tunai</small>
+          <h4 class="font-weight-bold text-success mt-1 mb-0">Rp {{ number_format($cashTotal, 0, ',', '.') }}</h4>
+        </div>
+      </div>
+      <div class="col-md-3 mb-2 mb-md-0">
+        <div class="p-3 bg-light rounded border text-center">
+          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Pembayaran Digital (QRIS)</small>
+          <h4 class="font-weight-bold text-info mt-1 mb-0">Rp {{ number_format($qrisTotal, 0, ',', '.') }}</h4>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="p-3 bg-light rounded border text-center">
+          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Transfer dan Kartu</small>
+          <h4 class="font-weight-bold text-dark mt-1 mb-0">Rp {{ number_format($transferTotal + $cardTotal, 0, ',', '.') }}</h4>
+        </div>
+      </div>
+    </div>
+
+    <h6 class="font-weight-bold text-dark mb-3 border-top pt-3">Rincian Transaksi Kasir Hari Ini</h6>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
+          <tr>
+            <th>Invoice</th>
+            <th>Waktu</th>
+            <th>Kasir</th>
+            <th>Pelanggan</th>
+            <th>Metode Bayar</th>
+            <th class="text-right">Nominal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse($dailyCashRecap as $tx)
+            <tr>
+              <td class="font-weight-bold text-dark">{{ $tx->invoice_number }}</td>
+              <td>{{ $tx->created_at->format('H:i:s') }} WIB</td>
+              <td>{{ $tx->user->name ?? 'Kasir Staf' }}</td>
+              <td>{{ $tx->member->name ?? 'Pelanggan Umum' }}</td>
+              <td><span class="badge badge-secondary font-weight-bold px-2 py-1" style="text-transform: uppercase;">{{ $tx->payment_method }}</span></td>
+              <td class="font-weight-bold text-success text-right">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">Belum ada transaksi kasir yang tercatat hari ini.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @endif
+
+  <!-- ============================================================== -->
+  <!-- 4. TAB DATABASE VENDOR MITRA -->
+  <!-- ============================================================== -->
+  @if($activeTab === 'vendor')
+  <div class="card-custom p-4 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3" style="gap: 12px;">
+      <div>
+        <h5 class="font-weight-bold text-dark mb-1">Daftar Rekanan Vendor &amp; Pemasok</h5>
+        <p class="text-muted small mb-0">Informasi kontak penyedia alat kebugaran, suplemen, kebersihan, dan teknisi servis.</p>
+      </div>
+      <button type="button" class="btn btn-sm btn-primary font-weight-bold px-3 py-2" data-toggle="modal" data-target="#addVendorModal" style="border-radius: 8px;">
+        <i class="icon-plus mr-1"></i> Tambah Kontak Vendor
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
+          <tr>
+            <th>Nama Vendor / Perusahaan</th>
+            <th>Kategori Layanan</th>
+            <th>Nomor Telepon / WA</th>
+            <th>Email</th>
+            <th>Alamat</th>
+            <th class="text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse($vendors as $v)
+            <tr>
+              <td>
+                <strong class="text-dark">{{ $v->name }}</strong>
+                @if($v->notes)
+                  <small class="d-block text-muted mt-1">{{ $v->notes }}</small>
+                @endif
+              </td>
+              <td><span class="badge badge-secondary px-2 py-1 font-weight-semibold">{{ $v->category }}</span></td>
+              <td class="font-weight-bold text-dark">{{ $v->phone ?? '-' }}</td>
+              <td>{{ $v->email ?? '-' }}</td>
+              <td style="max-width: 220px;" class="small text-muted">{{ $v->address ?? '-' }}</td>
+              <td class="text-right">
+                <button type="button" class="btn btn-sm btn-outline-primary btn-edit-vendor mr-1 font-weight-bold px-2 py-1"
+                  data-id="{{ $v->id }}"
+                  data-name="{{ $v->name }}"
+                  data-category="{{ $v->category }}"
+                  data-phone="{{ $v->phone }}"
+                  data-email="{{ $v->email }}"
+                  data-address="{{ $v->address }}"
+                  data-notes="{{ $v->notes }}"
+                  style="border-radius: 6px; font-size: 12px;">Ubah</button>
+                <form action="{{ route('manager.vendors.destroy', $v->id) }}" method="POST" class="d-inline" data-confirm="Hapus vendor ini?">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">Hapus</button>
+                </form>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">Belum ada buku kontak vendor mitra terdaftar.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @endif
 
 </div>
 
@@ -483,7 +400,7 @@
       </div>
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Data</button>
+        <button type="submit" class="btn btn-primary font-weight-bold px-4">Simpan Data</button>
       </div>
     </form>
   </div>
@@ -548,7 +465,7 @@
       </div>
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
+        <button type="submit" class="btn btn-primary font-weight-bold px-4">Simpan Perubahan</button>
       </div>
     </form>
   </div>
@@ -593,7 +510,7 @@
       </div>
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Data</button>
+        <button type="submit" class="btn btn-primary font-weight-bold px-4">Simpan Data</button>
       </div>
     </form>
   </div>
@@ -639,11 +556,12 @@
       </div>
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
+        <button type="submit" class="btn btn-primary font-weight-bold px-4">Simpan Perubahan</button>
       </div>
     </form>
   </div>
 </div>
+@endsection
 
 @section('scripts')
 <script>
@@ -664,7 +582,7 @@
       $('#editPromoModal').modal('show');
     });
 
-    // 3. Edit Vendor Modal
+    // 2. Edit Vendor Modal
     $('.btn-edit-vendor').on('click', function() {
       const id = $(this).data('id');
       $('#editVendorForm').attr('action', '/manager/vendors/' + id);

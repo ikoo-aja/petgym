@@ -101,6 +101,15 @@
                     @endif
                   </form>
                 @endif
+                {{-- Tombol Approval Reset Password jika ada request pending --}}
+                @if($st->latestPendingPasswordReset && Auth::id() !== $st->id)
+                  <form action="{{ route('admin.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui permohonan reset password untuk {{ $st->name }}? Sistem akan mengirimkan tautan reset kata sandi ke email {{ $st->email }}.');">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-warning text-dark font-weight-bold" style="border-radius: 6px;" title="Setujui permohonan reset kata sandi">
+                      <i class="icon-key mr-1"></i> Setujui Reset PW
+                    </button>
+                  </form>
+                @endif
                 @if(Auth::id() !== $st->id)
                   <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun {{ $st->name }} ({{ ucfirst($st->role) }})?">
                     @csrf

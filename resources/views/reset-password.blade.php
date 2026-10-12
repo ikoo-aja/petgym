@@ -2,7 +2,7 @@
 <html lang="id">
 
 <head>
-  <title>Atur Ulang Kata Sandi — Sistem Manajemen PetGym</title>
+  <title>Buat Kata Sandi Baru — Sistem Manajemen PetGym</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -38,71 +38,71 @@
       </div>
     </div>
 
-    <!-- Main Reset Password Section -->
+    <!-- Main Section (Struktur 100% Identik dengan Halaman Login) -->
     <div class="site-section bg-light contact-wrap" style="padding-top: 60px; padding-bottom: 80px; min-height: calc(100vh - 220px);">
       <div class="container">
 
         <div class="row justify-content-center text-center mb-4" data-aos="fade-up">
           <div class="col-md-8 section-heading mb-2">
-            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform PetGym</span>
+            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform SaaS PetGym</span>
             <h2 class="heading mb-2 text-dark font-weight-bold">Buat Kata Sandi Baru</h2>
-            <p class="text-muted">Masukkan kata sandi baru untuk akun Anda. Tautan ini berlaku selama 60 menit.</p>
+            <p class="text-muted">Masukkan kata sandi baru untuk akun Anda. Pastikan menggunakan kombinasi yang aman.</p>
           </div>
         </div>
 
         <div class="row justify-content-center">
-          <div class="col-md-5" data-aos="fade-up" data-aos-delay="100">
-            <form action="{{ route('password.update') }}" method="POST" class="bg-white p-5 shadow-sm rounded-lg border">
+          <div class="col-md-6 col-lg-5" data-aos="fade-up" data-aos-delay="100">
+
+            <form action="{{ route('password.update') }}" method="POST" class="bg-white p-4 p-md-5 shadow-sm rounded-lg border" style="border-radius: 12px;">
               @csrf
 
-              <!-- Token & Email tersembunyi (dari link email) -->
               <input type="hidden" name="token" value="{{ $token }}">
               <input type="hidden" name="email" value="{{ $email ?? old('email') }}">
 
-              <!-- Alert Error -->
+              <!-- Alert Error Validasi -->
               @if($errors->any())
-                <div class="alert alert-danger py-2 mb-4" role="alert">
+                <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
                   <small class="font-weight-bold"><i class="icon-exclamation-circle mr-1"></i> {{ $errors->first() }}</small>
                 </div>
               @endif
 
               <div class="form-group mb-3">
-                <label for="email" class="text-dark font-weight-bold small">Alamat Email</label>
-                <input type="email" id="email" value="{{ $email ?? old('email') }}" class="form-control form-control-lg bg-light" readonly style="font-size: 15px;">
+                <label for="email" class="text-dark font-weight-bold small">Alamat Email Akun</label>
+                <input type="email" id="email" value="{{ $email ?? old('email') }}" class="form-control bg-light" readonly style="height: 48px; border-radius: 8px; font-size: 14px; color: #6c757d;">
               </div>
 
               <div class="form-group mb-3">
-                <label for="password" class="text-dark font-weight-bold small">Kata Sandi Baru *</label>
+                <label for="password" class="text-dark font-weight-bold small mb-1">Kata Sandi Baru <span class="text-danger">*</span></label>
                 <div class="input-group">
-                    <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Minimal 8 karakter" required autofocus style="font-size: 15px;">
-                    <div class="input-group-append">
-                    <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" id="togglePasswordBtn">
-                        <i class="icon-eye text-muted" id="toggleIcon"></i>
-                    </span>
-                    </div>
-                 </div>
+                  <input type="password" id="password" name="password" class="form-control" placeholder="Minimal 8 karakter" required autofocus style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
+                  <div class="input-group-append">
+                    <button class="btn btn-outline-secondary border-left-0 bg-white text-muted" type="button" id="togglePasswordBtn" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: #ced4da;">
+                      <i class="icon-eye" id="toggleIcon"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div class="form-group mb-3">
-                <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Kata Sandi Baru *</label>
+              <div class="form-group mb-4">
+                <label for="password_confirmation" class="text-dark font-weight-bold small mb-1">Konfirmasi Kata Sandi Baru <span class="text-danger">*</span></label>
                 <div class="input-group">
-                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-control form-control-lg" placeholder="Ulangi kata sandi baru" required style="font-size: 15px;">
-                    <div class="input-group-append">
-                    <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" id="toggleConfirmBtn">
-                        <i class="icon-eye text-muted" id="toggleConfirmIcon"></i>
-                    </span>
-                    </div>
-                 </div>
+                  <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" placeholder="Ulangi kata sandi baru" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
+                  <div class="input-group-append">
+                    <button class="btn btn-outline-secondary border-left-0 bg-white text-muted" type="button" id="toggleConfirmBtn" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: #ced4da;">
+                      <i class="icon-eye" id="toggleConfirmIcon"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div class="form-group mb-3">
-                <button type="submit" class="btn btn-primary py-3 px-5 btn-block font-weight-bold shadow-sm" style="border-radius: 30px; font-size: 16px;">
+              <div class="form-group mb-4">
+                <button type="submit" class="btn btn-primary btn-block font-weight-bold shadow-sm" style="height: 48px; border-radius: 8px; font-size: 15px;">
                   Simpan Kata Sandi Baru
                 </button>
               </div>
 
               <div class="text-center mt-4 pt-2 border-top">
-                <a href="{{ route('login') }}" class="text-primary small font-weight-bold">← Kembali ke Halaman Masuk</a>
+                <a href="{{ route('login') }}" class="text-muted small">← Kembali ke Halaman Masuk</a>
               </div>
             </form>
           </div>
@@ -125,35 +125,6 @@
   </div>
   <!-- .site-wrap -->
 
-<script>
-  const togglePasswordBtn = document.querySelector('#togglePasswordBtn');
-  const passwordInput = document.querySelector('#password');
-  const toggleIcon = document.querySelector('#toggleIcon');
-
-  togglePasswordBtn.addEventListener('click', function () {
-    const isPassword = passwordInput.getAttribute('type') === 'password';
-    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-
-    toggleIcon.classList.toggle('icon-eye');
-    toggleIcon.classList.toggle('icon-eye-slash');
-    toggleIcon.classList.toggle('text-primary');
-    toggleIcon.classList.toggle('text-muted');
-  });
-
-  const toggleConfirmBtn = document.querySelector('#toggleConfirmBtn');
-  const confirmInput = document.querySelector('#password_confirmation');
-  const toggleConfirmIcon = document.querySelector('#toggleConfirmIcon');
-
-  toggleConfirmBtn.addEventListener('click', function () {
-    const isPassword = confirmInput.getAttribute('type') === 'password';
-    confirmInput.setAttribute('type', isPassword ? 'text' : 'password');
-
-    toggleConfirmIcon.classList.toggle('icon-eye');
-    toggleConfirmIcon.classList.toggle('icon-eye-slash');
-    toggleConfirmIcon.classList.toggle('text-primary');
-    toggleConfirmIcon.classList.toggle('text-muted');
-  });
-</script>
   <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
   <script src="{{ asset('js/jquery-migrate-3.0.1.min.js') }}"></script>
   <script src="{{ asset('js/jquery-ui.js') }}"></script>
@@ -170,6 +141,39 @@
   <script src="{{ asset('js/jquery.mb.YTPlayer.min.js') }}"></script>
   <script src="{{ asset('js/main.js') }}"></script>
 
-</body>
+  <script>
+    const togglePasswordBtn = document.querySelector('#togglePasswordBtn');
+    const passwordInput = document.querySelector('#password');
+    const toggleIcon = document.querySelector('#toggleIcon');
 
+    if (togglePasswordBtn && passwordInput && toggleIcon) {
+      togglePasswordBtn.addEventListener('click', function () {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+        toggleIcon.classList.toggle('icon-eye');
+        toggleIcon.classList.toggle('icon-eye-slash');
+        toggleIcon.classList.toggle('text-primary');
+        toggleIcon.classList.toggle('text-muted');
+      });
+    }
+
+    const toggleConfirmBtn = document.querySelector('#toggleConfirmBtn');
+    const confirmInput = document.querySelector('#password_confirmation');
+    const toggleConfirmIcon = document.querySelector('#toggleConfirmIcon');
+
+    if (toggleConfirmBtn && confirmInput && toggleConfirmIcon) {
+      toggleConfirmBtn.addEventListener('click', function () {
+        const isPassword = confirmInput.getAttribute('type') === 'password';
+        confirmInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+        toggleConfirmIcon.classList.toggle('icon-eye');
+        toggleConfirmIcon.classList.toggle('icon-eye-slash');
+        toggleConfirmIcon.classList.toggle('text-primary');
+        toggleConfirmIcon.classList.toggle('text-muted');
+      });
+    }
+  </script>
+
+</body>
 </html>

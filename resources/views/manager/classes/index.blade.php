@@ -103,9 +103,9 @@
           <small class="text-muted">Master data instruktur kebugaran gym</small>
         </div>
         @if(Auth::user() && Auth::user()->isManager())
-        <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#addTrainerModal" style="border-radius: 8px;">
-          + Tambah Trainer
-        </button>
+        <a href="{{ route('manager.staff.index') }}" class="btn btn-sm btn-outline-primary font-weight-bold" style="border-radius: 8px;">
+          <i class="icon-plus mr-1"></i> Tambah via Data Staf
+        </a>
         @else
         <span class="badge badge-info px-2 py-1 font-weight-bold" style="border-radius: 6px; background: #e0f2fe; color: #0369a1;">
           Hanya Lihat
@@ -308,36 +308,6 @@
   </div>
 </div>
 
-<!-- Modal Tambah Trainer Baru -->
-<div class="modal fade" id="addTrainerModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <form action="{{ route('manager.classes.store-trainer') }}" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold text-dark">Tambah Data Trainer Baru</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
-      </div>
-      <div class="modal-body p-4">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Trainer / Instruktur *</label>
-          <input type="text" name="name" class="form-control" placeholder="Contoh: Budi Santoso" required>
-        </div>
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nomor Telepon / WhatsApp</label>
-          <input type="text" name="phone" class="form-control" placeholder="Contoh: 081234567890">
-        </div>
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Spesialisasi / Keahlian</label>
-          <input type="text" name="specialization" class="form-control" placeholder="Contoh: Bodybuilding, Yoga, Zumba, HIIT">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-success font-weight-bold px-4">Simpan Data</button>
-      </div>
-    </form>
-  </div>
-</div>
 
 <!-- Modal Edit Trainer -->
 <div class="modal fade" id="editTrainerModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -400,6 +370,28 @@
 
       $('#editTrainerForm').attr('action', '/manager/trainers/' + id);
       $('#editTrainerModal').modal('show');
+    });
+
+    // Auto Calculate Duration between start and end time
+    function calculateDuration(startId, endId, durationId) {
+      var startTime = $(startId).val();
+      var endTime = $(endId).val();
+      if (startTime && endTime) {
+        var start = new Date('1970-01-01T' + startTime + ':00');
+        var end = new Date('1970-01-01T' + endTime + ':00');
+        var diffMinutes = (end - start) / (1000 * 60);
+        if (diffMinutes > 0) {
+          $(durationId).val(diffMinutes);
+        }
+      }
+    }
+
+    $('#addStartTime, #addEndTime').on('change', function() {
+      calculateDuration('#addStartTime', '#addEndTime', '#addDurationMinutes');
+    });
+
+    $('#editClassStartTime, #editClassEndTime').on('change', function() {
+      calculateDuration('#editClassStartTime', '#editClassEndTime', '#editClassDuration');
     });
   });
 </script>

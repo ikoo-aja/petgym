@@ -22,6 +22,21 @@
     </a>
   </div>
   @endif
+  <!-- Alert Banner Permohonan Reset Password Admin -->
+  @if(($pendingPasswordResetsCount ?? 0) > 0)
+  <div class="alert alert-warning border-0 shadow-sm d-flex justify-content-between align-items-center mb-4 p-3" style="border-radius: 12px; border-left: 5px solid #f59e0b !important;">
+    <div class="d-flex align-items-center">
+      <span class="icon-lock mr-3 text-warning" style="font-size: 24px;"></span>
+      <div>
+        <h6 class="mb-0 font-weight-bold text-dark">Ada {{ $pendingPasswordResetsCount }} Permohonan Reset Password Admin Menunggu Approval!</h6>
+        <small class="text-muted">Akun Admin gym mengajukan permohonan pemulihan kata sandi yang membutuhkan verifikasi Superadmin.</small>
+      </div>
+    </div>
+    <a href="{{ route('superadmin.password-resets') }}" class="btn btn-warning btn-sm font-weight-bold px-3 text-dark shadow-sm" style="border-radius: 20px;">
+      Tinjau & Setujui <span class="icon-arrow-right ml-1"></span>
+    </a>
+  </div>
+  @endif
 
   <div class="row">
     <div class="col-md-3 mb-4">

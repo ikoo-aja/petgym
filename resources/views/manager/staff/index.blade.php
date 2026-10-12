@@ -87,6 +87,16 @@
                     @endif
                   </form>
                 @endif
+                {{-- Tombol Approval Reset Password jika ada request pending --}}
+                @if($st->latestPendingPasswordReset && Auth::id() !== $st->id)
+                  <form action="{{ route('manager.staff.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui permohonan reset password untuk {{ $st->name }}? Sistem akan mengirimkan tautan reset kata sandi ke email {{ $st->email }}.');">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-warning text-dark font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;" title="Setujui permohonan reset kata sandi">
+                      <i class="icon-key mr-1"></i> Setujui Reset PW
+                    </button>
+                  </form>
+                @endif
+                @if(Auth::id() !== $st->id)
                 <form action="{{ route('manager.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun ini?">
                   @csrf
                   @method('DELETE')
@@ -94,6 +104,7 @@
                     Hapus
                   </button>
                 </form>
+                @endif
               </td>
             </tr>
           @empty
@@ -164,10 +175,17 @@
           </select>
         </div>
 
-        <div class="form-group mb-0" id="staffPhoneGroup" style="display: none;">
-          <label class="font-weight-bold text-dark small mb-1">Nomor WhatsApp</label>
-          <input type="text" name="phone" id="staffPhone" class="form-control" placeholder="081234567890" maxlength="20">
-          <small class="text-muted" style="font-size: 11px;">Kontak ini akan tampil di jadwal kelas &amp; trainer.</small>
+        <div id="trainerExtraFields" style="display: none;">
+          <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Nomor WhatsApp / Kontak</label>
+            <input type="text" name="phone" id="staffPhone" class="form-control" placeholder="081234567890" maxlength="20">
+            <small class="text-muted" style="font-size: 11px;">Kontak ini akan tampil di jadwal kelas &amp; penugasan trainer.</small>
+          </div>
+          <div class="form-group mb-0">
+            <label class="font-weight-bold text-dark small mb-1">Spesialisasi / Keahlian Trainer</label>
+            <input type="text" name="specialization" id="staffSpecialization" class="form-control" placeholder="Contoh: Bodybuilding, Yoga, Zumba, HIIT, Fat Loss">
+            <small class="text-muted" style="font-size: 11px;">Keahlian utama pelatih yang akan tampil di master data trainer.</small>
+          </div>
         </div>
       </div>
       <div class="modal-footer bg-light border-top">
@@ -212,24 +230,27 @@
 
   $(document).ready(function() {
     const roleSel = document.getElementById('staffRole');
-    const phoneGroup = document.getElementById('staffPhoneGroup');
+    const trainerExtra = document.getElementById('trainerExtraFields');
     const phoneInput = document.getElementById('staffPhone');
+    const specInput = document.getElementById('staffSpecialization');
 
-    function syncPhoneField() {
-      if (roleSel.value === 'trainer') {
-        phoneGroup.style.display = 'block';
-      } else {
-        phoneGroup.style.display = 'none';
-        phoneInput.value = '';
+    function syncTrainerFields() {
+      if (roleSel && roleSel.value === 'trainer') {
+        trainerExtra.style.display = 'block';
+      } else if (trainerExtra) {
+        trainerExtra.style.display = 'none';
+        if (phoneInput) phoneInput.value = '';
+        if (specInput) specInput.value = '';
       }
     }
 
-    roleSel.addEventListener('change', syncPhoneField);
+    if (roleSel) {
+      roleSel.addEventListener('change', syncTrainerFields);
+    }
 
     $('#createStaffModal').on('shown.bs.modal', function() {
-      syncPhoneField();
+      syncTrainerFields();
     });
-
     @if(isset($errors) && $errors->any())
       $('#createStaffModal').modal('show');
     @endif

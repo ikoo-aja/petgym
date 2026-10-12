@@ -44,6 +44,12 @@
             <form action="{{ route('member.login') }}" method="POST" class="bg-white p-4 p-md-5 shadow-sm rounded-lg border" style="border-radius: 12px;">
               @csrf
 
+              <!-- Alert Sukses (Verifikasi Email, Registrasi, dll) -->
+              @if(session('success'))
+                <div class="alert alert-success py-2 mb-4" role="alert" style="border-radius: 8px;">
+                  <small class="font-weight-bold"><i class="icon-check-circle mr-1"></i> {{ session('success') }}</small>
+                </div>
+              @endif
               <!-- Alert Error Gagal Login -->
               @if($errors->has('email'))
                 <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">

@@ -44,17 +44,39 @@ class ResetPasswordController extends Controller
             function ($user, $password) {
                 $user->forceFill([
                     'password' => $password, // cast 'hashed' di model User otomatis hash
+                    'must_change_password' => false,
                 ])->setRememberToken(Str::random(60)); // matikan cookie "remember me" lama
 
                 $user->save();
+
+                // Jika ada permohonan reset password admin yang terkait, tandai selesai
+                \App\Models\AdminPasswordResetRequest::where('user_id', $user->id)
+                    ->where('status', 'approved')
+                    ->update(['status' => 'completed']);
             }
         );
 
-        // 3. Arahkan sesuai hasil
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('success', 'Kata sandi Anda berhasil diperbarui. Silakan masuk dengan kata sandi baru.')
-            : back()
-                ->withInput($request->only('email'))
-                ->withErrors(['email' => 'Link reset password tidak valid atau sudah kadaluarsa. Silakan minta link baru.']);
+        // Pastikan tidak ada sesi aktif (tidak auto-login)
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            \Illuminate\Support\Facades\Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        // 3. Arahkan ke halaman login yang tepat
+        if ($status === Password::PASSWORD_RESET) {
+            $user = \App\Models\User::where('email', $request->email)->first();
+            if ($user && $user->role === 'member') {
+                $tenant = $user->tenant;
+                $memberLoginUrl = $tenant ? $tenant->publicLandingUrl() . '/login' : route('member.login');
+                return redirect($memberLoginUrl)->with('success', 'Kata sandi Anda berhasil diperbarui. Silakan masuk dengan kata sandi baru Anda.');
+            }
+
+            return redirect()->route('login')->with('success', 'Kata sandi Anda berhasil diperbarui. Silakan masuk dengan email dan kata sandi baru Anda.');
+        }
+
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => 'Link reset password tidak valid atau sudah kedaluwarsa. Silakan minta tautan reset baru.']);
     }
 }

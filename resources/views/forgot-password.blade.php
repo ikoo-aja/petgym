@@ -38,50 +38,54 @@
       </div>
     </div>
 
-    <!-- Main Forgot Password Section -->
+    <!-- Main Section (Struktur 100% Identik dengan Halaman Login) -->
     <div class="site-section bg-light contact-wrap" style="padding-top: 60px; padding-bottom: 80px; min-height: calc(100vh - 220px);">
       <div class="container">
 
         <div class="row justify-content-center text-center mb-4" data-aos="fade-up">
           <div class="col-md-8 section-heading mb-2">
-            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform PetGym</span>
-            <h2 class="heading mb-2 text-dark font-weight-bold">Lupa Kata Sandi?</h2>
-            <p class="text-muted">Masukkan email akun Anda, kami akan mengirimkan tautan untuk mengatur ulang kata sandi.</p>
+            <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform SaaS PetGym</span>
+            <h2 class="heading mb-2 text-dark font-weight-bold">Atur Ulang Kata Sandi</h2>
+            <p class="text-muted">Masukkan email akun Anda untuk mengajukan permohonan reset kata sandi ke Administrator.</p>
           </div>
         </div>
 
         <div class="row justify-content-center">
-          <div class="col-md-5" data-aos="fade-up" data-aos-delay="100">
-            <form action="{{ route('password.email') }}" method="POST" class="bg-white p-5 shadow-sm rounded-lg border">
+          <div class="col-md-6 col-lg-5" data-aos="fade-up" data-aos-delay="100">
+
+            <form action="{{ route('password.email') }}" method="POST" class="bg-white p-4 p-md-5 shadow-sm rounded-lg border" style="border-radius: 12px;">
               @csrf
 
-              <!-- Alert Error Validasi -->
-              @if($errors->has('email'))
-                <div class="alert alert-danger py-2 mb-4" role="alert">
-                  <small class="font-weight-bold"><i class="icon-exclamation-circle mr-1"></i> {{ $errors->first('email') }}</small>
-                </div>
-              @endif
-
-              <!-- Alert Sukses / Info (anti user enumeration: pesan sama untuk email terdaftar/tidak) -->
+              <!-- Alert Sukses / Status -->
               @if(session('status'))
-                <div class="alert alert-success py-2 mb-4" role="alert">
+                <div class="alert alert-success py-2 mb-4" role="alert" style="border-radius: 8px;">
                   <small class="font-weight-bold"><i class="icon-check-circle mr-1"></i> {{ session('status') }}</small>
                 </div>
               @endif
 
-              <div class="form-group mb-3">
-                <label for="email" class="text-dark font-weight-bold small">Alamat Email *</label>
-                <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control form-control-lg" placeholder="Masukkan alamat email Anda" required autofocus style="font-size: 15px;">
+              <!-- Alert Error Validasi -->
+              @if($errors->has('email'))
+                <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
+                  <small class="font-weight-bold"><i class="icon-exclamation-circle mr-1"></i> {{ $errors->first('email') }}</small>
+                </div>
+              @endif
+
+              <div class="form-group mb-4">
+                <label for="email" class="text-dark font-weight-bold small">Alamat Email Terdaftar <span class="text-danger">*</span></label>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="nama@email.com" required autofocus style="height: 48px; border-radius: 8px; font-size: 14px;">
+                <small class="form-text text-muted mt-1" style="font-size: 12px;">
+                  Permohonan akan diverifikasi sebelum tautan pembuatan kata sandi baru diterbitkan.
+                </small>
               </div>
 
-              <div class="form-group mb-3">
-                <button type="submit" class="btn btn-primary py-3 px-5 btn-block font-weight-bold shadow-sm" style="border-radius: 30px; font-size: 16px;">
-                  Kirim Tautan Atur Ulang Kata Sandi
+              <div class="form-group mb-4">
+                <button type="submit" class="btn btn-primary btn-block font-weight-bold shadow-sm" style="height: 48px; border-radius: 8px; font-size: 15px;">
+                  Kirim Permohonan Reset
                 </button>
               </div>
 
               <div class="text-center mt-4 pt-2 border-top">
-                <a href="{{ route('login') }}" class="text-primary small font-weight-bold">← Kembali ke Halaman Masuk</a>
+                <a href="{{ route('login') }}" class="text-muted small">← Kembali ke Halaman Masuk</a>
               </div>
             </form>
           </div>
@@ -121,5 +125,4 @@
   <script src="{{ asset('js/main.js') }}"></script>
 
 </body>
-
 </html>
