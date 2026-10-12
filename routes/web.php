@@ -130,6 +130,7 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::delete('/announcements/{id}', [SuperadminController::class, 'destroyAnnouncement'])->name('superadmin.announcements.destroy');
     Route::get('/logs', [SuperadminController::class, 'logs'])->name('superadmin.logs');
     Route::get('/settings', [SuperadminController::class, 'settings'])->name('superadmin.settings');
+    Route::post('/settings', [SuperadminController::class, 'updateSettings'])->name('superadmin.settings.update');
     Route::get('/profile', [SuperadminController::class, 'profile'])->name('superadmin.profile');
     Route::post('/clear-cache', [SuperadminController::class, 'clearCache'])->name('superadmin.clear-cache');
 });

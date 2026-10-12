@@ -2,12 +2,15 @@
 
 @section('title', 'Manajemen Staf (RBAC) &mdash; PetGym')
 @section('page_title', 'Manajemen Akun Staf & Hak Akses')
-@section('page_subtitle', 'Pendaftaran akun Resepsionis, Manager, serta Personal Trainer')
+@section('page_subtitle', 'Pendaftaran dan pengelolaan akun Pemilik Gym (Owner) dan Manager Gym')
 
 @section('content')
 <div class="card-custom">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h6 class="font-weight-bold text-dark mb-0">Daftar Akun Pengelola & Staf Internal</h6>
+    <div>
+      <h6 class="font-weight-bold text-dark mb-1">Daftar Akun Pengelola Utama (Owner & Manager)</h6>
+      <p class="text-muted small mb-0">Akun pengelola yang memiliki akses pengawasan tingkat tinggi dan manajemen operasional gym.</p>
+    </div>
     @if(!Auth::user() || !Auth::user()->isOwner())
     <button type="button" class="btn btn-sm btn-success font-weight-bold" data-toggle="modal" data-target="#createStaffModal" style="border-radius: 8px;">
       + Tambah Akun Baru
@@ -32,7 +35,12 @@
       <tbody>
         @forelse($staffs as $st)
           <tr>
-            <td class="font-weight-bold text-dark">{{ $st->name }}</td>
+            <td class="font-weight-bold text-dark">
+              {{ $st->name }}
+              @if(Auth::id() === $st->id)
+                <span class="badge badge-pill badge-light border text-muted ml-1" style="font-size: 10px;">(Akun Anda)</span>
+              @endif
+            </td>
             <td style="font-size: 13.5px;" class="text-dark font-weight-semibold">
               {{ \App\Helpers\PrivacyHelper::maskEmail($st->email) }}
               @if($st->hasVerifiedEmail())
@@ -43,7 +51,9 @@
             </td>
             <td>
               @if($st->role === 'admin')
-                <span class="badge badge-primary px-3 py-1">Admin</span>
+                <span class="badge badge-primary px-3 py-1">Admin Gym</span>
+              @elseif($st->role === 'owner')
+                <span class="badge badge-dark px-3 py-1">Pemilik (Owner)</span>
               @elseif($st->role === 'manager')
                 <span class="badge badge-warning text-dark px-3 py-1">Manager Gym</span>
               @elseif($st->role === 'receptionist')
@@ -77,8 +87,8 @@
                     <button type="submit" class="btn btn-sm btn-outline-info font-weight-bold" style="border-radius: 6px;">Kirim Verifikasi</button>
                   </form>
                 @endif
-                @if($st->role === 'manager' && Auth::id() !== $st->id)
-                  <form action="{{ route('admin.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun Manager ini? Pengguna tidak akan bisa login ke dashboard.' : 'Aktifkan kembali akun Manager ini?' }}">
+                @if(in_array($st->role, ['manager', 'owner']) && Auth::id() !== $st->id)
+                  <form action="{{ route('admin.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun ' . ($st->role === 'owner' ? 'Owner' : 'Manager') . ' ini? Pengguna tidak akan bisa login ke dashboard.' : 'Aktifkan kembali akun ' . ($st->role === 'owner' ? 'Owner' : 'Manager') . ' ini?' }}">
                     @csrf
                     @if($st->isActive())
                       <button type="submit" class="btn btn-sm btn-outline-warning text-dark font-weight-bold" style="border-radius: 6px;" title="Nonaktifkan Akun">
@@ -92,11 +102,13 @@
                   </form>
                 @endif
                 @if(Auth::id() !== $st->id)
-                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun ini?">
+                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun {{ $st->name }} ({{ ucfirst($st->role) }})?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 6px;">Hapus</button>
                   </form>
+                @else
+                  <span class="badge badge-light text-muted px-2 py-1" style="font-size: 11px;">Aktif (Sesi Anda)</span>
                 @endif
               @endif
             </td>

@@ -10,7 +10,8 @@ class AdminSettingController extends Controller
 {
     public function index()
     {
-        return redirect()->route('admin.landing.edit');
+        $tenant = Auth::user()->tenant;
+        return view('admin.settings.index', compact('tenant'));
     }
 
     public function update(Request $request)

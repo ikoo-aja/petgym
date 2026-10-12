@@ -36,7 +36,7 @@ class AdminStaffController extends Controller
         $tenant = $user->tenant;
 
         $staffs = User::where('tenant_id', $tenant->id)
-            ->whereIn('role', ['manager', 'owner'])
+            ->whereIn('role', ['admin', 'manager', 'owner'])
             ->latest()
             ->get();
 
@@ -73,7 +73,7 @@ class AdminStaffController extends Controller
         }
 
         if ($tenant && !$tenant->isStaffRoleAllowed($request->role)) {
-            return redirect()->back()->with('error', "Paket {$tenant->plan_name} dirancang untuk gym skala kecil dengan maksimal 5 akun staf (Staf & Resepsionis). Untuk mengelola akun Manager Gym & Personal Trainer, silakan upgrade ke Paket Pro atau Enterprise.");
+            return redirect()->back()->with('error', "Paket {$tenant->plan_name} tidak mengizinkan role {$request->role}. Silakan upgrade paket langganan.");
         }
 
         // Jika password kosong → generate password default otomatis
@@ -102,11 +102,19 @@ class AdminStaffController extends Controller
             );
         }
 
+        // Auto Sync ke data Tenant jika role owner
+        if ($staff->role === 'owner' && $tenant) {
+            $tenant->update([
+                'owner_name' => $staff->name,
+                'owner_email' => $staff->email,
+            ]);
+        }
+
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
-            'action' => 'Tambah Akun Staf',
-            'description' => "Mendaftarkan akun staf baru: {$staff->name} ({$staff->email}) sebagai {$staff->role}",
+            'action' => 'Tambah Akun Pengelola',
+            'description' => "Mendaftarkan akun pengelola baru: {$staff->name} ({$staff->email}) sebagai {$staff->role}",
             'ip_address' => $request->ip(),
         ]);
 

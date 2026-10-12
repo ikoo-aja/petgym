@@ -301,13 +301,13 @@
                       <div class="alert alert-info border-0 p-3 mb-4 rounded d-flex align-items-start" style="font-size: 13px; background-color: #f0f9ff; color: #0369a1; border-radius: 8px;">
                         <span class="icon-info mr-2 mt-1 font-weight-bold" style="font-size: 16px;"></span>
                         <div>
-                          Akun akan otomatis masuk ke <strong>Kelola Penyewa</strong> dengan masa aktif 30 hari. Akun Owner & Admin dibuat bersamaan.
+                          Akun akan otomatis masuk ke <strong>Kelola Penyewa</strong> dengan masa aktif 30 hari. Akun <strong>Admin</strong> akan dibuat untuk email pendaftar. Akun Owner & Manager nantinya dibuat oleh Admin di dasbornya.
                         </div>
                       </div>
 
                       <div class="row">
                         <div class="col-md-6 form-group mb-3">
-                          <label class="font-weight-bold text-dark small">Nama Pemilik Gym</label>
+                          <label class="font-weight-bold text-dark small">Nama Pemohon / Calon Admin</label>
                           <input type="text" class="form-control" value="{{ $reg->name }}" readonly style="background-color: #f8fafc; font-weight: 600;">
                         </div>
                         <div class="col-md-6 form-group mb-3">
@@ -318,7 +318,7 @@
 
                       <div class="row">
                         <div class="col-md-6 form-group mb-3">
-                          <label class="font-weight-bold text-dark small">Email Login Penyewa <span class="text-danger">*</span></label>
+                          <label class="font-weight-bold text-dark small">Email Login Admin Gym <span class="text-danger">*</span></label>
                           <input type="email" name="email" class="form-control" value="{{ $reg->email }}" required>
                         </div>
                         <div class="col-md-6 form-group mb-3">
@@ -365,30 +365,8 @@
                         </div>
                       </div>
 
-                      <!-- FITUR AKTIF TENANT (CHECKBOX MASTER FEATURES) -->
-                      <div class="form-group mb-3 bg-light p-3 rounded border">
-                        <label class="font-weight-bold text-dark small d-block mb-2">Kustomisasi Fitur Aktif Tenant (Dapat Diatur):</label>
-                        <div class="row px-2">
-                          @php
-                            $availableFeatures = [
-                              'Akses Manajemen Kelas',
-                              'Kasir / POS Sederhana',
-                              'Akses Manajemen Trainer',
-                              'Manajemen Inventaris',
-                              'Mobile App Member Access',
-                              'Analytics Lanjutan',
-                              'Kustom Domain Sendiri',
-                              'Dedicated Database',
-                              'Support Prioritas 24/7'
-                            ];
-                          @endphp
-                          @foreach($availableFeatures as $fIdx => $fTitle)
-                            <div class="col-md-4 mb-2 custom-control custom-checkbox">
-                              <input type="checkbox" class="custom-control-input" id="feat_{{ $fIdx }}_{{ $reg->id }}" name="features[]" value="{{ $fTitle }}" {{ $fIdx < 5 ? 'checked' : '' }}>
-                              <label class="custom-control-label small font-weight-bold" for="feat_{{ $fIdx }}_{{ $reg->id }}">{{ $fTitle }}</label>
-                            </div>
-                          @endforeach
-                        </div>
+                      <div class="alert alert-light border py-2 px-3 mb-3 rounded" style="font-size: 12.5px;">
+                        <i class="icon-info mr-1 text-primary"></i> <strong>Fitur & Modul:</strong> Fitur tenant otomatis disesuaikan secara penuh dengan paket sewa yang dipilih (fitur bawaan paket) tanpa perlu pengaturan manual.
                       </div>
 
                       <div class="form-group mb-0">
@@ -400,7 +378,7 @@
                     <div class="modal-footer bg-light py-3 px-4">
                       <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
                       <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-4">
-                        <span class="icon-check mr-1"></span> Buat Akun & Aktifkan Penyewa
+                        <span class="icon-check mr-1"></span> Buat Akun Admin & Aktifkan Penyewa
                       </button>
                     </div>
                   </form>

@@ -364,7 +364,7 @@ class Tenant extends Model
     public function isStaffRoleAllowed(string $role): bool
     {
         if ($this->plan_name === 'Paket Basic') {
-            return in_array($role, ['receptionist', 'supervisor', 'admin']);
+            return in_array($role, ['admin', 'owner', 'manager', 'receptionist', 'supervisor']);
         }
 
         return true;

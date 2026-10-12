@@ -142,7 +142,99 @@
         </div>
     </div>
 
-    <!-- 2. PENGUMUMAN & NOTIFIKASI SISTEM (FULL WIDTH HORIZONTAL) -->
+    <!-- 2. STATUS PENYIAPAN AKUN PENGELOLA (OWNER & MANAGER) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-white" style="border-radius: 14px;">
+                <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h6 class="font-weight-bold text-dark mb-1">
+                            <i class="icon-people text-primary mr-1"></i> Penyiapan Akun Pengelola Utama (Owner &amp; Manager)
+                        </h6>
+                        <small class="text-muted">Sebagai Admin, Anda bertugas membuat akun Owner (pemantauan &amp; rekening kasir) dan Manager (operasional &amp; staf).</small>
+                    </div>
+                    <a href="{{ route('admin.staff.index') }}" class="btn btn-sm btn-primary font-weight-bold px-3 py-2" style="border-radius: 8px;">
+                        <i class="icon-plus mr-1"></i> Buka Manajemen Akun
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- Akun Owner -->
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between {{ $ownerUser ? 'bg-light-success border-success' : 'bg-light border-warning' }}" style="border-radius: 10px;">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge {{ $ownerUser ? 'badge-success' : 'badge-warning text-dark' }} font-weight-bold px-2 py-1" style="font-size: 11px; border-radius: 6px;">
+                                            {{ $ownerUser ? '✓ Akun Owner Aktif' : '⚠ Belum Ada Akun Owner' }}
+                                        </span>
+                                        <small class="text-muted font-weight-bold">Peran: Owner</small>
+                                    </div>
+                                    <h5 class="font-weight-bold text-dark mb-1">
+                                        {{ $ownerUser ? $ownerUser->name : 'Pemilik Gym (Owner)' }}
+                                    </h5>
+                                    <p class="text-muted small mb-3">
+                                        @if($ownerUser)
+                                            Login: <strong>{{ $ownerUser->email }}</strong> &bull; Memiliki hak pantau laporan omset, audit trail, serta pengaturan rekening bank &amp; QRIS kasir.
+                                        @else
+                                            Belum ada akun Owner terdaftar. Buat akun ini agar pemilik gym dapat login memantau bisnis dan memasukkan nomor rekening/QRIS untuk kasir.
+                                        @endif
+                                    </p>
+                                </div>
+                                <div>
+                                    @if($ownerUser)
+                                        <a href="{{ route('admin.staff.index') }}" class="btn btn-sm btn-outline-success font-weight-bold btn-block" style="border-radius: 6px;">
+                                            Kelola Akun Owner
+                                        </a>
+                                    @else
+                                        <a href="{{ route('admin.staff.index') }}" class="btn btn-sm btn-warning font-weight-bold btn-block text-dark" style="border-radius: 6px;">
+                                            + Buat Akun Owner Sekarang
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Akun Manager -->
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between {{ $managerUser ? 'bg-light-success border-success' : 'bg-light border-info' }}" style="border-radius: 10px;">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge {{ $managerUser ? 'badge-success' : 'badge-info text-white' }} font-weight-bold px-2 py-1" style="font-size: 11px; border-radius: 6px;">
+                                            {{ $managerUser ? '✓ Akun Manager Aktif' : 'ℹ Belum Ada Akun Manager' }}
+                                        </span>
+                                        <small class="text-muted font-weight-bold">Peran: Manager</small>
+                                    </div>
+                                    <h5 class="font-weight-bold text-dark mb-1">
+                                        {{ $managerUser ? $managerUser->name : 'Manager Gym' }}
+                                    </h5>
+                                    <p class="text-muted small mb-3">
+                                        @if($managerUser)
+                                            Login: <strong>{{ $managerUser->email }}</strong> &bull; Mengelola operasional harian, master kelas &amp; trainer, approval member, serta merekrut Supervisor/Kasir/PT.
+                                        @else
+                                            Belum ada akun Manager terdaftar. Buat akun Manager untuk memimpin operasional, menyetujui member, dan mengelola staf lapangan.
+                                        @endif
+                                    </p>
+                                </div>
+                                <div>
+                                    @if($managerUser)
+                                        <a href="{{ route('admin.staff.index') }}" class="btn btn-sm btn-outline-success font-weight-bold btn-block" style="border-radius: 6px;">
+                                            Kelola Akun Manager
+                                        </a>
+                                    @else
+                                        <a href="{{ route('admin.staff.index') }}" class="btn btn-sm btn-primary font-weight-bold btn-block" style="border-radius: 6px;">
+                                            + Buat Akun Manager Sekarang
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. PENGUMUMAN & NOTIFIKASI SISTEM (FULL WIDTH HORIZONTAL) -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm bg-white" style="border-radius: 14px;">

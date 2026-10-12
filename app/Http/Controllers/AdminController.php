@@ -37,14 +37,18 @@ class AdminController extends Controller
         $websiteVisits = 1420;
         $visitsGrowth = 12;
 
-        // 2. Pesan Masuk / Leads Calon Klien (Form Kontak Website)
-        $unreadLeadsCount = 0;
-
         // 3. Pengumuman & Notifikasi dari Superadmin
         $announcements = Announcement::where('status', 'Active')
             ->latest()
             ->take(5)
             ->get();
+
+        // 4. Status Akun Pengelola (Owner & Manager)
+        $ownerUser = \App\Models\User::where('tenant_id', $tenant->id)->where('role', 'owner')->first();
+        $managerUser = \App\Models\User::where('tenant_id', $tenant->id)->where('role', 'manager')->first();
+        $totalStaffCount = \App\Models\User::where('tenant_id', $tenant->id)
+            ->whereIn('role', ['owner', 'manager', 'supervisor', 'receptionist', 'trainer'])
+            ->count();
 
         return view('admin.dashboard', compact(
             'user',
@@ -54,7 +58,10 @@ class AdminController extends Controller
             'visitsGrowth',
             'unreadLeadsCount',
             'announcements',
-            'landingUrl'
+            'landingUrl',
+            'ownerUser',
+            'managerUser',
+            'totalStaffCount'
         ));
     }
 }

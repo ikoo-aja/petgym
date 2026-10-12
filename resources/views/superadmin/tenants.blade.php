@@ -74,6 +74,8 @@
             $maskedEmail = maskEmail($oEmail);
             $expDays = $tenant->expires_in_days ?? 30;
             $featuresList = is_array($tenant->features) ? $tenant->features : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'];
+            $adminUser = $tenant->users ? $tenant->users->firstWhere('role', 'admin') : null;
+            $adminEmail = $adminUser ? $adminUser->email : $oEmail;
           @endphp
           <tr>
             <td>
@@ -98,7 +100,7 @@
               </div>
               <div>
                 <span class="badge badge-light border text-dark font-weight-bold" style="font-size: 10px;">
-                  <i class="icon-user-check text-success mr-1"></i> Login Admin: {{ $oEmail }}
+                  <i class="icon-user-check text-success mr-1"></i> Login Admin: {{ $adminEmail }}
                 </span>
               </div>
             </td>
@@ -147,28 +149,22 @@
             </td>
             <td>
               <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-1" type="button" id="dropdownMenuButton{{ $loop->index }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 12px; font-weight: 700;">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-1 px-2" type="button" id="dropdownMenuButton{{ $loop->index }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 12px; font-weight: 700;">
                   Pilihan
                 </button>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ $loop->index }}">
-                  <a class="dropdown-item btn-features-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}" data-plan-id="{{ $tenant->plan_id }}" data-features='@json($featuresList)'>
-                    <span class="icon-settings text-secondary mr-2"></span> Atur Fitur
-                  </a>
+                <div class="dropdown-menu dropdown-menu-right shadow-sm border-0" aria-labelledby="dropdownMenuButton{{ $loop->index }}" style="border-radius: 8px;">
                   @if($tenant->status == 'active')
-                    <a class="dropdown-item text-warning btn-suspend-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
-                      <span class="icon-pause mr-2"></span> Suspend
+                    <a class="dropdown-item text-warning font-weight-bold btn-suspend-tenant py-2" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
+                      <span class="icon-pause mr-2"></span> Suspend Akses
                     </a>
                   @else
-                    <a class="dropdown-item text-success btn-activate-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
-                      <span class="icon-play_arrow mr-2"></span> Aktifkan
+                    <a class="dropdown-item text-success font-weight-bold btn-activate-tenant py-2" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
+                      <span class="icon-play_arrow mr-2"></span> Aktifkan Akses
                     </a>
                   @endif
-                  <a class="dropdown-item text-primary btn-reset-password-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}" data-subdomain="{{ $tenant->subdomain }}" data-owner="{{ $tenant->owner_name ?? '-' }}" data-owner-email="{{ $tenant->owner_email ?? '-' }}" data-admin-email="{{ $oEmail }}">
-                    <span class="icon-key text-primary mr-2"></span> Reset Sandi Admin
-                  </a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item text-danger btn-delete-tenant" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
-                    <span class="icon-close mr-2"></span> Hapus
+                  <div class="dropdown-divider my-1"></div>
+                  <a class="dropdown-item text-danger btn-delete-tenant py-2" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
+                    <span class="icon-close mr-2"></span> Hapus Tenant
                   </a>
                 </div>
               </div>
@@ -226,9 +222,9 @@
             <small class="text-muted">Hanya masukkan nama subdomain (tanpa spasi/simbol).</small>
           </div>
           <div class="form-group mb-3">
-            <label class="text-black font-weight-bold">Email Pemilik Gym <span class="text-danger">*</span></label>
-            <input type="email" name="owner_email" class="form-control" placeholder="owner@powerhouse.com" required>
-            <small class="text-muted">Akun Owner & Admin akan dibuat otomatis dengan password default: <strong>1234</strong>.</small>
+            <label class="text-black font-weight-bold">Email Admin Gym (Pendaftar) <span class="text-danger">*</span></label>
+            <input type="email" name="owner_email" class="form-control" placeholder="admin@powerhouse.com" required>
+            <small class="text-muted">Akun <strong>Admin</strong> akan dibuat otomatis dengan password default: <strong>1234</strong>. Setelah masuk, Admin dapat membuat akun Owner dan Manager.</small>
           </div>
           <div class="form-group mb-3">
             <label class="text-black font-weight-bold">Pilihan Paket Sewa</label>
@@ -242,223 +238,18 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm font-weight-bold">Daftarkan & Buat Akun</button>
+          <button type="submit" class="btn btn-primary btn-sm font-weight-bold">Daftarkan & Buat Akun Admin</button>
         </div>
       </form>
     </div>
   </div>
 </div>
-
-<!-- MODAL: ATUR FITUR & ADD-ON TENANT -->
-<div class="modal fade" id="configureFeaturesModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-header-title font-weight-bold text-black" id="featuresModalLabel">Atur Fitur & Add-on Tenant</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <form action="" method="POST" id="configureFeaturesForm">
-        @csrf
-        <div class="modal-body">
-          <div class="mb-3 bg-light p-3 rounded" style="font-size: 14px;">
-            Mengonfigurasi modul fitur aktif untuk: <strong class="text-black" id="featuresTenantName">Gym Name</strong>
-          </div>
-
-          <div class="form-group mb-3">
-            <label class="text-black font-weight-bold">Tingkat Paket Sewa</label>
-            <select name="plan_id" id="featuresPlanId" class="form-control">
-              <option value="">-- Tetap Gunakan Paket Saat Ini --</option>
-              @foreach($plans as $p)
-                <option value="{{ $p->id }}">{{ $p->name }} (Rp {{ number_format($p->price, 0, ',', '.') }}/bln)</option>
-              @endforeach
-            </select>
-            <small class="text-muted">Pilih paket jika ingin mengubah tier langganan gym ini.</small>
-          </div>
-
-          <hr class="my-3">
-
-          <div class="form-group">
-            <label class="text-black font-weight-bold d-block mb-3">Fitur Terintegrasi</label>
-
-            <!-- Feature Toggles -->
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Akses Manajemen Kelas" class="custom-control-input feat-sw" id="featClass" data-slug="Class">
-              <label class="custom-control-label font-weight-bold text-black" for="featClass" style="cursor: pointer;">Akses Manajemen Kelas</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Membuat jadwal kelas, booking member, dan absensi trainer.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Kasir / POS Sederhana" class="custom-control-input feat-sw" id="featPOS" data-slug="POS">
-              <label class="custom-control-label font-weight-bold text-black" for="featPOS" style="cursor: pointer;">Kasir / POS Sederhana</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Mengaktifkan modul transaksi kasir dan invoice harian.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Akses Manajemen Trainer" class="custom-control-input feat-sw" id="featTrainer" data-slug="Trainer">
-              <label class="custom-control-label font-weight-bold text-black" for="featTrainer" style="cursor: pointer;">Akses Manajemen Trainer</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Penjadwalan personal trainer (PT) dan perhitungan komisi.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Manajemen Inventaris" class="custom-control-input feat-sw" id="featInventory" data-slug="Inventory">
-              <label class="custom-control-label font-weight-bold text-black" for="featInventory" style="cursor: pointer;">Manajemen Inventaris</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Melacak stok suplemen, merchandise, handuk, dan logistik gym.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Mobile App Member Access" class="custom-control-input feat-sw" id="featMobile" data-slug="Mobile">
-              <label class="custom-control-label font-weight-bold text-black" for="featMobile" style="cursor: pointer;">Mobile App Member Access</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Memberikan hak login ke aplikasi iOS/Android untuk check-in QR Code.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Analytics Lanjutan" class="custom-control-input feat-sw" id="featAnalytics" data-slug="Analytics">
-              <label class="custom-control-label font-weight-bold text-black" for="featAnalytics" style="cursor: pointer;">Analytics Lanjutan</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Laporan perkiraan churn rate member dan analisis finansial mendalam.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Kustom Domain Sendiri" class="custom-control-input feat-sw" id="featDomain" data-slug="Domain">
-              <label class="custom-control-label font-weight-bold text-black" for="featDomain" style="cursor: pointer;">Kustom Domain Sendiri</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Menggunakan nama domain sendiri untuk branding gym.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Dedicated Database" class="custom-control-input feat-sw" id="featDatabase" data-slug="Database">
-              <label class="custom-control-label font-weight-bold text-black" for="featDatabase" style="cursor: pointer;">Dedicated Database</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Basis data terisolasi khusus untuk performa & keamanan tinggi.</small>
-            </div>
-
-            <div class="custom-control custom-switch mb-3">
-              <input type="checkbox" name="features[]" value="Support Prioritas 24/7" class="custom-control-input feat-sw" id="featSupport" data-slug="Support">
-              <label class="custom-control-label font-weight-bold text-black" for="featSupport" style="cursor: pointer;">Support Prioritas 24/7</label>
-              <small class="form-text text-muted" style="margin-left: 28px;">Layanan bantuan teknis dan customer service prioritas 24 jam.</small>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm">Simpan Fitur Aktif ke Database</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: RESET PASSWORD ADMIN TENANT -->
-<div class="modal fade" id="resetPasswordModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content" style="border-radius: 14px;">
-      <div class="modal-header">
-        <div>
-          <h5 class="modal-header-title font-weight-bold text-black mb-0">
-            <i class="icon-key text-primary mr-1"></i> Reset Sandi Admin Tenant
-          </h5>
-          <small class="text-muted">Pemulihan akses darurat untuk pemilik / pengelola gym</small>
-        </div>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <form id="resetPasswordForm" action="" method="POST">
-        @csrf
-        <div class="modal-body p-4">
-          <div class="alert alert-info py-2 mb-3" style="font-size: 12.5px; border-radius: 8px;">
-            <i class="icon-info mr-1"></i> Sandi baru akan otomatis mewajibkan Admin untuk mengganti kata sandi saat pertama kali login (<strong>Must Change Password</strong>).
-          </div>
-
-          <div class="bg-light p-3 rounded mb-3 border" style="border-radius: 10px; font-size: 13px;">
-            <div class="d-flex justify-content-between mb-1">
-              <span class="text-muted">Gym / Tenant:</span>
-              <strong class="text-dark" id="resetTenantName">-</strong>
-            </div>
-            <div class="d-flex justify-content-between mb-1">
-              <span class="text-muted">Email Owner Resmi:</span>
-              <strong class="text-dark" id="resetOwnerEmail">-</strong>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Akun Admin yang Direset:</span>
-              <strong class="text-primary" id="resetAdminEmail">-</strong>
-            </div>
-          </div>
-
-          <div class="form-group mb-0">
-            <label class="font-weight-bold text-dark" style="font-size: 13px;">Password Sementara Baru</label>
-            <div class="input-group">
-              <input type="text" name="password" id="resetPasswordInput" class="form-control font-weight-bold" placeholder="Klik tombol Acak untuk generate" required minlength="4">
-              <div class="input-group-append">
-                <button type="button" class="btn btn-outline-secondary font-weight-bold" id="btnGenPassword" style="font-size: 12px;">
-                  <i class="icon-refresh mr-1"></i> Acak Sandi
-                </button>
-              </div>
-            </div>
-            <small class="form-text text-muted">Bisa diketik manual atau menggunakan generator acak di atas.</small>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm font-weight-bold">Simpan & Reset Sandi</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: HASIL RESET KREDENSIAL (POPUP COPY) -->
-@if(session('reset_credentials'))
-@php $cred = session('reset_credentials'); @endphp
-<div class="modal fade" id="credentialsModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content" style="border-radius: 16px; border: 2px solid #22c55e;">
-      <div class="modal-header bg-success text-white py-3">
-        <h5 class="modal-title font-weight-bold">
-          <i class="icon-check-circle mr-1"></i> Sandi Admin Berhasil Di-Reset!
-        </h5>
-        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body p-4">
-        <p class="text-dark small mb-3">
-          Akses akun Admin untuk gym <strong>{{ $cred['tenant_name'] }}</strong> telah diperbarui. Silakan salin detail login di bawah ini untuk diteruskan kepada Pemilik Gym (<strong>{{ $cred['owner_email'] }}</strong>):
-        </p>
-
-        <div class="bg-light p-3 rounded border mb-3 position-relative" style="border-radius: 10px; font-family: monospace; font-size: 13px;" id="credentialsText">
-          <div><strong>URL Login:</strong> <a href="{{ $cred['login_url'] }}" target="_blank">{{ $cred['login_url'] }}</a></div>
-          <div><strong>Email Login:</strong> {{ $cred['admin_email'] }}</div>
-          <div><strong>Sandi Baru:</strong> <span class="text-danger font-weight-bold" style="font-size: 15px;">{{ $cred['new_password'] }}</span></div>
-        </div>
-
-        <button type="button" class="btn btn-success btn-block font-weight-bold py-2" id="btnCopyCredentials" style="border-radius: 8px;">
-          <i class="icon-copy mr-1"></i> Salin Seluruh Detail Login
-        </button>
-      </div>
-      <div class="modal-footer py-2">
-        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
-      </div>
-    </div>
-  </div>
-</div>
-@endif
 
 @endsection
 
 @section('scripts')
 <script>
   $(document).ready(function() {
-    // Tampilkan modal hasil reset kredensial otomatis jika ada session
-    @if(session('reset_credentials'))
-      $('#credentialsModal').modal('show');
-
-      $('#btnCopyCredentials').on('click', function() {
-        @php $c = session('reset_credentials'); @endphp
-        const textToCopy = `*DETAIL LOGIN ADMIN GYM*\nGym: {{ $c['tenant_name'] }}\nURL Login: {{ $c['login_url'] }}\nEmail: {{ $c['admin_email'] }}\nPassword Sementara: {{ $c['new_password'] }}\n\n_Catatan: Anda akan diminta mengganti password ini saat pertama kali login._`;
-        navigator.clipboard.writeText(textToCopy).then(function() {
-          showToast('Sukses', 'Detail login berhasil disalin ke clipboard!', 'success');
-        });
-      });
-    @endif
-
     // 0. Toggle Masking / Sensor Email Pemilik
     $(document).on('click', '.btn-toggle-email', function(e) {
       e.preventDefault();
@@ -477,63 +268,6 @@
         btn.find('span').removeClass('icon-eye').addClass('icon-eye-slash');
         btn.attr('title', 'Sembunyikan Email Pemilik');
       }
-    });
-
-    // 1. Membuka Modal Atur Fitur & Populasikan Data DB
-    $(document).on('click', '.btn-features-tenant', function(e) {
-      e.preventDefault();
-      const tenantId = $(this).data('id');
-      const tenantName = $(this).data('name');
-      const planId = $(this).data('plan-id');
-      const features = $(this).data('features') || [];
-
-      $('#featuresTenantName').text(tenantName);
-      $('#configureFeaturesForm').attr('action', "{{ url('/superadmin/tenants') }}/" + tenantId + "/features");
-      $('#featuresPlanId').val(planId || '');
-
-      // Reset centang
-      $('.feat-sw').prop('checked', false);
-
-      // Centang fitur aktif dari DB
-      $('.feat-sw').each(function() {
-        const val = $(this).val();
-        const slug = $(this).data('slug');
-        if (features.includes(val) || features.includes(slug)) {
-          $(this).prop('checked', true);
-        }
-      });
-
-      $('#configureFeaturesModal').modal('show');
-    });
-
-    // 1b. Reset Password Admin Tenant
-    function generateSecurePassword() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let result = 'PetGym-';
-      for (let i = 0; i < 6; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
-    }
-
-    $(document).on('click', '.btn-reset-password-tenant', function(e) {
-      e.preventDefault();
-      const tenantId = $(this).data('id');
-      const tenantName = $(this).data('name');
-      const ownerEmail = $(this).data('owner-email');
-      const adminEmail = $(this).data('admin-email');
-
-      $('#resetTenantName').text(tenantName);
-      $('#resetOwnerEmail').text(ownerEmail);
-      $('#resetAdminEmail').text(adminEmail);
-      $('#resetPasswordInput').val(generateSecurePassword());
-      $('#resetPasswordForm').attr('action', "{{ url('/superadmin/tenants') }}/" + tenantId + "/reset-password");
-
-      $('#resetPasswordModal').modal('show');
-    });
-
-    $('#btnGenPassword').on('click', function() {
-      $('#resetPasswordInput').val(generateSecurePassword());
     });
 
     // 2. Toggle Suspend / Aktifkan Tenant via Database

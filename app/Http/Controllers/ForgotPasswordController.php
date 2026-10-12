@@ -41,13 +41,25 @@ class ForgotPasswordController extends Controller
                 $request->only('email')
             );
         } catch (\Throwable $e) {
-            // Server email (SMTP) sedang tidak terhubung — jangan tampilkan 500.
-            // Pesan tetap aman (tidak membocorkan apakah email terdaftar).
             report($e);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status'  => 'warning',
+                    'message' => 'Sistem email sedang tidak terhubung, sehingga tautan belum dapat dikirimkan. Silakan coba beberapa saat lagi atau hubungi administrator.',
+                ], 500);
+            }
 
             return back()
                 ->with('status', self::SAFE_RESPONSE)
                 ->with('warning', 'Sistem email sedang tidak terhubung, sehingga tautan belum terkirim. Silakan hubungi administrator.');
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Tautan reset kata sandi telah dikirim ke {$request->email}! Silakan periksa kotak masuk atau spam email Anda.",
+            ]);
         }
 
         // 3. Respons identik mau email terdaftar atau tidak (anti user enumeration)

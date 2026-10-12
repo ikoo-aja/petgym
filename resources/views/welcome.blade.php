@@ -559,7 +559,7 @@
                     </div>
                     <div>
                       <small class="text-white-50 d-block font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">EMAIL DUKUNGAN</small>
-                      <a href="mailto:support@petgym.com" class="text-white font-weight-bold text-decoration-none">support@petgym.com</a>
+                      <a href="mailto:ibrahimied004@gmail.com" class="text-white font-weight-bold text-decoration-none">ibrahimied004@gmail.com</a>
                     </div>
                   </div>
                 </div>

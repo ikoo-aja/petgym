@@ -56,6 +56,8 @@
             <form action="{{ route('login') }}" method="POST" class="bg-white p-4 p-md-5 shadow-sm rounded-lg border" style="border-radius: 12px;">
               @csrf
 
+              <div id="resetAlertContainer"></div>
+
               <!-- Alert Error Gagal Login -->
               @if($errors->has('email'))
                 <div class="alert alert-danger py-2 mb-4" role="alert" style="border-radius: 8px;">
@@ -71,7 +73,7 @@
               <div class="form-group mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                   <label for="password" class="text-dark font-weight-bold small mb-0">Kata Sandi</label>
-                  <a href="{{ route('password.request') }}" class="text-primary small font-weight-bold">Lupa kata sandi?</a>
+                  <a href="javascript:void(0)" id="btnForgotPw" class="text-primary small font-weight-bold" title="Kirim tautan reset kata sandi ke email Anda">Lupa kata sandi?</a>
                 </div>
                 <div class="input-group">
                   <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan kata sandi Anda" required style="height: 48px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; font-size: 14px;">
@@ -133,15 +135,93 @@
   const passwordInput = document.querySelector('#password');
   const toggleIcon = document.querySelector('#toggleIcon');
 
-  togglePasswordBtn.addEventListener('click', function () {
-    const isPassword = passwordInput.getAttribute('type') === 'password';
-    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+  if (togglePasswordBtn && passwordInput && toggleIcon) {
+    togglePasswordBtn.addEventListener('click', function () {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
 
-    toggleIcon.classList.toggle('icon-eye');
-    toggleIcon.classList.toggle('icon-eye-slash'); 
-    toggleIcon.classList.toggle('text-primary');
-    toggleIcon.classList.toggle('text-muted');
-  });   
+      toggleIcon.classList.toggle('icon-eye');
+      toggleIcon.classList.toggle('icon-eye-slash'); 
+      toggleIcon.classList.toggle('text-primary');
+      toggleIcon.classList.toggle('text-muted');
+    });
+  }
+
+  // Handle Lupa Kata Sandi Langsung dari Form Login
+  const btnForgotPw = document.getElementById('btnForgotPw');
+  const emailInput = document.getElementById('email');
+  const alertContainer = document.getElementById('resetAlertContainer');
+
+  if (btnForgotPw && emailInput && alertContainer) {
+    btnForgotPw.addEventListener('click', function (e) {
+      e.preventDefault();
+      const emailVal = emailInput.value.trim();
+
+      if (!emailVal) {
+        alertContainer.innerHTML = `
+          <div class="alert alert-warning py-2 mb-3" style="border-radius: 8px; font-size: 13px;">
+            <i class="icon-info-circle mr-1"></i> <strong>Ketikkan email Anda</strong> pada kolom Alamat Email terlebih dahulu, lalu klik kembali <u>Lupa kata sandi?</u> untuk menerima link reset.
+          </div>
+        `;
+        emailInput.focus();
+        return;
+      }
+
+      // Validasi format email sederhana
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailVal)) {
+        alertContainer.innerHTML = `
+          <div class="alert alert-danger py-2 mb-3" style="border-radius: 8px; font-size: 13px;">
+            <i class="icon-exclamation-circle mr-1"></i> Format email tidak valid. Silakan periksa kembali alamat email Anda.
+          </div>
+        `;
+        emailInput.focus();
+        return;
+      }
+
+      const origText = btnForgotPw.innerHTML;
+      btnForgotPw.innerHTML = '<span class="spinner-border spinner-border-sm mr-1"></span> Mengirim...';
+      btnForgotPw.style.pointerEvents = 'none';
+
+      fetch("{{ route('password.email') }}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ email: emailVal })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btnForgotPw.innerHTML = origText;
+        btnForgotPw.style.pointerEvents = 'auto';
+
+        if (data.status === 'warning') {
+          alertContainer.innerHTML = `
+            <div class="alert alert-warning py-2 mb-3" style="border-radius: 8px; font-size: 13px;">
+              <i class="icon-warning mr-1"></i> ${data.message}
+            </div>
+          `;
+        } else {
+          alertContainer.innerHTML = `
+            <div class="alert alert-success py-2 mb-3" style="border-radius: 8px; font-size: 13px;">
+              <i class="icon-check-circle mr-1"></i> ${data.message || 'Tautan atur ulang kata sandi telah dikirim ke ' + emailVal + '! Silakan periksa kotak masuk atau spam email Anda.'}
+            </div>
+          `;
+        }
+      })
+      .catch(err => {
+        btnForgotPw.innerHTML = origText;
+        btnForgotPw.style.pointerEvents = 'auto';
+        alertContainer.innerHTML = `
+          <div class="alert alert-danger py-2 mb-3" style="border-radius: 8px; font-size: 13px;">
+            <i class="icon-close mr-1"></i> Terjadi kesalahan jaringan saat mengirim tautan reset. Silakan coba lagi.
+          </div>
+        `;
+      });
+    });
+  }
 </script>
   <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
   <script src="{{ asset('js/jquery-migrate-3.0.1.min.js') }}"></script>

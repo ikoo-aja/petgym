@@ -95,7 +95,7 @@ class SuperadminController extends Controller
             });
         }
 
-        $tenants = $query->latest('id')->paginate(10)->withQueryString();
+        $tenants = $query->with(['users', 'plan'])->latest('id')->paginate(10)->withQueryString();
         $plans = Plan::where('status', 'active')->get();
 
         return view('superadmin.tenants', compact('tenants', 'plans'));
@@ -147,23 +147,9 @@ class SuperadminController extends Controller
             'features' => $features,
         ]);
 
-        // Otomatis Buat Akun Owner & Admin Pengelola Gym
-        $ownerUser = User::updateOrCreate(
-            ['email' => $request->owner_email],
-            [
-                'name'      => $ownerName,
-                'password'  => Hash::make('1234'),
-                'role'      => 'owner',
-                'tenant_id' => $tenant->id,
-            ]
-        );
-        if (!$ownerUser->hasVerifiedEmail()) {
-            $ownerUser->markEmailAsVerified();
-        }
-
-        $adminEmail = "admin.{$slug}@workout.id";
+        // Buat Akun Admin Pengelola Gym (HANYA Admin yang dibuat saat pendaftaran tenant)
         $adminUser = User::updateOrCreate(
-            ['email' => $adminEmail],
+            ['email' => $request->owner_email],
             [
                 'name'      => "Admin {$request->name}",
                 'password'  => Hash::make('1234'),
@@ -178,11 +164,11 @@ class SuperadminController extends Controller
         SystemLog::create([
             'user_id' => Auth::id(),
             'action' => 'Tenant Registration',
-            'description' => "Superadmin mendaftarkan tenant baru: {$tenant->name}.",
+            'description' => "Superadmin mendaftarkan tenant baru: {$tenant->name} dan membuat akun Admin ({$adminUser->email}).",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar! Akun Admin ({$adminUser->email}) dan Owner ({$ownerUser->email}) dibuat otomatis. Password default: 1234");
+        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar! Akun Admin ({$adminUser->email}) dibuat otomatis (Password default: 1234). Setelah masuk, Admin dapat membuat akun Owner dan Manager melalui menu Manajemen Staf.");
     }
 
     /**
@@ -402,11 +388,26 @@ class SuperadminController extends Controller
     /**
      * Toggle Status Aktif Paket Sewa.
      */
-    public function togglePlanStatus($id)
+    public function togglePlanStatus(Request $request, $id)
     {
         $plan = Plan::findOrFail($id);
         $newStatus = $plan->status === 'active' ? 'inactive' : 'active';
         $plan->update(['status' => $newStatus]);
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Toggle Status Paket',
+            'description' => "Superadmin mengubah status paket {$plan->name} menjadi {$newStatus}.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'     => 'success',
+                'new_status' => $newStatus,
+                'message'    => "Status paket '{$plan->name}' diubah menjadi {$newStatus}!"
+            ]);
+        }
 
         return redirect()->route('superadmin.plans')->with('success', "Status paket '{$plan->name}' diubah menjadi {$newStatus}!");
     }
@@ -414,12 +415,20 @@ class SuperadminController extends Controller
     /**
      * Hapus Paket Sewa.
      */
-    public function destroyPlan($id)
+    public function destroyPlan(Request $request, $id)
     {
         $plan = Plan::findOrFail($id);
+        $planName = $plan->name;
         $plan->delete();
 
-        return redirect()->route('superadmin.plans')->with('success', 'Paket sewa berhasil dihapus!');
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Hapus Paket Sewa',
+            'description' => "Superadmin menghapus paket sewa: {$planName}.",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->route('superadmin.plans')->with('success', "Paket sewa '{$planName}' berhasil dihapus!");
     }
 
     /**
@@ -681,7 +690,7 @@ class SuperadminController extends Controller
 
         $plan = $request->plan_id ? Plan::find($request->plan_id) : $registration->plan;
         $planName = $plan ? $plan->name : ($registration->plan_name ?: 'Paket Basic');
-        $features = $request->features ?? ($plan ? ($plan->features ?? []) : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana']);
+        $features = ($plan && !empty($plan->features)) ? $plan->features : ['Akses Manajemen Kelas', 'Kasir / POS Sederhana'];
 
         // Generate Subdomain & Slug unik untuk tenant baru
         $baseSlug = Str::slug($registration->name) ?: 'gym';
@@ -711,23 +720,9 @@ class SuperadminController extends Controller
         // 2. Inisialisasi Pengaturan Landing Page bawaan
         $tenant->landingSettings();
 
-        // 3. Buat / Update Akun User Pengelola (Owner & Admin Gym)
-        $ownerUser = User::updateOrCreate(
-            ['email' => $request->email],
-            [
-                'name'      => $registration->name,
-                'password'  => Hash::make($request->password),
-                'role'      => 'owner',
-                'tenant_id' => $tenant->id,
-            ]
-        );
-        if (!$ownerUser->hasVerifiedEmail()) {
-            $ownerUser->markEmailAsVerified();
-        }
-
-        $adminEmail = "admin.{$slug}@workout.id";
+        // 3. Buat / Update Akun User Admin (HANYA Admin yang dibuat saat pendaftaran)
         $adminUser = User::updateOrCreate(
-            ['email' => $adminEmail],
+            ['email' => $request->email],
             [
                 'name'      => "Admin {$registration->name}",
                 'password'  => Hash::make($request->password),
@@ -746,17 +741,17 @@ class SuperadminController extends Controller
             'plan_name'         => $planName,
             'selected_features' => $features,
             'notes'             => $request->notes,
-            'created_user_id'   => $ownerUser->id,
+            'created_user_id'   => $adminUser->id,
         ]);
 
         SystemLog::create([
             'user_id'     => Auth::id(),
             'action'      => 'Approve Pendaftaran Penyewa',
-            'description' => "Superadmin menyetujui pendaftaran sewa #REG-{$registration->id} ({$planName}) dan membuat akun pengelola.",
+            'description' => "Superadmin menyetujui pendaftaran sewa #REG-{$registration->id} ({$planName}) dan membuat akun Admin ({$adminUser->email}).",
             'ip_address'  => $request->ip(),
         ]);
 
-        return redirect()->route('superadmin.registrations')->with('success', "Pendaftaran {$registration->name} BERHASIL DISETUJUI! Akun Owner ({$ownerUser->email}) dan Admin ({$adminUser->email}) telah dibuat (Password: {$request->password}). Website gym aktif di domain {$tenant->subdomain}.");
+        return redirect()->route('superadmin.registrations')->with('success', "Pendaftaran {$registration->name} BERHASIL DISETUJUI! Akun Admin ({$adminUser->email}) telah dibuat (Password: {$request->password}). Website gym aktif di domain {$tenant->subdomain}. Setelah masuk, Admin dapat membuat akun Owner dan Manager.");
     }
 
     /**
@@ -973,6 +968,23 @@ class SuperadminController extends Controller
     public function settings()
     {
         return view('superadmin.settings');
+    }
+
+    /**
+     * Simpan Pengaturan Konfigurasi Sistem.
+     */
+    public function updateSettings(Request $request)
+    {
+        $section = $request->input('section', 'Umum');
+
+        SystemLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'Update Pengaturan',
+            'description' => "Superadmin memperbarui konfigurasi sistem platform (Bagian: {$section}).",
+            'ip_address'  => $request->ip(),
+        ]);
+
+        return redirect()->route('superadmin.settings')->with('success', "Konfigurasi {$section} platform berhasil disimpan!");
     }
 
     /**

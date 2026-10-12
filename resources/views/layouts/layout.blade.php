@@ -423,23 +423,28 @@
 
       @if($userRole === 'admin')
       <li>
-        <a href="{{ route('admin.subscription.index') }}" class="{{ request()->routeIs('admin.subscription.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-credit-card"></span></span> Langganan website
-        </a>
-      </li>
-      <li>
         <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Staf
-        </a>
-      </li>
-      <li>
-        <a href="{{ route('account.settings') }}" class="{{ request()->routeIs('account.settings*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Pengaturan Akun
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Owner & Manager
         </a>
       </li>
       <li>
         <a href="{{ route('admin.landing.edit') }}" class="{{ request()->routeIs('admin.landing.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-globe"></span></span> Pengaturan Web
+          <span class="icon-wrapper"><span class="icon-globe"></span></span> Desain Landing Page
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Profil Gym
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('admin.subscription.index') }}" class="{{ request()->routeIs('admin.subscription.*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-credit-card"></span></span> Langganan SaaS & Billing
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('account.settings') }}" class="{{ request()->routeIs('account.settings*') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Pengaturan Akun Admin
         </a>
       </li>
       @endif

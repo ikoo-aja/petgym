@@ -12,8 +12,9 @@
     <!-- Pengaturan Umum -->
     <div class="bg-white p-4 rounded shadow-sm mb-4">
       <h5 class="font-weight-bold text-black mb-4">Pengaturan Umum</h5>
-      <form action="#" method="POST">
+      <form action="{{ route('superadmin.settings.update') }}" method="POST">
         @csrf
+        <input type="hidden" name="section" value="Umum">
         <div class="form-group row">
           <label class="col-sm-4 col-form-label text-black font-weight-bold">Nama Platform</label>
           <div class="col-sm-8">
@@ -43,7 +44,7 @@
         </div>
         <div class="row mt-4">
           <div class="col-sm-8 offset-sm-4">
-            <button type="submit" class="btn btn-primary btn-sm px-4" onclick="event.preventDefault(); showToast('Pengaturan Disimpan', 'Konfigurasi umum platform berhasil diperbarui!', 'success');">Simpan Perubahan</button>
+            <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold">Simpan Perubahan</button>
           </div>
         </div>
       </form>
@@ -53,17 +54,18 @@
     <div class="bg-white p-4 rounded shadow-sm mb-4">
       <h5 class="font-weight-bold text-black mb-3">Konfigurasi Free Trial</h5>
       <p class="text-muted" style="font-size: 14px;">Atur durasi percobaan gratis untuk registrasi tenant mandiri baru.</p>
-      <form action="#" method="POST">
+      <form action="{{ route('superadmin.settings.update') }}" method="POST">
         @csrf
+        <input type="hidden" name="section" value="Free Trial">
         <div class="form-group row">
           <label class="col-sm-4 col-form-label text-black font-weight-bold">Durasi Trial (Hari)</label>
           <div class="col-sm-8">
-            <input type="number" name="trial_duration" class="form-control" value="14">
+            <input type="number" name="trial_duration" class="form-control" value="14" min="1" max="90">
           </div>
         </div>
         <div class="row mt-3">
           <div class="col-sm-8 offset-sm-4">
-            <button type="submit" class="btn btn-warning text-white btn-sm px-4" onclick="event.preventDefault(); showToast('Durasi Trial Diubah', 'Durasi free trial baru berhasil disimpan: ' + $('input[name=\'trial_duration\']').val() + ' Hari', 'success');">Simpan Durasi Trial</button>
+            <button type="submit" class="btn btn-warning text-white btn-sm px-4 font-weight-bold">Simpan Durasi Trial</button>
           </div>
         </div>
       </form>
@@ -72,8 +74,9 @@
     <!-- Konfigurasi SMTP Email -->
     <div class="bg-white p-4 rounded shadow-sm mb-4">
       <h5 class="font-weight-bold text-black mb-4">Konfigurasi Email (SMTP)</h5>
-      <form action="#" method="POST">
+      <form action="{{ route('superadmin.settings.update') }}" method="POST">
         @csrf
+        <input type="hidden" name="section" value="SMTP Email">
         <div class="form-group row">
           <label class="col-sm-4 col-form-label text-black font-weight-bold">SMTP Host</label>
           <div class="col-sm-8">
@@ -110,7 +113,7 @@
         </div>
         <div class="row mt-4">
           <div class="col-sm-8 offset-sm-4">
-            <button type="submit" class="btn btn-primary btn-sm px-4" onclick="event.preventDefault(); showToast('SMTP Diperbarui', 'Konfigurasi kredensial SMTP berhasil disimpan!', 'success');">Simpan SMTP</button>
+            <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold">Simpan SMTP</button>
           </div>
         </div>
       </form>
