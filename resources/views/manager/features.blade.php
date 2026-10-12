@@ -271,12 +271,38 @@
       </div>
     </div>
 
-    <!-- 5. TAB DATABASE VENDOR -->
+    <!-- 5. TAB DATABASE VENDOR & INVENTARIS PASOKAN -->
     <div class="tab-pane fade {{ $activeTab === 'vendor' ? 'show active' : '' }}" id="vendor-sec" role="tabpanel">
-      <div class="card-custom p-4">
+      <!-- KPI Valuation Cards -->
+      <div class="row mb-4">
+        <div class="col-md-4 mb-3 mb-md-0">
+          <div class="card-custom p-3 border-left border-primary" style="border-left-width: 4px !important;">
+            <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Valuasi Stok Gudang</span>
+            <h4 class="font-weight-bold text-primary mb-0">Rp {{ number_format($totalWarehouseValuation, 0, ',', '.') }}</h4>
+            <small class="text-muted">{{ $products->sum('warehouse_stock') }} pcs di ruang gudang</small>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+          <div class="card-custom p-3 border-left border-info" style="border-left-width: 4px !important;">
+            <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Valuasi Stok Etalase</span>
+            <h4 class="font-weight-bold text-info mb-0">Rp {{ number_format($totalDisplayValuation, 0, ',', '.') }}</h4>
+            <small class="text-muted">{{ $products->sum('stock') }} pcs dipajang di kasir</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-custom p-3 border-left border-success" style="border-left-width: 4px !important;">
+            <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Total Aset Inventaris</span>
+            <h4 class="font-weight-bold text-success mb-0">Rp {{ number_format($totalInventoryValuation, 0, ',', '.') }}</h4>
+            <small class="text-muted">Total {{ $products->count() }} jenis produk ritel</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Database Kontak Vendor -->
+      <div class="card-custom p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h5 class="font-weight-bold text-dark mb-1">Daftar Rekanan Vendor</h5>
+            <h5 class="font-weight-bold text-dark mb-1">Daftar Rekanan Vendor &amp; Pemasok</h5>
             <p class="text-muted small mb-0">Informasi kontak penyedia alat kebugaran, suplemen, kebersihan, dan teknisi servis.</p>
           </div>
           <button type="button" class="btn btn-sm btn-primary font-weight-bold" data-toggle="modal" data-target="#addVendorModal">
@@ -328,6 +354,65 @@
               @empty
                 <tr>
                   <td colspan="6" class="text-center py-4 text-muted">Belum ada buku kontak vendor mitra.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Card Pasokan Produk Berdasarkan Vendor -->
+      <div class="card-custom p-4">
+        <h6 class="font-weight-bold text-dark mb-3">Monitoring Pasokan Produk dari Vendor</h6>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
+              <tr>
+                <th>Nama Produk</th>
+                <th>Kategori</th>
+                <th>Vendor Mitra</th>
+                <th>Harga Beli (HPP)</th>
+                <th>Harga Jual Kasir</th>
+                <th class="text-center">Stok Gudang</th>
+                <th class="text-center">Stok Etalase</th>
+                <th class="text-center">Total Stok</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($products as $p)
+                <tr>
+                  <td class="font-weight-bold text-dark">{{ $p->name }}</td>
+                  <td><span class="badge badge-light border">{{ ucfirst($p->category ?? 'Ritel') }}</span></td>
+                  <td class="font-weight-500 text-dark">{{ $p->vendor_name ?: '-' }}</td>
+                  <td class="text-muted">Rp {{ number_format($p->cost_price ?: 0, 0, ',', '.') }}</td>
+                  <td class="font-weight-bold text-success">Rp {{ number_format($p->price, 0, ',', '.') }}</td>
+                  <td class="text-center">
+                    <span class="badge {{ $p->warehouse_stock <= 5 ? 'badge-danger' : 'badge-primary' }} px-2 py-1">
+                      {{ $p->warehouse_stock }} pcs
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge {{ $p->stock <= 10 ? 'badge-warning text-dark' : 'badge-success' }} px-2 py-1">
+                      {{ $p->stock }} pcs
+                    </span>
+                  </td>
+                  <td class="text-center font-weight-bold text-dark">{{ $p->warehouse_stock + $p->stock }} pcs</td>
+                  <td>
+                    @if(($p->warehouse_stock + $p->stock) == 0)
+                      <span class="badge badge-danger">Habis Total</span>
+                    @elseif($p->warehouse_stock == 0)
+                      <span class="badge badge-warning text-dark">Gudang Kosong</span>
+                    @elseif($p->stock == 0)
+                      <span class="badge badge-info">Belum Dipajang</span>
+                    @else
+                      <span class="badge badge-success">Tersedia</span>
+                    @endif
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="9" class="text-center py-3 text-muted">Belum ada data produk inventaris.</td>
                 </tr>
               @endforelse
             </tbody>
@@ -560,9 +645,7 @@
   </div>
 </div>
 
-@endsection
-
-@push('scripts')
+@section('scripts')
 <script>
   $(document).ready(function() {
     // 1. Edit Promo Modal
@@ -595,4 +678,4 @@
     });
   });
 </script>
-@endpush
+@endsection

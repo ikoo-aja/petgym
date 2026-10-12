@@ -30,7 +30,7 @@
               <div class="input-group-prepend">
                 <span class="input-group-text font-weight-bold">Rp</span>
               </div>
-              <input type="number" name="end_cash" class="form-control font-weight-bold" placeholder="Hitung seluruh uang fisik di laci kasir" required min="0" style="border-radius: 0 8px 8px 0;">
+              <input type="text" name="end_cash" class="form-control font-weight-bold rupiah-input" placeholder="Hitung seluruh uang fisik di laci kasir" required autocomplete="off" style="border-radius: 0 8px 8px 0;">
             </div>
             <small class="text-muted mt-1 d-block">Hitung seluruh uang fisik di laci kasir untuk diserahterimakan ke shift berikutnya.</small>
           </div>
@@ -52,7 +52,7 @@
               <div class="input-group-prepend">
                 <span class="input-group-text font-weight-bold">Rp</span>
               </div>
-              <input type="number" name="start_cash" class="form-control font-weight-bold" placeholder="Contoh: 200000" required min="0" style="border-radius: 0 8px 8px 0;">
+              <input type="text" name="start_cash" class="form-control font-weight-bold rupiah-input" placeholder="Contoh: 200.000" required autocomplete="off" style="border-radius: 0 8px 8px 0;">
             </div>
             <small class="text-muted mt-1 d-block">Hitung uang kas kembalian di laci saat serah terima dari shift sebelumnya.</small>
           </div>

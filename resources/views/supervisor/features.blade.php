@@ -89,24 +89,27 @@
                     @endif
                   </td>
                   <td>
-                    @if($vt->void_status === 'pending')
-                      <div class="d-flex gap-1">
+                    <div class="d-flex align-items-center gap-1">
+                      <button type="button" class="btn btn-xs btn-outline-primary mr-1" onclick="openInvoiceReceiptModal({{ $vt->id }})" title="Lihat Rincian Struk" style="border-radius: 6px;">
+                        <i class="icon-file-text-o mr-1"></i> Struk
+                      </button>
+                      @if($vt->void_status === 'pending')
                         <form action="{{ route('supervisor.void.approve', $vt->id) }}" method="POST" class="d-inline" data-confirm="Setujui pembatalan invoice {{ $vt->invoice_number }}? Stok produk akan dikembalikan secara otomatis.">
                           @csrf
-                          <button type="submit" class="btn btn-sm btn-success font-weight-bold mr-1">
+                          <button type="submit" class="btn btn-xs btn-success font-weight-bold mr-1" style="border-radius: 6px;">
                             <i class="icon-check mr-1"></i> Setujui
                           </button>
                         </form>
                         <form action="{{ route('supervisor.void.reject', $vt->id) }}" method="POST" class="d-inline" data-confirm="Tolak permohonan pembatalan invoice {{ $vt->invoice_number }}?">
                           @csrf
-                          <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold">
+                          <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius: 6px;">
                             <i class="icon-close mr-1"></i> Tolak
                           </button>
                         </form>
-                      </div>
-                    @else
-                      <span class="text-muted small">Selesai diproses</span>
-                    @endif
+                      @else
+                        <span class="text-muted small">Selesai</span>
+                      @endif
+                    </div>
                   </td>
                 </tr>
               @empty
@@ -367,80 +370,276 @@
       </div>
     </div>
 
-    <!-- 4. TAB STOK RITEL MENIPIS -->
+    <!-- 4. TAB GUDANG & INVENTARIS BARANG DARI VENDOR -->
     <div class="tab-pane fade {{ $activeTab === 'stock' ? 'show active' : '' }}" id="stock-sec" role="tabpanel">
-      <div class="card-custom p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="font-weight-bold text-dark mb-1">Peringatan Stok Menipis</h5>
-            <p class="text-muted small mb-0">Daftar produk jualan kasir dengan sisa stok sepuluh unit atau kurang.</p>
+      <!-- KPI Stats Card Row -->
+      <div class="row mb-4">
+        <div class="col-md-4 mb-3 mb-md-0">
+          <div class="card-custom p-3 border-left border-primary" style="border-left-width: 4px !important;">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Valuasi Stok Gudang</span>
+                <h4 class="font-weight-bold text-primary mb-0">Rp {{ number_format($totalWarehouseValuation, 0, ',', '.') }}</h4>
+                <small class="text-muted">{{ $allProducts->sum('warehouse_stock') }} unit di ruang gudang</small>
+              </div>
+              <div class="p-3 rounded-circle" style="background: rgba(30,115,190,0.1);">
+                <i class="icon-cube text-primary" style="font-size: 24px;"></i>
+              </div>
+            </div>
           </div>
         </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+          <div class="card-custom p-3 border-left border-info" style="border-left-width: 4px !important;">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Valuasi Stok Etalase</span>
+                <h4 class="font-weight-bold text-info mb-0">Rp {{ number_format($totalDisplayValuation, 0, ',', '.') }}</h4>
+                <small class="text-muted">{{ $allProducts->sum('stock') }} unit dipajang di kasir</small>
+              </div>
+              <div class="p-3 rounded-circle" style="background: rgba(23,162,184,0.1);">
+                <i class="icon-shopping-bag text-info" style="font-size: 24px;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-custom p-3 border-left border-success" style="border-left-width: 4px !important;">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-muted small font-weight-bold text-uppercase d-block mb-1">Total Aset Inventaris</span>
+                <h4 class="font-weight-bold text-success mb-0">Rp {{ number_format($totalInventoryValuation, 0, ',', '.') }}</h4>
+                <small class="text-muted">Total {{ $allProducts->count() }} jenis produk ritel</small>
+              </div>
+              <div class="p-3 rounded-circle" style="background: rgba(40,167,69,0.1);">
+                <i class="icon-money text-success" style="font-size: 24px;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <div class="table-responsive mb-4">
+      <!-- Alerts / Peringatan Stok Kritis -->
+      @if(($lowStockProducts && $lowStockProducts->count() > 0) || ($lowWarehouseProducts && $lowWarehouseProducts->count() > 0))
+        <div class="row mb-4">
+          @if($lowWarehouseProducts && $lowWarehouseProducts->count() > 0)
+            <div class="col-md-6 mb-3 mb-md-0">
+              <div class="alert alert-danger mb-0 shadow-sm border-0" style="border-radius: 10px;">
+                <div class="d-flex align-items-center mb-1">
+                  <span class="icon-warning mr-2 font-weight-bold" style="font-size: 18px;"></span>
+                  <strong class="font-weight-bold">Stok Gudang Kritis (&le; 5 unit)</strong>
+                </div>
+                <small class="d-block mb-2 text-dark">Produk ini perlu segera di-restock dari Vendor:</small>
+                <ul class="mb-0 pl-3 small">
+                  @foreach($lowWarehouseProducts as $lwp)
+                    <li><strong>{{ $lwp->name }}</strong>: Sisa Gudang <strong>{{ $lwp->warehouse_stock }} pcs</strong> (Vendor: {{ $lwp->vendor_name ?: 'Mitra' }})</li>
+                  @endforeach
+                </ul>
+              </div>
+            </div>
+          @endif
+          @if($lowStockProducts && $lowStockProducts->count() > 0)
+            <div class="col-md-6">
+              <div class="alert alert-warning mb-0 shadow-sm border-0" style="border-radius: 10px;">
+                <div class="d-flex align-items-center mb-1">
+                  <span class="icon-bell mr-2 font-weight-bold" style="font-size: 18px;"></span>
+                  <strong class="font-weight-bold">Stok Etalase Kasir Menipis (&le; 10 unit)</strong>
+                </div>
+                <small class="d-block mb-2 text-dark">Kasir perlu memajang barang tambahan dari gudang:</small>
+                <ul class="mb-0 pl-3 small">
+                  @foreach($lowStockProducts as $lsp)
+                    <li><strong>{{ $lsp->name }}</strong>: Etalase <strong>{{ $lsp->stock }} pcs</strong> | Tersedia di Gudang: <strong>{{ $lsp->warehouse_stock }} pcs</strong></li>
+                  @endforeach
+                </ul>
+              </div>
+            </div>
+          @endif
+        </div>
+      @endif
+
+      <!-- Card Tabel Master Produk & Gudang -->
+      <div class="card-custom p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="font-weight-bold text-dark mb-1">Manajemen Gudang &amp; Pasokan Vendor</h5>
+            <p class="text-muted small mb-0">Supervisor mencatat penerimaan barang dari vendor ke gudang backroom sebelum dipajang kasir ke etalase.</p>
+          </div>
+          <button type="button" class="btn btn-primary font-weight-bold px-3 py-2 mt-2 mt-sm-0" data-toggle="modal" data-target="#addProductModal" style="border-radius: 8px;">
+            <i class="icon-plus mr-1"></i> Terima Produk dari Vendor
+          </button>
+        </div>
+
+        <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase;">
               <tr>
-                <th>Nama Produk</th>
+                <th>Produk</th>
                 <th>Kategori</th>
-                <th>Harga Jual</th>
-                <th>Sisa Stok Fisik</th>
-                <th>Status Ketersediaan</th>
+                <th>Vendor Pemasok</th>
+                <th>Harga Modal (HPP)</th>
+                <th>Harga Jual (Kasir)</th>
+                <th class="text-center">Stok Gudang</th>
+                <th class="text-center">Stok Etalase</th>
+                <th class="text-center">Total Fisik</th>
+                <th>Status</th>
+                <th class="text-right">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              @forelse($lowStockProducts as $lsp)
+              @forelse($allProducts as $p)
                 <tr>
-                  <td><strong class="text-dark">{{ $lsp->name }}</strong></td>
-                  <td><span class="badge badge-secondary">{{ $lsp->category ?? 'Umum' }}</span></td>
-                  <td>Rp {{ number_format($lsp->price, 0, ',', '.') }}</td>
-                  <td><strong class="text-danger" style="font-size: 15px;">{{ $lsp->stock }}</strong> unit</td>
                   <td>
-                    @if($lsp->stock == 0)
-                      <span class="badge badge-danger font-weight-bold">Habis Total</span>
+                    <strong class="text-dark">{{ $p->name }}</strong>
+                  </td>
+                  <td>
+                    @if($p->category === 'supplement')
+                      <span class="badge badge-info">Suplemen</span>
+                    @elseif($p->category === 'drink')
+                      <span class="badge badge-success">Minuman</span>
+                    @elseif($p->category === 'merchandise')
+                      <span class="badge badge-primary">Merchandise</span>
                     @else
-                      <span class="badge badge-warning text-dark font-weight-bold">Menipis (Perlu Restock)</span>
+                      <span class="badge badge-secondary">{{ ucfirst($p->category ?? 'Umum') }}</span>
                     @endif
+                  </td>
+                  <td>
+                    <span class="text-dark font-weight-500">{{ $p->vendor_name ?: '-' }}</span>
+                  </td>
+                  <td class="text-muted">
+                    Rp {{ number_format($p->cost_price ?: 0, 0, ',', '.') }}
+                  </td>
+                  <td class="font-weight-bold text-dark">
+                    Rp {{ number_format($p->price, 0, ',', '.') }}
+                  </td>
+                  <td class="text-center">
+                    <span class="badge {{ $p->warehouse_stock <= 5 ? 'badge-danger' : 'badge-primary' }} px-2 py-1" style="font-size: 13px;">
+                      {{ $p->warehouse_stock }} pcs
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge {{ $p->stock <= 10 ? 'badge-warning text-dark' : 'badge-success' }} px-2 py-1" style="font-size: 13px;">
+                      {{ $p->stock }} pcs
+                    </span>
+                  </td>
+                  <td class="text-center font-weight-bold text-dark">
+                    {{ $p->warehouse_stock + $p->stock }} pcs
+                  </td>
+                  <td>
+                    @if(($p->warehouse_stock + $p->stock) == 0)
+                      <span class="badge badge-danger font-weight-bold">Habis Total</span>
+                    @elseif($p->warehouse_stock == 0 && $p->stock > 0)
+                      <span class="badge badge-warning text-dark font-weight-bold">Gudang Kosong</span>
+                    @elseif($p->stock == 0 && $p->warehouse_stock > 0)
+                      <span class="badge badge-info font-weight-bold">Belum Dipajang</span>
+                    @else
+                      <span class="badge badge-success font-weight-bold">Tersedia</span>
+                    @endif
+                  </td>
+                  <td class="text-right text-nowrap">
+                    <button type="button" class="btn btn-sm btn-outline-success font-weight-bold mr-1 btn-restock-prod"
+                      data-id="{{ $p->id }}"
+                      data-name="{{ $p->name }}"
+                      data-vendor="{{ $p->vendor_name }}"
+                      data-cost="{{ $p->cost_price }}"
+                      data-warehouse="{{ $p->warehouse_stock }}"
+                      title="Restock Kiriman Vendor">
+                      <i class="icon-plus"></i> Restock
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold mr-1 btn-edit-prod"
+                      data-id="{{ $p->id }}"
+                      data-name="{{ $p->name }}"
+                      data-category="{{ $p->category }}"
+                      data-price="{{ $p->price }}"
+                      data-cost="{{ $p->cost_price }}"
+                      data-vendor="{{ $p->vendor_name }}"
+                      title="Ubah Data Produk">
+                      <i class="icon-pencil"></i>
+                    </button>
+                    <form action="{{ route('supervisor.products.destroy', $p->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini dari database?');">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" title="Hapus Produk">
+                        <i class="icon-trash"></i>
+                      </button>
+                    </form>
                   </td>
                 </tr>
               @empty
                 <tr>
-                  <td colspan="5" class="text-center py-4 text-muted">
-                    <span class="icon-check-circle text-success d-block mb-1" style="font-size: 24px;"></span>
-                    Semua stok produk ritel dalam kondisi aman (di atas 10 unit).
+                  <td colspan="10" class="text-center py-4 text-muted">
+                    <span class="icon-cube text-muted d-block mb-1" style="font-size: 28px;"></span>
+                    Belum ada data produk inventaris gudang. Klik tombol "Terima Produk dari Vendor" untuk mulai input.
                   </td>
                 </tr>
               @endforelse
             </tbody>
           </table>
         </div>
+      </div>
 
-        <h6 class="font-weight-bold text-dark mb-3 border-top pt-3">Katalog Produk Kasir</h6>
-        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+      <!-- Card Riwayat Mutasi Stok Gudang & Etalase -->
+      <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="font-weight-bold text-dark mb-1">Riwayat Aliran &amp; Mutasi Stok (Audit Trail)</h5>
+            <p class="text-muted small mb-0">Log pencatatan masuk barang dari vendor, transfer gudang ke etalase, dan penjualan kasir.</p>
+          </div>
+        </div>
+
+        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
           <table class="table table-hover align-middle mb-0">
             <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
               <tr>
+                <th>Waktu</th>
                 <th>Produk</th>
-                <th>Kategori</th>
-                <th>Harga Jual</th>
-                <th>Stok</th>
+                <th>Jenis Mutasi</th>
+                <th class="text-center">Jumlah</th>
+                <th>Operator</th>
+                <th>Keterangan</th>
               </tr>
             </thead>
             <tbody>
-              @forelse($allProducts as $p)
+              @forelse($stockMutations as $sm)
                 <tr>
-                  <td class="font-weight-bold text-dark">{{ $p->name }}</td>
-                  <td>{{ $p->category ?? 'Umum' }}</td>
-                  <td>Rp {{ number_format($p->price, 0, ',', '.') }}</td>
+                  <td class="small text-muted text-nowrap">
+                    {{ $sm->created_at ? $sm->created_at->format('d M Y H:i') : '-' }}
+                  </td>
+                  <td class="font-weight-bold text-dark">
+                    {{ $sm->product ? $sm->product->name : 'Produk Dihapus' }}
+                  </td>
                   <td>
-                    <span class="badge {{ $p->stock <= 10 ? 'badge-warning text-dark' : 'badge-success' }} font-weight-bold">
-                      {{ $p->stock }} unit
-                    </span>
+                    @if($sm->type === 'in_vendor')
+                      <span class="badge badge-success"><i class="icon-arrow-down mr-1"></i> Masuk Vendor</span>
+                    @elseif($sm->type === 'transfer_to_display')
+                      <span class="badge badge-info"><i class="icon-arrow-right mr-1"></i> Pajang ke Etalase</span>
+                    @elseif($sm->type === 'sale_pos')
+                      <span class="badge badge-primary"><i class="icon-shopping-cart mr-1"></i> Penjualan Kasir</span>
+                    @elseif($sm->type === 'adjustment')
+                      <span class="badge badge-warning text-dark"><i class="icon-refresh mr-1"></i> Penyesuaian</span>
+                    @else
+                      <span class="badge badge-secondary">{{ $sm->type }}</span>
+                    @endif
+                  </td>
+                  <td class="text-center">
+                    @if($sm->type === 'in_vendor')
+                      <strong class="text-success">+{{ $sm->qty }} pcs</strong>
+                    @elseif($sm->type === 'transfer_to_display')
+                      <strong class="text-info">{{ $sm->qty }} pcs</strong>
+                    @elseif($sm->type === 'sale_pos')
+                      <strong class="text-danger">-{{ $sm->qty }} pcs</strong>
+                    @else
+                      <strong>{{ $sm->qty }} pcs</strong>
+                    @endif
+                  </td>
+                  <td class="small text-dark font-weight-500">
+                    {{ $sm->user ? $sm->user->name : 'Sistem' }}
+                  </td>
+                  <td class="small text-muted">
+                    {{ $sm->notes ?: '-' }}
                   </td>
                 </tr>
               @empty
                 <tr>
-                  <td colspan="4" class="text-center py-3 text-muted">Belum ada produk jualan kasir.</td>
+                  <td colspan="6" class="text-center py-3 text-muted">Belum ada catatan mutasi stok.</td>
                 </tr>
               @endforelse
             </tbody>
@@ -721,7 +920,7 @@
         <div class="row">
           <div class="col-md-6 form-group mb-3">
             <label class="font-weight-bold text-dark small mb-1">Biaya Perbaikan (Rp) *</label>
-            <input type="number" name="cost" class="form-control" value="0" min="0" required style="border-radius: 8px;">
+            <input type="text" name="cost" class="form-control rupiah-input" value="0" required autocomplete="off" style="border-radius: 8px;">
           </div>
           <div class="col-md-6 form-group mb-3">
             <label class="font-weight-bold text-dark small mb-1">Tanggal Servis *</label>
@@ -957,9 +1156,185 @@
   </div>
 </div>
 
+<!-- Modal Terima Produk Baru dari Vendor -->
+<div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form action="{{ route('supervisor.products.store') }}" method="POST" class="modal-content shadow border-0" style="border-radius: 12px;">
+      @csrf
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Terima Produk Baru dari Vendor</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark small mb-1">Nama Produk *</label>
+          <input type="text" name="name" class="form-control" placeholder="Contoh: Whey Protein Gold 2lbs" required style="border-radius: 8px;">
+        </div>
+        <div class="row">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Kategori Produk *</label>
+            <select name="category" class="form-control" required style="border-radius: 8px;">
+              <option value="supplement">Suplemen &amp; Nutrisi</option>
+              <option value="drink">Minuman &amp; Isotonik</option>
+              <option value="merchandise">Merchandise / Apparel</option>
+            </select>
+          </div>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Vendor Pemasok</label>
+            <input type="text" name="vendor_name" list="vendorList" class="form-control" placeholder="Pilih / ketik vendor..." style="border-radius: 8px;">
+            <datalist id="vendorList">
+              @foreach($vendors as $v)
+                <option value="{{ $v->name }}">{{ $v->category ? "({$v->category})" : '' }}</option>
+              @endforeach
+            </datalist>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Harga Beli / Modal (HPP) *</label>
+            <div class="input-group">
+              <div class="input-group-prepend"><span class="input-group-text bg-light">Rp</span></div>
+              <input type="number" name="cost_price" class="form-control" placeholder="0" min="0" required style="border-radius: 0 8px 8px 0;">
+            </div>
+          </div>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Harga Jual Kasir *</label>
+            <div class="input-group">
+              <div class="input-group-prepend"><span class="input-group-text bg-light">Rp</span></div>
+              <input type="number" name="price" class="form-control" placeholder="0" min="0" required style="border-radius: 0 8px 8px 0;">
+            </div>
+          </div>
+        </div>
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark small mb-1">Jumlah Stok Masuk ke Gudang *</label>
+          <div class="input-group">
+            <input type="number" name="warehouse_stock" class="form-control" placeholder="Contoh: 50" min="0" value="10" required style="border-radius: 8px 0 0 8px;">
+            <div class="input-group-append"><span class="input-group-text bg-light">pcs</span></div>
+          </div>
+          <small class="text-muted mt-1 d-block">Barang akan langsung masuk ke stok <strong>Gudang</strong> dan siap dipajang kasir ke etalase.</small>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold px-3" data-dismiss="modal" style="border-radius: 8px;">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold px-4" style="border-radius: 8px;">Simpan ke Gudang</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Restock Kiriman Vendor -->
+<div class="modal fade" id="restockProductModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form id="restockProductForm" method="POST" class="modal-content shadow border-0" style="border-radius: 12px;">
+      @csrf
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Penerimaan Restock dari Vendor</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="p-3 bg-light rounded border mb-3" style="border-radius: 8px;">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted small">Produk:</span>
+            <strong class="text-dark small" id="restockProdName">-</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small">Sisa Stok Gudang:</span>
+            <span class="badge badge-primary" id="restockProdWarehouse">0 pcs</span>
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark small mb-1">Jumlah Masuk ke Gudang (+ pcs) *</label>
+          <div class="input-group">
+            <input type="number" name="qty_add" class="form-control" placeholder="Contoh: 20" min="1" required style="border-radius: 8px 0 0 8px;">
+            <div class="input-group-append"><span class="input-group-text bg-light">pcs</span></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Vendor Pengirim</label>
+            <input type="text" name="vendor_name" id="restockProdVendor" list="vendorList" class="form-control" placeholder="Nama vendor..." style="border-radius: 8px;">
+          </div>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Harga Modal Baru (HPP)</label>
+            <div class="input-group">
+              <div class="input-group-prepend"><span class="input-group-text bg-light">Rp</span></div>
+              <input type="number" name="cost_price" id="restockProdCost" class="form-control" placeholder="0" min="0" style="border-radius: 0 8px 8px 0;">
+            </div>
+          </div>
+        </div>
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark small mb-1">No. Surat Jalan / Catatan</label>
+          <input type="text" name="notes" class="form-control" placeholder="Contoh: PO-2026/09/VENDOR-01" style="border-radius: 8px;">
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold px-3" data-dismiss="modal" style="border-radius: 8px;">Batal</button>
+        <button type="submit" class="btn btn-success font-weight-bold px-4" style="border-radius: 8px;">Simpan Penerimaan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Ubah Data Produk Gudang -->
+<div class="modal fade" id="editProductModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form id="editProductForm" method="POST" class="modal-content shadow border-0" style="border-radius: 12px;">
+      @csrf
+      @method('PUT')
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Ubah Data Produk</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark small mb-1">Nama Produk *</label>
+          <input type="text" name="name" id="editProdName" class="form-control" required style="border-radius: 8px;">
+        </div>
+        <div class="row">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Kategori *</label>
+            <select name="category" id="editProdCategory" class="form-control" required style="border-radius: 8px;">
+              <option value="supplement">Suplemen &amp; Nutrisi</option>
+              <option value="drink">Minuman &amp; Isotonik</option>
+              <option value="merchandise">Merchandise / Apparel</option>
+            </select>
+          </div>
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Vendor Pemasok</label>
+            <input type="text" name="vendor_name" id="editProdVendor" list="vendorList" class="form-control" style="border-radius: 8px;">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Harga Beli / Modal (HPP) *</label>
+            <div class="input-group">
+              <div class="input-group-prepend"><span class="input-group-text bg-light">Rp</span></div>
+              <input type="number" name="cost_price" id="editProdCost" class="form-control" min="0" required style="border-radius: 0 8px 8px 0;">
+            </div>
+          </div>
+          <div class="col-md-6 form-group mb-0">
+            <label class="font-weight-bold text-dark small mb-1">Harga Jual Kasir *</label>
+            <div class="input-group">
+              <div class="input-group-prepend"><span class="input-group-text bg-light">Rp</span></div>
+              <input type="number" name="price" id="editProdPrice" class="form-control" min="0" required style="border-radius: 0 8px 8px 0;">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold px-3" data-dismiss="modal" style="border-radius: 8px;">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold px-4" style="border-radius: 8px;">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+@include('partials.receipt-modal')
+
 @endsection
 
-@push('scripts')
+@section('scripts')
 <script>
   $(document).ready(function() {
     // 1. Edit Equipment Modal
@@ -1001,6 +1376,29 @@
       $('#editComplaintResolution').val($(this).data('resolution'));
       $('#editComplaintModal').modal('show');
     });
+
+    // 4. Restock Product from Vendor Modal
+    $('.btn-restock-prod').on('click', function() {
+      const id = $(this).data('id');
+      $('#restockProductForm').attr('action', '/supervisor/products/' + id + '/restock');
+      $('#restockProdName').text($(this).data('name'));
+      $('#restockProdWarehouse').text($(this).data('warehouse') + ' pcs');
+      $('#restockProdVendor').val($(this).data('vendor') || '');
+      $('#restockProdCost').val($(this).data('cost') || '');
+      $('#restockProductModal').modal('show');
+    });
+
+    // 5. Edit Product Modal
+    $('.btn-edit-prod').on('click', function() {
+      const id = $(this).data('id');
+      $('#editProductForm').attr('action', '/supervisor/products/' + id);
+      $('#editProdName').val($(this).data('name'));
+      $('#editProdCategory').val($(this).data('category'));
+      $('#editProdVendor').val($(this).data('vendor') || '');
+      $('#editProdCost').val($(this).data('cost') || 0);
+      $('#editProdPrice').val($(this).data('price') || 0);
+      $('#editProductModal').modal('show');
+    });
   });
 </script>
-@endpush
+@endsection

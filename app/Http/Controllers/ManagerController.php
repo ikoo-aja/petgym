@@ -14,6 +14,8 @@ use App\Models\Member;
 use App\Models\PosTransaction;
 use App\Models\CheckIn;
 use App\Models\StaffLog;
+use App\Models\Product;
+use App\Models\StockMutation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -117,6 +119,16 @@ class ManagerController extends Controller
         // 4. Database Vendor & Mitra Eksternal
         $vendors = Vendor::where('tenant_id', $tenant->id)->latest()->get();
 
+        // 5. Data Inventaris & Valuasi Stok (Gudang & Etalase)
+        $products = Product::where('tenant_id', $tenant->id)->latest()->get();
+        $totalWarehouseValuation = $products->sum(function($p) {
+            return $p->warehouse_stock * ($p->cost_price ?: $p->price * 0.7);
+        });
+        $totalDisplayValuation = $products->sum(function($p) {
+            return $p->stock * ($p->cost_price ?: $p->price * 0.7);
+        });
+        $totalInventoryValuation = $totalWarehouseValuation + $totalDisplayValuation;
+
         return view('manager.features', compact(
             'user',
             'tenant',
@@ -125,7 +137,11 @@ class ManagerController extends Controller
             'receptionistPerformance',
             'trainerPerformance',
             'dailyCashRecap',
-            'vendors'
+            'vendors',
+            'products',
+            'totalWarehouseValuation',
+            'totalDisplayValuation',
+            'totalInventoryValuation'
         ));
     }
 

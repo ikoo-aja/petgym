@@ -23,6 +23,11 @@ class Tenant extends Model
         'joined_at',
         'expires_at',
         'features',
+        'bank_name',
+        'bank_account_number',
+        'bank_account_holder',
+        'qris_image_url',
+        'qris_merchant_name',
     ];
 
     protected $casts = [

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Member;
+use App\Models\Product;
 use App\Models\Locker;
 use App\Models\LockerRental;
 use App\Models\GymClass;
@@ -24,9 +25,9 @@ class MemberPortalController extends Controller
     private function getMemberProfile()
     {
         $user = Auth::user();
-        if (!$user) return null;
+        if (!$user || !$user->tenant_id) return null;
 
-        $tenantId = $user->tenant_id ?? 1;
+        $tenantId = $user->tenant_id;
 
         $member = Member::where('user_id', $user->id)->first();
         if (!$member) {
@@ -42,8 +43,8 @@ class MemberPortalController extends Controller
                     'phone' => '081234567890',
                     'access_code' => 'MBR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
                     'membership_tier' => 'basic',
-                    'status' => 'active',
-                    'expired_at' => now()->addDays(30),
+                    'status' => 'inactive',
+                    'expired_at' => null,
                 ]);
             }
         }
@@ -58,8 +59,11 @@ class MemberPortalController extends Controller
     {
         $user = Auth::user();
         $member = $this->getMemberProfile();
+        if (!$member) {
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'Akun member Anda tidak terikat dengan gym manapun.');
+        }
         $tenantId = $member->tenant_id;
-
         // Auto-check expired lockers
         $this->checkExpiredLockers($tenantId);
 
@@ -105,6 +109,12 @@ class MemberPortalController extends Controller
             ->where('status', 'attended')
             ->count();
 
+        // Membership plans available at cashier
+        $cashierPlans = Product::where('tenant_id', $tenantId)
+            ->where('category', 'membership')
+            ->orderBy('price')
+            ->get();
+
         return view('member.dashboard', compact(
             'user',
             'member',
@@ -113,7 +123,8 @@ class MemberPortalController extends Controller
             'upcomingPtBookings',
             'upcomingClassRsvps',
             'totalSpending',
-            'classesAttendedCount'
+            'classesAttendedCount',
+            'cashierPlans'
         ));
     }
 
@@ -124,6 +135,10 @@ class MemberPortalController extends Controller
     {
         $member = $this->getMemberProfile();
         $tenantId = $member->tenant_id;
+
+        if (!$member->hasActiveSubscription()) {
+            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Layanan sewa loker hanya dapat digunakan oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Kasir Gym.');
+        }
 
         $this->checkExpiredLockers($tenantId);
 
@@ -143,6 +158,10 @@ class MemberPortalController extends Controller
     {
         $member = $this->getMemberProfile();
         $tenantId = $member->tenant_id;
+
+        if (!$member->hasActiveSubscription()) {
+            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan pembayaran dan aktivasi di Meja Kasir Gym.');
+        }
 
         $request->validate([
             'locker_id' => 'required|exists:lockers,id',
@@ -232,47 +251,23 @@ class MemberPortalController extends Controller
     }
 
     /**
-     * 2. MULTI-TIER MEMBERSHIP & BILLING
+     * 2. MULTI-TIER MEMBERSHIP & BILLING (Informasi & Pembayaran via Kasir)
      */
     public function membership()
     {
         $member = $this->getMemberProfile();
-        return view('member.membership', compact('member'));
+        $tenantId = $member->tenant_id;
+        $cashierPlans = Product::where('tenant_id', $tenantId)
+            ->where('category', 'membership')
+            ->orderBy('price')
+            ->get();
+        return view('member.membership', compact('member', 'cashierPlans'));
     }
 
     public function upgradeMembership(Request $request)
     {
         $member = $this->getMemberProfile();
-        $request->validate([
-            'tier' => 'required|in:basic,standard,premium',
-        ]);
-
-        $tierPrices = [
-            'basic' => 500000,
-            'standard' => 1200000,
-            'premium' => 2500000,
-        ];
-
-        $tierPrice = $tierPrices[$request->tier];
-
-        $member->update([
-            'membership_tier' => $request->tier,
-            'status' => 'active',
-            'expired_at' => now()->addDays(30),
-        ]);
-
-        $paymentMethod = $request->input('payment_method', 'qris');
-        PosTransaction::create([
-            'tenant_id' => $member->tenant_id,
-            'user_id' => Auth::id(),
-            'member_id' => $member->id,
-            'invoice_number' => 'INV-MBR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
-            'total_amount' => $tierPrice,
-            'payment_method' => $paymentMethod,
-            'type' => 'membership',
-        ]);
-
-        return redirect()->route('member.membership')->with('success', "Pembayaran Lunas! Keanggotaan Anda berhasil diperbarui ke Tier " . strtoupper($request->tier) . "!");
+        return redirect()->route('member.membership')->with('info', "Aktivasi dan pembayaran paket membership diproses langsung melalui Kasir Gym. Silakan tunjukkan Kode Akses Member ({$member->access_code}) Anda ke Meja Kasir.");
     }
 
     /**
@@ -282,6 +277,10 @@ class MemberPortalController extends Controller
     {
         $member = $this->getMemberProfile();
         $tenantId = $member->tenant_id;
+
+        if (!$member->hasActiveSubscription()) {
+            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Layanan Personal Trainer (PT) hanya dapat digunakan oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Kasir Gym.');
+        }
 
         $trainers = Trainer::where('tenant_id', $tenantId)->where('status', 'active')->get();
         $quotas = MemberPtQuota::where('member_id', $member->id)->with('trainer')->get();
@@ -294,6 +293,10 @@ class MemberPortalController extends Controller
     {
         $member = $this->getMemberProfile();
         $tenantId = $member->tenant_id;
+
+        if (!$member->hasActiveSubscription()) {
+            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Kasir Gym terlebih dahulu.');
+        }
 
         $request->validate([
             'trainer_id' => 'required|exists:trainers,id',
@@ -343,6 +346,10 @@ class MemberPortalController extends Controller
     {
         $member = $this->getMemberProfile();
         $tenantId = $member->tenant_id;
+
+        if (!$member->hasActiveSubscription()) {
+            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Kasir Gym terlebih dahulu.');
+        }
 
         $request->validate([
             'trainer_id' => 'required|exists:trainers,id',
@@ -410,6 +417,10 @@ class MemberPortalController extends Controller
         $member = $this->getMemberProfile();
         $tenantId = $member->tenant_id;
 
+        if (!$member->hasActiveSubscription()) {
+            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Jadwal dan reservasi kelas kebugaran hanya dapat diakses oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Kasir Gym.');
+        }
+
         $classes = GymClass::where('tenant_id', $tenantId)->with('trainer')->get();
         $myRsvps = ClassRsvp::where('member_id', $member->id)->with('gymClass')->orderBy('class_date', 'desc')->get();
 
@@ -420,6 +431,10 @@ class MemberPortalController extends Controller
     {
         $member = $this->getMemberProfile();
         $tenantId = $member->tenant_id;
+
+        if (!$member->hasActiveSubscription()) {
+            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Kasir Gym terlebih dahulu.');
+        }
 
         // Cek Penalti Blocked Status
         if ($member->is_penalty_blocked) {
@@ -635,5 +650,30 @@ class MemberPortalController extends Controller
         ]);
 
         return redirect()->route('member.settings')->with('success', 'Kata sandi akun Anda berhasil diubah!');
+    }
+
+    public function sendFeedback(Request $request)
+    {
+        $user = Auth::user();
+        $member = $this->getMemberProfile();
+
+        $request->validate([
+            'rating' => 'nullable|integer|min:1|max:5',
+            'feedback' => 'required|string|max:1000',
+        ]);
+
+        $rating = $request->input('rating', 5);
+        $ratingText = " (Rating: {$rating}/5 ⭐)";
+
+        \App\Models\Complaint::create([
+            'tenant_id' => $member->tenant_id,
+            'member_id' => $member->id,
+            'reported_by' => $user->id,
+            'title' => 'Masukan & Saran Member' . $ratingText,
+            'description' => $request->feedback,
+            'status' => 'open',
+        ]);
+
+        return redirect()->route('member.settings')->with('success', 'Terima kasih! Masukan dan saran Anda telah kami terima dan diteruskan ke tim pengelola gym.');
     }
 }

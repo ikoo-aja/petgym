@@ -84,6 +84,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/settings', [AccountSettingController::class, 'index'])->name('account.settings');
     Route::post('/account/profile', [AccountSettingController::class, 'updateProfile'])->name('account.profile.update');
     Route::post('/account/password', [AccountSettingController::class, 'updatePassword'])->name('account.password.update');
+
+    // Data Struk & Invoice Resmi (Universal untuk Semua Role)
+    Route::get('/invoice/{id}/data', [ReceptionistPosController::class, 'invoiceData'])->name('pos.invoice.data');
 });
 
 // Link verifikasi bertanda tangan (signed URL) — bisa dibuka langsung dari email tanpa login
@@ -230,6 +233,12 @@ Route::middleware(['auth', 'verified', 'role:supervisor'])->prefix('supervisor')
 
     // Penanganan Komplain Member
     Route::put('/complaints/{id}', [SupervisorController::class, 'updateComplaint'])->name('supervisor.complaints.update');
+
+    // Manajemen Gudang Barang Masuk & Pasokan Vendor
+    Route::post('/products', [SupervisorController::class, 'storeProduct'])->name('supervisor.products.store');
+    Route::put('/products/{id}', [SupervisorController::class, 'updateProduct'])->name('supervisor.products.update');
+    Route::post('/products/{id}/restock', [SupervisorController::class, 'restockProduct'])->name('supervisor.products.restock');
+    Route::delete('/products/{id}', [SupervisorController::class, 'destroyProduct'])->name('supervisor.products.destroy');
 });
 
 // Group Resepsionis / Frontdesk (Operasional Kasir, Checkin, Loker)
@@ -241,8 +250,10 @@ Route::middleware(['auth', 'verified', 'role:receptionist,manager', 'receptionis
     Route::post('/pos/checkout', [ReceptionistPosController::class, 'checkout'])->name('receptionist.pos.checkout');
     Route::get('/pos/invoice/{id}', [ReceptionistPosController::class, 'invoiceData'])->name('receptionist.pos.invoice');
     Route::post('/pos/void/{id}', [ReceptionistPosController::class, 'requestVoid'])->name('receptionist.pos.void');
+    Route::post('/products/{id}/transfer-to-display', [ReceptionistPosController::class, 'transferToDisplay'])->name('receptionist.products.transfer-to-display');
     Route::post('/products', [ReceptionistPosController::class, 'storeProduct'])->name('receptionist.products.store');
     Route::put('/products/{id}', [ReceptionistPosController::class, 'updateProduct'])->name('receptionist.products.update');
+    Route::post('/products/{id}/restock', [ReceptionistPosController::class, 'restockProduct'])->name('receptionist.products.restock');
     Route::delete('/products/{id}', [ReceptionistPosController::class, 'destroyProduct'])->name('receptionist.products.destroy');
 
     // 2. Check-In Absensi
@@ -303,6 +314,7 @@ Route::middleware(['auth', 'verified', 'role:owner'])->prefix('owner')->group(fu
     Route::get('/logs', [OwnerController::class, 'logs'])->name('owner.logs');
     Route::get('/reports', [OwnerController::class, 'reports'])->name('owner.reports');
     Route::get('/settings', [OwnerController::class, 'settings'])->name('owner.settings');
+    Route::post('/settings/payment', [OwnerController::class, 'updatePaymentSettings'])->name('owner.settings.payment');
 });
 
 // Group User / Member Gym Portal
@@ -336,4 +348,5 @@ Route::middleware(['auth', 'verified', 'role:member'])->prefix('member')->group(
     Route::get('/settings', [MemberPortalController::class, 'settings'])->name('member.settings');
     Route::post('/settings/profile', [MemberPortalController::class, 'updateProfile'])->name('member.settings.update_profile');
     Route::post('/settings/password', [MemberPortalController::class, 'updatePassword'])->name('member.settings.update_password');
+    Route::post('/settings/feedback', [MemberPortalController::class, 'sendFeedback'])->name('member.settings.feedback');
 });

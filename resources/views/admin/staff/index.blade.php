@@ -206,30 +206,29 @@
     }
   }
 
-  // Field nomor telepon hanya muncul untuk role Personal Trainer
+  // Field nomor telepon hanya muncul jika ada
   $(document).ready(function() {
     const roleSel = document.getElementById('staffRole');
     const phoneGroup = document.getElementById('staffPhoneGroup');
     const phoneInput = document.getElementById('staffPhone');
 
     function syncPhoneField() {
+      if (!roleSel || !phoneGroup) return;
       if (roleSel.value === 'trainer') {
         phoneGroup.style.display = 'block';
       } else {
         phoneGroup.style.display = 'none';
-        phoneInput.value = ''; // jangan ikut terkirim untuk role lain
+        if (phoneInput) phoneInput.value = '';
       }
     }
 
-    roleSel.addEventListener('change', syncPhoneField);
+    if (roleSel && phoneGroup) {
+      roleSel.addEventListener('change', syncPhoneField);
+      $('#createStaffModal').on('shown.bs.modal', function() {
+        syncPhoneField();
+      });
+    }
 
-    // Reset form saat modal ditutup/dibuka kembali
-    $('#createStaffModal').on('shown.bs.modal', function() {
-      syncPhoneField();
-    });
-
-    // Kalau validasi gagal (mis. email dobel), buka lagi modal-nya
-    // supaya pesan errornya terlihat — bukan gagal diam-diam.
     @if($errors->any())
       $('#createStaffModal').modal('show');
     @endif

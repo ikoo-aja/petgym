@@ -158,8 +158,13 @@ class LoginController extends Controller
         // 4. Jika Autentikasi Gagal -> catat percobaan gagal untuk throttle
         RateLimiter::hit($throttleKey, $this->decaySeconds);
 
+        $isMemberLogin = ($request->route() && $request->route()->hasParameter('slug')) || $request->is('member/*') || $request->is('member/login');
+        $errorMessage = $isMemberLogin
+            ? 'Email atau password salah. Jika akun Anda telah dihapus atau dinonaktifkan oleh pengelola gym, silakan hubungi Customer Service di landing page gym.'
+            : 'Email atau password yang Anda masukkan salah.';
+
         return back()->withErrors([
-            'email' => 'Email atau password yang Anda masukkan salah.',
+            'email' => $errorMessage,
         ])->onlyInput('email');
     }
 
@@ -262,7 +267,11 @@ class LoginController extends Controller
             'ip_address'  => $request->ip(),
         ]);
 
-        return redirect()->route('register')->with('success_registration', "Halo Kak {$registration->name}, formulir pendaftaran paket '{$registration->plan_name}' berhasil terkirim! Tim Superadmin kami akan segera menghubungi Anda melalui WhatsApp ({$registration->phone}) atau Email ({$registration->email}) untuk konfirmasi dan aktivasi akun.");
+        $redirectUrl = $request->header('referer') && str_contains($request->header('referer'), 'register')
+            ? route('register')
+            : url('/#pricing-section');
+
+        return redirect($redirectUrl)->with('success_registration', "Halo Kak {$registration->name}, formulir pendaftaran paket '{$registration->plan_name}' berhasil terkirim! Tim Superadmin kami akan segera menghubungi Anda melalui WhatsApp ({$registration->phone}) atau Email ({$registration->email}) untuk konfirmasi dan aktivasi akun.");
     }
 
     /**
@@ -285,39 +294,53 @@ class LoginController extends Controller
         if (!$tenantId && $request->route() && $request->route()->hasParameter('slug')) {
             $slug = $request->route('slug');
             $tenant = \App\Models\Tenant::where('subdomain', 'like', "{$slug}%")->orWhere('slug', $slug)->first();
-            $tenantId = $tenant ? $tenant->id : 1;
+            $tenantId = $tenant ? $tenant->id : null;
         }
-        $tenantId = $tenantId ?? 1;
 
-        $tenant = \App\Models\Tenant::find($tenantId);
+        // Fallback jika hanya ada 1 tenant aktif di database (misal registrasi dari portal member utama)
+        if (!$tenantId) {
+            $defaultTenant = \App\Models\Tenant::where('status', 'active')->first();
+            $tenantId = $defaultTenant ? $defaultTenant->id : null;
+        }
+
+        $tenant = $tenantId ? \App\Models\Tenant::find($tenantId) : null;
+        if (!$tenant) {
+            return redirect()->back()->withInput()->withErrors([
+                'tenant_id' => 'Pendaftaran member gagal: Data gym tidak ditemukan atau belum aktif.'
+            ]);
+        }
 
         // Cek Kuota Member Aktif Gym
-        if ($tenant && !$tenant->canAddMember()) {
+        if (!$tenant->canAddMember()) {
             $maxMembers = $tenant->maxMembers();
             return redirect()->back()->withInput()->with('error', "Pendaftaran member saat ini tidak dapat diproses: Batas kuota member aktif untuk gym ini ({$maxMembers} Member) telah penuh. Silakan hubungi Customer Service gym untuk informasi lebih lanjut.");
         }
 
-        $user = User::create([
-            'tenant_id' => $tenantId,
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
-            'role'      => 'member',
-        ]);
+        $user = \Illuminate\Support\Facades\DB::transaction(function () use ($tenantId, $request) {
+            $newUser = User::create([
+                'tenant_id' => $tenantId,
+                'name'      => $request->name,
+                'email'     => $request->email,
+                'password'  => Hash::make($request->password),
+                'role'      => 'member',
+            ]);
 
-        \App\Models\Member::create([
-            'tenant_id'       => $tenantId,
-            'user_id'         => $user->id,
-            'name'            => $user->name,
-            'email'           => $user->email,
-            'phone'           => $request->phone,
-            'access_code'     => 'MBR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
-            'membership_tier' => 'basic',
-            'status'          => 'active',
-            'expired_at'      => now()->addDays(30),
-        ]);
+            \App\Models\Member::create([
+                'tenant_id'       => $tenantId,
+                'user_id'         => $newUser->id,
+                'name'            => $newUser->name,
+                'email'           => $newUser->email,
+                'phone'           => $request->phone,
+                'access_code'     => 'MBR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
+                'membership_tier' => 'basic',
+                'status'          => 'inactive',
+                'expired_at'      => null,
+            ]);
 
-        // Send email verification notification (to Mailpit)
+            return $newUser;
+        });
+
+        // Send email verification notification
         try {
             $user->sendEmailVerificationNotification();
         } catch (\Throwable $e) {

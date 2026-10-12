@@ -54,7 +54,13 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\View::composer(['member.*', 'layouts.member'], function ($view) {
             $user = auth()->user();
             $tenantName = ($user && $user->tenant) ? $user->tenant->name : 'Gym Portal';
-            $view->with('tenantName', $tenantName);
+            $member = $user ? \App\Models\Member::where('user_id', $user->id)->first() : null;
+            $hasActiveSub = $member ? $member->hasActiveSubscription() : false;
+            $view->with([
+                'tenantName' => $tenantName,
+                'currentMember' => $member,
+                'hasActiveSubscription' => $hasActiveSub,
+            ]);
         });
 
         VerifyEmail::toMailUsing(function ($notifiable, $verificationUrl) {

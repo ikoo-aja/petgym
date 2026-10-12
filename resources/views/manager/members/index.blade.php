@@ -79,7 +79,9 @@
               @endif
             </td>
             <td class="text-right">
-              <button class="btn btn-sm btn-outline-info btn-history mr-1" data-id="{{ $m->id }}" data-name="{{ $m->name }}" style="border-radius: 6px;">Histori</button>
+              <button class="btn btn-sm btn-outline-info btn-history mr-1" data-id="{{ $m->id }}" data-name="{{ $m->name }}" style="border-radius: 6px;">
+                <i class="icon-history mr-1"></i> Histori
+              </button>
               @if(Auth::user() && (Auth::user()->isManager() || Auth::user()->isSuperadmin() || Auth::user()->isAdmin()))
                 @if($m->status !== 'active')
                   <form action="{{ route('manager.members.approve', $m->id) }}" method="POST" class="d-inline mr-1">
@@ -89,20 +91,12 @@
                     </button>
                   </form>
                 @endif
-                <button class="btn btn-sm btn-outline-primary mr-1 btn-edit-member"
-                  data-id="{{ $m->id }}"
-                  data-name="{{ $m->name }}"
-                  data-email="{{ $m->email }}"
-                  data-phone="{{ $m->phone }}"
-                  data-gender="{{ $m->gender }}"
-                  data-address="{{ $m->address }}"
-                  data-status="{{ $m->status }}"
-                  data-expired_at="{{ $m->expired_at ? $m->expired_at->format('Y-m-d') : '' }}"
-                  style="border-radius: 6px;">Ubah</button>
-                <form action="{{ route('manager.members.destroy', $m->id) }}" method="POST" class="d-inline" data-confirm="Hapus data member ini?">
+                <form action="{{ route('manager.members.destroy', $m->id) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus akun member ini secara permanen? Akun yang dihapus tidak akan dapat login kembali.">
                   @csrf
                   @method('DELETE')
-                  <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Hapus</button>
+                  <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">
+                    <i class="icon-trash mr-1"></i> Hapus
+                  </button>
                 </form>
               @endif
             </td>
@@ -283,67 +277,6 @@
 </div>
 @endif
 
-<!-- Modal Edit Member -->
-<div class="modal fade" id="editMemberModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <form id="editMemberForm" action="" method="POST" class="modal-content" style="border-radius: 12px;">
-      @csrf
-      @method('PUT')
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold">Ubah Data Member</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Lengkap *</label>
-          <input type="text" name="name" id="editMemberName" class="form-control" required>
-        </div>
-
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nomor Telepon / WhatsApp</label>
-          <input type="text" name="phone" id="editMemberPhone" class="form-control">
-        </div>
-
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Email</label>
-          <input type="email" name="email" id="editMemberEmail" class="form-control">
-        </div>
-
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Jenis Kelamin *</label>
-          <select name="gender" id="editMemberGender" class="form-control" required>
-            <option value="Laki-laki">Laki-laki</option>
-            <option value="Perempuan">Perempuan</option>
-          </select>
-        </div>
-
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Status Membership *</label>
-          <select name="status" id="editMemberStatus" class="form-control" required>
-            <option value="active">Aktif</option>
-            <option value="inactive">Non-Aktif</option>
-            <option value="expiring_soon">Expiring Soon</option>
-          </select>
-        </div>
-
-        <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Alamat</label>
-          <textarea name="address" id="editMemberAddress" class="form-control" rows="2"></textarea>
-        </div>
-
-        <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Tanggal Expired</label>
-          <input type="date" name="expired_at" id="editMemberExpiredAt" class="form-control">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary font-weight-bold">Simpan Perubahan</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <!-- Modal Histori Transaksi Member -->
 <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
@@ -364,6 +297,7 @@
                 <th>Total (Rp)</th>
                 <th>Metode</th>
                 <th>Tanggal Beli</th>
+                <th class="text-right">Struk</th>
               </tr>
             </thead>
             <tbody id="historyTableBody"></tbody>
@@ -373,6 +307,8 @@
     </div>
   </div>
 </div>
+
+@include('partials.receipt-modal')
 @endsection
 
 @section('scripts')
@@ -426,19 +362,6 @@
       } else {
         $('#regCashChangeText').html('<span class="text-success">Rp ' + change.toLocaleString('id-ID') + '</span>');
       }
-    });
-
-    $('.btn-edit-member').on('click', function() {
-      var id = $(this).data('id');
-      $('#editMemberName').val($(this).data('name'));
-      $('#editMemberEmail').val($(this).data('email'));
-      $('#editMemberPhone').val($(this).data('phone'));
-      $('#editMemberGender').val($(this).data('gender'));
-      $('#editMemberAddress').val($(this).data('address'));
-      $('#editMemberStatus').val($(this).data('status'));
-      $('#editMemberExpiredAt').val($(this).data('expired_at'));
-      $('#editMemberForm').attr('action', '/manager/members/' + id);
-      $('#editMemberModal').modal('show');
     });
 
     $('.btn-history').on('click', function() {
@@ -503,10 +426,11 @@
             html += '<td class="font-weight-bold text-success">Rp ' + parseInt(t.total_amount).toLocaleString('id-ID') + '</td>';
             html += '<td><span class="badge badge-info">' + t.payment_method.toUpperCase() + '</span></td>';
             html += '<td>' + new Date(t.created_at).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) + '</td>';
+            html += '<td class="text-right"><button type="button" class="btn btn-xs btn-outline-primary" style="border-radius: 6px;" onclick="openInvoiceReceiptModal(' + t.id + ')" title="Cetak Struk Transaksi"><i class="icon-file-text-o mr-1"></i> Struk</button></td>';
             html += '</tr>';
           });
         } else {
-          html = '<tr><td colspan="6" class="text-center text-muted py-3">Member ini belum pernah melakukan transaksi.</td></tr>';
+          html = '<tr><td colspan="7" class="text-center text-muted py-3">Member ini belum pernah melakukan transaksi.</td></tr>';
         }
         $('#historyTableBody').html(html);
       });

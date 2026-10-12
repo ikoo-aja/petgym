@@ -657,7 +657,7 @@
             <div class="input-group-prepend">
               <span class="input-group-text font-weight-bold">Rp</span>
             </div>
-            <input type="number" name="end_cash" class="form-control font-weight-bold" placeholder="Hitung seluruh uang fisik di laci kasir" required min="0">
+            <input type="text" name="end_cash" class="form-control font-weight-bold rupiah-input" placeholder="Hitung seluruh uang fisik di laci kasir" required autocomplete="off">
           </div>
           <small class="text-muted">Hitung seluruh uang tunai fisik yang ada di laci kasir saat ini untuk diserahterimakan.</small>
         </div>
@@ -677,8 +677,10 @@
 <script src="{{ asset('js/bootstrap.min.js') }}"></script>
 @include('partials.confirm-modal')
 @include('partials.toast-helper')
+@include('partials.rupiah-helper')
 
 @yield('scripts')
+@stack('scripts')
 
 </body>
 </html>

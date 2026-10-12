@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. User Superadmin (Master Platform Owner)
-        $superadminEmail = env('SUPERADMIN_EMAIL', 'superadmin@petgym.website');
+        $superadminEmail = env('SUPERADMIN_EMAIL', 'superadmin@petgym.websitke');
         $superadminPass  = env('SUPERADMIN_PASSWORD', 'SuperAdmin#2026!');
         $superadminName  = env('SUPERADMIN_NAME', 'Super Administrator');
 
@@ -33,6 +33,19 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        // Akun superadmin testing standar
+        if ($superadminEmail !== 'superadmin@petgym.com') {
+            User::updateOrCreate(
+                ['email' => 'superadmin@petgym.com'],
+                [
+                    'name' => 'Super Administrator',
+                    'password' => Hash::make('1234'),
+                    'role' => 'superadmin',
+                    'email_verified_at' => now(),
+                ]
+            );
+        }
 
         // 2. Master Plans (Paket Sewa SaaS)
         $basicPlan = Plan::updateOrCreate(
@@ -279,8 +292,9 @@ class DatabaseSeeder extends Seeder
             $m1 = \App\Models\Member::updateOrCreate(
                 ['tenant_id' => $fitlife->id, 'access_code' => '881234'],
                 [
+                    'user_id' => $mbrUser->id,
                     'name' => 'Budi Santoso',
-                    'email' => 'budi@gmail.com',
+                    'email' => 'member@fitlife.com',
                     'phone' => '081234567890',
                     'gender' => 'Laki-laki',
                     'status' => 'active',

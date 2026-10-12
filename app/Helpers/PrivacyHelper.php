@@ -34,7 +34,7 @@ class PrivacyHelper
     }
 
     /**
-     * Mask phone number for privacy (e.g. 081234567890 -> 0812****7890)
+     * Mask phone number for privacy: asterisks with only last 4 digits visible (e.g. 081234567890 -> ********7890)
      */
     public static function maskPhone(?string $phone): string
     {
@@ -43,15 +43,14 @@ class PrivacyHelper
         }
 
         $len = strlen($phone);
-        if ($len <= 6) {
-            return substr($phone, 0, 2) . '****';
+        if ($len <= 4) {
+            return '****' . $phone;
         }
 
-        $prefix = substr($phone, 0, 4);
         $suffix = substr($phone, -4);
-        $maskedLength = max(4, $len - 8);
+        $maskedLength = max(4, $len - 4);
 
-        return $prefix . str_repeat('*', $maskedLength) . $suffix;
+        return str_repeat('*', $maskedLength) . $suffix;
     }
 
     /**

@@ -88,4 +88,9 @@ class Member extends Model
     {
         return $this->penalty_blocked_until && $this->penalty_blocked_until->isFuture();
     }
+
+    public function hasActiveSubscription(): bool
+    {
+        return $this->status === 'active' && $this->expired_at && $this->expired_at->isFuture();
+    }
 }

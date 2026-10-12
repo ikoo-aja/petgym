@@ -106,11 +106,24 @@ class SuperadminController extends Controller
      */
     public function storeTenant(Request $request)
     {
+        $rawSub = strtolower(trim((string) $request->subdomain));
+        $slug = str_contains($rawSub, '.') ? explode('.', $rawSub)[0] : $rawSub;
+        $subdomainFormatted = str_contains($rawSub, '.workout.id') ? $rawSub : $rawSub . '.workout.id';
+
+        $request->merge([
+            'subdomain' => $subdomainFormatted,
+            'slug'      => $slug,
+        ]);
+
         $request->validate([
-            'name' => 'required|string|max:255',
-            'subdomain' => 'required|string|max:255|unique:tenants,subdomain',
+            'name'        => 'required|string|max:255',
+            'subdomain'   => 'required|string|max:255|unique:tenants,subdomain',
+            'slug'        => 'required|string|max:255|unique:tenants,slug',
             'owner_email' => 'required|email|max:255',
-            'plan_id' => 'nullable|exists:plans,id',
+            'plan_id'     => 'nullable|exists:plans,id',
+        ], [
+            'subdomain.unique' => 'Subdomain gym ini sudah digunakan. Silakan gunakan nama subdomain lain.',
+            'slug.unique'      => 'Slug subdomain gym ini sudah digunakan.',
         ]);
 
         $ownerName = explode('@', $request->owner_email)[0];
@@ -119,14 +132,6 @@ class SuperadminController extends Controller
         $plan = Plan::find($request->plan_id);
         $planName = $plan ? $plan->name : 'Paket Basic';
         $features = $plan ? ($plan->features ?? []) : ['Class', 'POS'];
-
-        $rawSub = strtolower(trim($request->subdomain));
-        $slug = str_contains($rawSub, '.') ? explode('.', $rawSub)[0] : $rawSub;
-        if (strpos($rawSub, '.workout.id') === false) {
-            $subdomainFormatted = $rawSub . '.workout.id';
-        } else {
-            $subdomainFormatted = $rawSub;
-        }
 
         $tenant = Tenant::create([
             'name' => $request->name,

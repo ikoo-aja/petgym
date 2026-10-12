@@ -87,6 +87,7 @@ class RouteAccessTest extends TestCase
 
     public function test_halaman_milik_role_tidak_error_dan_tidak_terlarang(): void
     {
+        $initialLevel = ob_get_level();
         $failures = [];
 
         foreach ($this->ownPages() as $email => $routes) {
@@ -102,6 +103,9 @@ class RouteAccessTest extends TestCase
                     $failures[] = "[{$email}] GET {$name} => HTTP 403 (role sendiri malah dilarang)";
                 }
             }
+        }
+        while (ob_get_level() > $initialLevel) {
+            ob_end_clean();
         }
 
         $this->assertSame([], $failures, "Masalah pada halaman milik role:\n" . implode("\n", $failures));

@@ -136,9 +136,18 @@
             </div>
 
             <div class="form-group mb-4 mt-2">
-              <button type="submit" class="btn btn-brand btn-block shadow-sm">
-                Daftar Member {{ $tenant->name }}
-              </button>
+              <div class="row">
+                <div class="col-6">
+                  <a href="{{ route('tenant.landing', ['slug' => $tenant->slug]) }}" class="btn btn-outline-secondary btn-block font-weight-bold d-flex align-items-center justify-content-center" style="height: 48px; border-radius: 8px; font-size: 14px;">
+                    <i class="icon-arrow-left mr-1"></i> Kembali
+                  </a>
+                </div>
+                <div class="col-6">
+                  <button type="submit" class="btn btn-brand btn-block shadow-sm font-weight-bold" style="font-size: 14px;">
+                    Daftar Member
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="text-center mt-4 pt-3 border-top">

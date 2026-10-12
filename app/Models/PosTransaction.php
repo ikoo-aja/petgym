@@ -16,6 +16,8 @@ class PosTransaction extends Model
         'invoice_number',
         'total_amount',
         'payment_method',
+        'void_status',
+        'void_reason',
         'type',
     ];
 

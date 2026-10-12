@@ -92,9 +92,18 @@
               @endif
 
               <div class="form-group mb-3">
-                <button type="submit" class="btn btn-primary py-3 px-5 btn-block font-weight-bold shadow-sm" style="border-radius: 30px; font-size: 16px;">
-                  Daftar Akun Member Baru
-                </button>
+                <div class="row">
+                  <div class="col-6">
+                    <a href="/" class="btn btn-outline-secondary py-3 btn-block font-weight-bold" style="border-radius: 30px; font-size: 15px;">
+                      Kembali
+                    </a>
+                  </div>
+                  <div class="col-6">
+                    <button type="submit" class="btn btn-primary py-3 btn-block font-weight-bold shadow-sm" style="border-radius: 30px; font-size: 15px;">
+                      Daftar Akun
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div class="text-center mt-4 pt-3 border-top">

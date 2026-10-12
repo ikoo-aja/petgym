@@ -15,6 +15,8 @@ use App\Models\PosTransaction;
 use App\Models\StaffLog;
 use App\Models\Locker;
 use App\Models\Product;
+use App\Models\Vendor;
+use App\Models\StockMutation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -129,11 +131,31 @@ class SupervisorController extends Controller
             ->latest()
             ->get();
 
-        // 4. Peringatan Stok Ritel Menipis & Seluruh Produk
+        // 4. Data Produk & Inventaris Gudang vs Etalase
         $allProducts = Product::where('tenant_id', $tenant->id)->latest()->get();
         $lowStockProducts = $allProducts->filter(function($prod) {
             return $prod->stock <= 10;
         });
+        $lowWarehouseProducts = $allProducts->filter(function($prod) {
+            return $prod->warehouse_stock <= 5;
+        });
+
+        // Rekanan Vendor & Mutasi Stok
+        $vendors = Vendor::where('tenant_id', $tenant->id)->orderBy('name')->get();
+        $stockMutations = StockMutation::where('tenant_id', $tenant->id)
+            ->with(['product', 'user'])
+            ->latest()
+            ->take(25)
+            ->get();
+
+        // Valuasi Aset Inventaris
+        $totalWarehouseValuation = $allProducts->sum(function($p) {
+            return $p->warehouse_stock * ($p->cost_price ?: $p->price * 0.7);
+        });
+        $totalDisplayValuation = $allProducts->sum(function($p) {
+            return $p->stock * ($p->cost_price ?: $p->price * 0.7);
+        });
+        $totalInventoryValuation = $totalWarehouseValuation + $totalDisplayValuation;
 
         // 5. Penanganan Komplain Member
         $complaints = Complaint::where('tenant_id', $tenant->id)
@@ -165,6 +187,12 @@ class SupervisorController extends Controller
             'maintenanceLogs',
             'allProducts',
             'lowStockProducts',
+            'lowWarehouseProducts',
+            'vendors',
+            'stockMutations',
+            'totalWarehouseValuation',
+            'totalDisplayValuation',
+            'totalInventoryValuation',
             'complaints',
             'members',
             'lockers',
@@ -388,6 +416,11 @@ class SupervisorController extends Controller
     public function storeMaintenanceLog(Request $request)
     {
         $tenant = Auth::user()->tenant;
+
+        if ($request->filled('cost')) {
+            $request->merge(['cost' => preg_replace('/[^0-9]/', '', (string)$request->cost)]);
+        }
+
         $request->validate([
             'gym_equipment_id' => 'required|exists:gym_equipments,id',
             'action' => 'required|string|max:255',
@@ -432,5 +465,184 @@ class SupervisorController extends Controller
         ]);
 
         return redirect()->route('supervisor.features', ['tab' => 'complaint'])->with('success', 'Status tiket keluhan member berhasil diperbarui.');
+    }
+
+    // ==========================================
+    // 5. MANAJEMEN GUDANG & PRODUK DARI VENDOR
+    // ==========================================
+    public function storeProduct(Request $request)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+
+        if ($request->filled('price')) {
+            $request->merge(['price' => preg_replace('/[^0-9]/', '', (string)$request->price)]);
+        }
+        if ($request->filled('cost_price')) {
+            $request->merge(['cost_price' => preg_replace('/[^0-9]/', '', (string)$request->cost_price)]);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|in:supplement,drink,merchandise',
+            'price' => 'required|integer|min:0',
+            'cost_price' => 'required|integer|min:0',
+            'warehouse_stock' => 'required|integer|min:0',
+            'vendor_name' => 'nullable|string|max:255',
+        ]);
+
+        $product = Product::create([
+            'tenant_id' => $tenant->id,
+            'name' => $request->name,
+            'category' => $request->category,
+            'price' => $request->price,
+            'cost_price' => $request->cost_price,
+            'stock' => $request->warehouse_stock, // Stok yang langsung siap ditransaksikan kasir
+            'warehouse_stock' => $request->warehouse_stock,
+            'vendor_name' => $request->vendor_name,
+        ]);
+
+        // Catat Mutasi Masuk ke Gudang
+        if ($request->warehouse_stock > 0) {
+            StockMutation::create([
+                'tenant_id' => $tenant->id,
+                'product_id' => $product->id,
+                'user_id' => $user->id,
+                'type' => 'in_vendor',
+                'qty' => $request->warehouse_stock,
+                'from_location' => 'vendor',
+                'to_location' => 'gudang',
+                'unit_cost' => $request->cost_price,
+                'unit_price' => $request->price,
+                'notes' => 'Penerimaan stok awal dari vendor: ' . ($request->vendor_name ?: 'Vendor Mitra'),
+            ]);
+        }
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Input Produk Gudang (Vendor)',
+            'description' => "Supervisor {$user->name} mendaftarkan produk baru ke inventaris: {$product->name} (Stok: {$product->stock} pcs, Modal: Rp " . number_format($product->cost_price, 0, ',', '.') . ") dari Vendor " . ($product->vendor_name ?: '-'),
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('supervisor.features', ['tab' => 'stock'])->with('success', "Produk '{$product->name}' berhasil didaftarkan ke inventaris (Stok: {$product->stock} pcs).");
+    }
+
+    public function updateProduct(Request $request, $id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+        $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if ($request->filled('price')) {
+            $request->merge(['price' => preg_replace('/[^0-9]/', '', (string)$request->price)]);
+        }
+        if ($request->filled('cost_price')) {
+            $request->merge(['cost_price' => preg_replace('/[^0-9]/', '', (string)$request->cost_price)]);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|in:supplement,drink,merchandise',
+            'price' => 'required|integer|min:0',
+            'cost_price' => 'required|integer|min:0',
+            'vendor_name' => 'nullable|string|max:255',
+        ]);
+
+        $product->update([
+            'name' => $request->name,
+            'category' => $request->category,
+            'price' => $request->price,
+            'cost_price' => $request->cost_price,
+            'vendor_name' => $request->vendor_name,
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Update Produk Gudang',
+            'description' => "Supervisor {$user->name} memperbarui data produk: {$product->name}",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('supervisor.features', ['tab' => 'stock'])->with('success', "Data produk '{$product->name}' berhasil diperbarui.");
+    }
+
+    public function restockProduct(Request $request, $id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+        $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if ($request->filled('cost_price')) {
+            $request->merge(['cost_price' => preg_replace('/[^0-9]/', '', (string)$request->cost_price)]);
+        }
+
+        $request->validate([
+            'qty_add' => 'required|integer|min:1',
+            'cost_price' => 'nullable|integer|min:0',
+            'vendor_name' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:255',
+        ], [
+            'qty_add.required' => 'Jumlah barang masuk wajib diisi.',
+            'qty_add.min' => 'Jumlah barang masuk minimal 1 pcs.',
+        ]);
+
+        $oldStock = $product->stock;
+        $product->increment('stock', $request->qty_add);
+        $product->increment('warehouse_stock', $request->qty_add);
+
+        if ($request->filled('cost_price') && $request->cost_price > 0) {
+            $product->update(['cost_price' => $request->cost_price]);
+        }
+        if ($request->filled('vendor_name')) {
+            $product->update(['vendor_name' => $request->vendor_name]);
+        }
+
+        $vendorText = $request->vendor_name ?: ($product->vendor_name ?: 'Vendor Mitra');
+        $noteText = $request->filled('notes') ? " ({$request->notes})" : "";
+
+        StockMutation::create([
+            'tenant_id' => $tenant->id,
+            'product_id' => $product->id,
+            'user_id' => $user->id,
+            'type' => 'in_vendor',
+            'qty' => $request->qty_add,
+            'from_location' => 'vendor',
+            'to_location' => 'gudang',
+            'unit_cost' => $product->cost_price,
+            'unit_price' => $product->price,
+            'notes' => "Restock kiriman dari vendor: {$vendorText}{$noteText}",
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Penerimaan Stok Vendor ke Gudang',
+            'description' => "Supervisor {$user->name} menerima kiriman vendor +{$request->qty_add} pcs untuk '{$product->name}' ke Gudang (Stok Gudang: {$oldWarehouseStock} -> {$product->warehouse_stock} pcs) dari {$vendorText}",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('supervisor.features', ['tab' => 'stock'])->with('success', "Stok gudang '{$product->name}' berhasil ditambah +{$request->qty_add} pcs dari Vendor {$vendorText}.");
+    }
+
+    public function destroyProduct(Request $request, $id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+        $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
+        $prodName = $product->name;
+        $product->delete();
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Hapus Produk Gudang',
+            'description' => "Supervisor {$user->name} menghapus produk '{$prodName}' dari sistem",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('supervisor.features', ['tab' => 'stock'])->with('success', "Produk '{$prodName}' berhasil dihapus.");
     }
 }

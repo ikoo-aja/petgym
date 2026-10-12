@@ -98,7 +98,7 @@
     .member-top-nav {
       background: var(--mp-nav-bg);
       border-bottom: 1px solid var(--mp-border);
-      padding: 12px 30px;
+      padding: 12px 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.03);
       position: sticky;
       top: 0;
@@ -127,8 +127,8 @@
       gap: 10px;
     }
     .member-avatar-circle {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: var(--brand-red);
       color: #ffffff;
@@ -151,7 +151,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 15px;
       transition: all 0.2s ease;
       padding: 0;
       outline: none !important;
@@ -223,7 +223,7 @@
     .member-sidebar-nav li a {
       display: flex;
       align-items: center;
-      padding: 12px 24px;
+      padding: 12px 20px;
       color: var(--mp-text-muted);
       font-weight: 600;
       font-size: 14px;
@@ -245,9 +245,9 @@
 
     /* ── Main Content Container ── */
     .member-container {
-      padding: 30px;
+      padding: 28px 24px;
       flex-grow: 1;
-      max-width: 1280px;
+      max-width: 1200px;
       width: 100%;
       margin: 0 auto;
     }
@@ -258,6 +258,41 @@
       border: 1px solid var(--mp-border);
       border-radius: var(--mp-radius);
       box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      padding: 22px;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+      color: var(--mp-text);
+    }
+    .card-custom:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    /* ── Mobile Layout & Touch Target Optimization ── */
+    @media (max-width: 767.98px) {
+      .member-top-nav {
+        padding: 10px 14px;
+      }
+      .member-container {
+        padding: 16px 12px;
+      }
+      .card-custom {
+        padding: 16px 14px;
+        margin-bottom: 16px;
+        border-radius: 10px;
+      }
+      .btn, button.btn {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .member-page-title {
+        font-size: 1.25rem !important;
+      }
+      .member-page-subtitle {
+        font-size: 0.8rem !important;
+      }
+    }
       padding: 24px;
       margin-bottom: 24px;
       transition: all 0.2s ease;
@@ -377,7 +412,7 @@
   </div>
 
   <div class="member-sidebar-body">
-    <div class="px-4 py-2 text-uppercase font-weight-bold text-muted" style="font-size: 11px; letter-spacing: 0.5px;">Navigasi Portal Member</div>
+    <div class="px-4 py-2 text-uppercase font-weight-bold text-muted" style="font-size: 11px; letter-spacing: 0.5px;">Navigasi Portal Anggota</div>
     <ul class="member-sidebar-nav">
       <li>
         <a href="{{ route('member.dashboard') }}" class="{{ request()->routeIs('member.dashboard') ? 'active' : '' }}">
@@ -390,23 +425,32 @@
         </a>
       </li>
       <li>
-        <a href="{{ route('member.lockers') }}" class="{{ request()->routeIs('member.lockers*') ? 'active' : '' }}">
-          <span class="icon-settings mr-3" style="font-size: 16px;"></span> Booking Loker
+        <a href="{{ route('member.lockers') }}" class="{{ request()->routeIs('member.lockers*') ? 'active' : '' }} {{ !$hasActiveSubscription ? 'text-muted' : '' }}">
+          <span class="icon-lock mr-3" style="font-size: 16px;"></span> Penyewaan Loker
+          @if(!$hasActiveSubscription)
+            <span class="badge badge-secondary ml-auto font-weight-bold" style="font-size: 10px;">Terkunci</span>
+          @endif
         </a>
       </li>
       <li>
-        <a href="{{ route('member.pt') }}" class="{{ request()->routeIs('member.pt*') ? 'active' : '' }}">
-          <span class="icon-person mr-3" style="font-size: 16px;"></span> Personal Trainer
+        <a href="{{ route('member.pt') }}" class="{{ request()->routeIs('member.pt*') ? 'active' : '' }} {{ !$hasActiveSubscription ? 'text-muted' : '' }}">
+          <span class="icon-user mr-3" style="font-size: 16px;"></span> Pelatih Pribadi (PT)
+          @if(!$hasActiveSubscription)
+            <span class="badge badge-secondary ml-auto font-weight-bold" style="font-size: 10px;">Terkunci</span>
+          @endif
         </a>
       </li>
       <li>
-        <a href="{{ route('member.classes') }}" class="{{ request()->routeIs('member.classes*') ? 'active' : '' }}">
+        <a href="{{ route('member.classes') }}" class="{{ request()->routeIs('member.classes*') ? 'active' : '' }} {{ !$hasActiveSubscription ? 'text-muted' : '' }}">
           <span class="icon-calendar mr-3" style="font-size: 16px;"></span> Kelas Kebugaran
+          @if(!$hasActiveSubscription)
+            <span class="badge badge-secondary ml-auto font-weight-bold" style="font-size: 10px;">Terkunci</span>
+          @endif
         </a>
       </li>
       <li>
         <a href="{{ route('member.billing') }}" class="{{ request()->routeIs('member.billing*') ? 'active' : '' }}">
-          <span class="icon-shopping-cart mr-3" style="font-size: 16px;"></span> Struk & Tagihan
+          <span class="icon-shopping-cart mr-3" style="font-size: 16px;"></span> Riwayat & Tagihan
         </a>
       </li>
       <li>
@@ -416,7 +460,7 @@
       </li>
       <li>
         <a href="{{ route('member.settings') }}" class="{{ request()->routeIs('member.settings*') ? 'active' : '' }}">
-          <span class="icon-cog mr-3" style="font-size: 16px;"></span> Pengaturan Profil
+          <span class="icon-cog mr-3" style="font-size: 16px;"></span> Profil & Pengaturan
         </a>
       </li>
     </ul>
@@ -425,12 +469,12 @@
   <div class="p-3 border-top bg-light text-center">
     <div class="d-flex align-items-center justify-content-between mb-2">
       <small class="text-muted font-weight-bold">Mode Tampilan</small>
-      <button type="button" class="theme-toggle-btn" style="width:32px; height:32px; font-size:15px;" onclick="toggleMemberTheme()" title="Ganti Mode Terang/Gelap">
-        <span class="themeToggleBtnIcon">🌙</span>
+      <button type="button" class="theme-toggle-btn" style="width:34px; height:34px; font-size:14px;" onclick="toggleMemberTheme()" title="Ganti Mode Terang/Gelap">
+        <span class="themeToggleBtnIcon icon-moon-o"></span>
       </button>
     </div>
     <small class="text-muted d-block font-weight-semibold">{{ $tenantName }}</small>
-    <small class="text-muted" style="font-size: 10px;">Portal Keanggotaan Member</small>
+    <small class="text-muted" style="font-size: 10px;">Portal Keanggotaan Resmi</small>
   </div>
 </aside>
 
@@ -439,30 +483,30 @@
   <div class="d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center">
       <!-- Hamburger Toggle Button -->
-      <button type="button" class="btn btn-light border mr-3" onclick="toggleMemberSidebar()" style="border-radius: 8px; padding: 6px 12px;" title="Buka Sidebar Navigasi">
-        <span class="icon-menu" style="font-size: 18px; font-weight: bold; color: var(--mp-text);"></span>
+      <button type="button" class="btn btn-light border mr-2 mr-md-3" onclick="toggleMemberSidebar()" style="border-radius: 8px; padding: 6px 11px;" title="Buka Sidebar Navigasi">
+        <span class="icon-menu" style="font-size: 17px; font-weight: bold; color: var(--mp-text);"></span>
       </button>
 
       @if($currentUser && $currentUser->tenant && $currentUser->tenant->logo_url)
-        <a href="{{ route('member.dashboard') }}">
-          <img src="{{ asset($currentUser->tenant->logo_url) }}" alt="{{ $tenantName }}" style="max-height: 40px; max-width: 150px; object-fit: contain;">
+        <a href="{{ route('member.dashboard') }}" class="d-flex align-items-center text-decoration-none">
+          <img src="{{ asset($currentUser->tenant->logo_url) }}" alt="{{ $tenantName }}" style="max-height: 36px; max-width: 140px; object-fit: contain;">
         </a>
       @else
-        <a href="{{ route('member.dashboard') }}" class="font-weight-extrabold text-dark text-decoration-none" style="font-size: 18px;">
+        <a href="{{ route('member.dashboard') }}" class="font-weight-extrabold text-dark text-decoration-none" style="font-size: 17px;">
           <i class="icon-fitness_center text-danger mr-1"></i> {{ $tenantName }}
         </a>
       @endif
       <span class="badge badge-primary font-weight-bold ml-2 d-none d-sm-inline-block" style="font-size:10px; background-color: var(--brand-red-light) !important; color: var(--brand-red) !important; border: 1px solid var(--brand-red-border) !important;">PORTAL ANGGOTA</span>
     </div>
 
-    <div class="d-flex align-items-center" style="gap: 12px;">
+    <div class="d-flex align-items-center" style="gap: 10px;">
       <!-- Dark Mode Toggle Button in Top Header -->
-      <button type="button" class="theme-toggle-btn mr-1" onclick="toggleMemberTheme()" title="Ganti Mode Terang/Gelap">
-        <span class="themeToggleBtnIcon">🌙</span>
+      <button type="button" class="theme-toggle-btn" onclick="toggleMemberTheme()" title="Ganti Mode Terang/Gelap">
+        <span class="themeToggleBtnIcon icon-moon-o"></span>
       </button>
 
       <a href="{{ route('member.settings') }}" class="d-inline-flex align-items-center justify-content-center text-decoration-none" title="Pengaturan Profil">
-        <div class="member-avatar-circle" style="width: 36px; height: 36px; font-size: 15px; font-weight: 800; box-shadow: 0 2px 5px rgba(244,63,94,0.3);">
+        <div class="member-avatar-circle" style="width: 34px; height: 34px; font-size: 14px; font-weight: 800; box-shadow: 0 2px 5px rgba(244,63,94,0.3);">
           {{ substr($currentUser->name ?? 'M', 0, 1) }}
         </div>
       </a>
@@ -473,10 +517,43 @@
 <!-- Main Page Content -->
 <main class="member-container">
   <!-- Page Title Header -->
-  <div class="mb-4">
-    <h4 class="font-weight-bold text-dark mb-1">@yield('page_title', 'Beranda Anggota')</h4>
-    <p class="text-muted small mb-0">@yield('page_subtitle', 'Sistem Pengelolaan Keanggotaan Member Gym')</p>
+  <div class="mb-3 mb-md-4">
+    <h4 class="font-weight-bold text-dark mb-1 member-page-title">@yield('page_title', 'Beranda Anggota')</h4>
+    <p class="text-muted small mb-0 member-page-subtitle">@yield('page_subtitle', 'Sistem Pengelolaan Keanggotaan Gym')</p>
   </div>
+
+  {{-- Notification Banner for Inactive Subscription --}}
+  @if(!$hasActiveSubscription)
+    <div class="card border-warning mb-4 shadow-sm" style="border-radius: 12px; background: rgba(245, 158, 11, 0.08); border-left: 5px solid #f59e0b !important;">
+      <div class="card-body p-3 p-md-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+          <div class="d-flex align-items-start mb-3 mb-md-0">
+            <div class="mr-3 mt-1 text-warning" style="font-size: 22px;">
+              <span class="icon-info-circle"></span>
+            </div>
+            <div>
+              <h6 class="font-weight-bold text-dark mb-1">Akun Belum Memiliki Paket Langganan Aktif</h6>
+              <p class="text-muted small mb-0">
+                Untuk mulai menikmati fasilitas & seluruh fitur kebugaran gym (Sewa Loker, Pelatih Pribadi, dan Kelas Gym), silakan pilih paket langganan dan lakukan aktivasi pembayaran langsung di <strong>Meja Kasir / Resepsionis Gym</strong>.
+              </p>
+            </div>
+          </div>
+          <div class="text-md-right flex-shrink-0 ml-md-3">
+            @if($currentMember)
+              <div class="badge badge-light border text-dark px-3 py-2 font-weight-bold d-inline-block mb-1" style="font-size: 12px; letter-spacing: 1px;">
+                PIN AKSES: <span class="text-primary">{{ $currentMember->access_code }}</span>
+              </div>
+            @endif
+            <div>
+              <a href="{{ route('member.membership') }}" class="btn btn-sm btn-primary font-weight-bold px-3 py-1 mt-1" style="font-size: 12px;">
+                Lihat Pilihan Paket
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endif
 
   {{-- Flash Session Alerts --}}
   @if(isset($errors) && $errors->any())
@@ -517,7 +594,11 @@
   function updateThemeUI(theme) {
     const icons = document.querySelectorAll('.themeToggleBtnIcon');
     icons.forEach(icon => {
-      icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+      if (theme === 'dark') {
+        icon.className = 'themeToggleBtnIcon icon-sun-o';
+      } else {
+        icon.className = 'themeToggleBtnIcon icon-moon-o';
+      }
     });
     const switchEl = document.getElementById('settingsThemeSwitch');
     if (switchEl) {
@@ -525,7 +606,7 @@
     }
     const statusTextEl = document.getElementById('themeSettingStatusText');
     if (statusTextEl) {
-      statusTextEl.textContent = theme === 'dark' ? 'Saat ini: Mode Gelap (Dark Mode)' : 'Saat ini: Mode Terang (Default)';
+      statusTextEl.textContent = theme === 'dark' ? 'Saat ini: Mode Gelap' : 'Saat ini: Mode Terang';
     }
   }
 

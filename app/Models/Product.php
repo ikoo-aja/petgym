@@ -14,11 +14,24 @@ class Product extends Model
         'name',
         'category',
         'price',
+        'cost_price',
         'stock',
+        'warehouse_stock',
+        'vendor_name',
     ];
 
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function mutations()
+    {
+        return $this->hasMany(StockMutation::class);
+    }
+
+    public function totalStock()
+    {
+        return $this->stock + $this->warehouse_stock;
     }
 }

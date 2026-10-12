@@ -22,13 +22,13 @@ class TenantLandingTest extends TestCase
 
     public function test_halaman_publik_tenant_dapat_dibuka(): void
     {
+        $apex = config('app.tenant_apex');
         $cases = [
-            'http://fitlife.localhost/' => 200,
-            'http://fitlife.localhost/login' => 200,
-            'http://fitlife.localhost/register' => 200,
-            'http://tidakada.localhost/' => 404,
+            "http://fitlife.{$apex}/" => 200,
+            "http://fitlife.{$apex}/login" => 200,
+            "http://fitlife.{$apex}/register" => 200,
+            "http://tidakada.{$apex}/" => 404,
         ];
-
         $failures = [];
 
         foreach ($cases as $url => $expected) {
@@ -46,7 +46,8 @@ class TenantLandingTest extends TestCase
         Auth::logout();
         $this->flushSession();
 
-        $response = $this->post('http://fitlife.localhost/login', [
+        $apex = config('app.tenant_apex');
+        $response = $this->post("http://fitlife.{$apex}/login", [
             'email' => 'member@fitlife.com',
             'password' => '1234',
         ]);

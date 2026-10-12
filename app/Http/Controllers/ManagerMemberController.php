@@ -24,10 +24,20 @@ class ManagerMemberController extends Controller
         if ($user->isTrainer()) {
             return redirect()->route('trainer.dashboard')->with('error', 'Akses Ditolak: Pelatih (Trainer) tidak memiliki izin untuk mengakses data member.');
         }
-
         $tenant = $user->tenant;
+        if (!$tenant) {
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'Akun Anda tidak terikat dengan gym yang aktif.');
+        }
 
-        $query = Member::where('tenant_id', $tenant->id);
+        // Hanya tampilkan member yang sudah terverifikasi email (atau yang didaftarkan langsung oleh kasir)
+        $query = Member::where('tenant_id', $tenant->id)
+            ->where(function($q) {
+                $q->whereNull('user_id')
+                  ->orWhereHas('user', function($qu) {
+                      $qu->whereNotNull('email_verified_at');
+                  });
+            });
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -234,45 +244,10 @@ class ManagerMemberController extends Controller
     public function update(Request $request, $id)
     {
         $user = Auth::user();
-        if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
-        }
-        if (!$user->isManager()) {
-            abort(403, 'Akses Ditolak: Hanya Manager Gym yang dapat mengubah data member.');
-        }
         $tenant = $user->tenant;
-
         $member = Member::where('tenant_id', $tenant->id)->findOrFail($id);
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'gender' => 'required|in:Laki-laki,Perempuan',
-            'address' => 'nullable|string',
-            'status' => 'required|in:active,inactive,expiring_soon',
-            'expired_at' => 'nullable|date',
-        ]);
-
-        $member->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'gender' => $request->gender,
-            'address' => $request->address,
-            'status' => $request->status,
-            'expired_at' => $request->expired_at ? Carbon::parse($request->expired_at) : $member->expired_at,
-        ]);
-
-        StaffLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
-            'action' => 'Update Data Member',
-            'description' => "Staf {$user->name} memperbarui profil member: {$member->name}",
-            'ip_address' => $request->ip(),
-        ]);
-
-        return redirect()->route('manager.members.index')->with('success', "Data member {$member->name} berhasil diperbarui.");
+        return redirect()->back()->with('error', 'Akses Ditolak: Manager Gym tidak memiliki wewenang untuk mengubah data pribadi member.');
     }
 
     public function destroy(Request $request, $id)
@@ -281,25 +256,35 @@ class ManagerMemberController extends Controller
         if ($user->isOwner()) {
             return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
         }
-        if (!$user->isManager()) {
+        if (!$user->isManager() && !$user->isAdmin() && !$user->isSuperadmin()) {
             abort(403, 'Akses Ditolak: Hanya Manager Gym yang dapat menghapus data member.');
         }
         $tenant = $user->tenant;
 
         $member = Member::where('tenant_id', $tenant->id)->findOrFail($id);
         $memberName = $member->name;
+        $userId = $member->user_id;
 
+        // Hapus record member
         $member->delete();
+
+        // Hapus akun user login agar otomatis ter-logout dan tidak bisa login lagi
+        if ($userId) {
+            $memberUser = User::where('tenant_id', $tenant->id)->find($userId);
+            if ($memberUser) {
+                $memberUser->delete();
+            }
+        }
 
         StaffLog::create([
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
-            'action' => 'Hapus Member',
-            'description' => "Staf {$user->name} menghapus data member: {$memberName}",
+            'action' => 'Hapus Akun Member',
+            'description' => "Manager {$user->name} menghapus data akun member: {$memberName}",
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('manager.members.index')->with('success', "Member {$memberName} berhasil dihapus.");
+        return redirect()->route('manager.members.index')->with('success', "Akun member {$memberName} berhasil dihapus secara permanen dari sistem.");
     }
 
     public function history($id)

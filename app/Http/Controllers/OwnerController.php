@@ -14,6 +14,7 @@ use App\Models\StaffLog;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\GymEquipment;
+use App\Models\StockMutation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -195,7 +196,34 @@ class OwnerController extends Controller
         $availableLockers = $lockers->where('status', 'tersedia')->count();
         $brokenLockers = $lockers->where('status', 'rusak')->count();
 
-        return view('owner.inventory', compact('tenant', 'products', 'lockers', 'equipments', 'occupiedLockers', 'availableLockers', 'brokenLockers'));
+        // Valuasi Inventaris 2-Tier
+        $totalWarehouseValuation = $products->sum(function($p) {
+            return $p->warehouse_stock * ($p->cost_price ?: $p->price * 0.7);
+        });
+        $totalDisplayValuation = $products->sum(function($p) {
+            return $p->stock * ($p->cost_price ?: $p->price * 0.7);
+        });
+        $totalInventoryValuation = $totalWarehouseValuation + $totalDisplayValuation;
+
+        $stockMutations = StockMutation::where('tenant_id', $tenantId)
+            ->with(['product', 'user'])
+            ->latest()
+            ->take(20)
+            ->get();
+
+        return view('owner.inventory', compact(
+            'tenant',
+            'products',
+            'lockers',
+            'equipments',
+            'occupiedLockers',
+            'availableLockers',
+            'brokenLockers',
+            'totalWarehouseValuation',
+            'totalDisplayValuation',
+            'totalInventoryValuation',
+            'stockMutations'
+        ));
     }
 
     /**
@@ -259,5 +287,43 @@ class OwnerController extends Controller
     {
         $tenant = Auth::user()->tenant;
         return view('owner.settings', compact('tenant'));
+    }
+
+    /**
+     * Update Pengaturan Rekening Bank & QRIS Tenant Gym oleh Owner.
+     */
+    public function updatePaymentSettings(Request $request)
+    {
+        $tenant = Auth::user()->tenant;
+        if (!$tenant) {
+            return redirect()->back()->with('error', 'Tenant tidak ditemukan.');
+        }
+
+        $request->validate([
+            'bank_name' => 'nullable|string|max:100',
+            'bank_account_number' => 'nullable|string|max:50',
+            'bank_account_holder' => 'nullable|string|max:150',
+            'qris_merchant_name' => 'nullable|string|max:150',
+            'qris_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'qris_image.image' => 'File QRIS harus berupa gambar (JPEG, PNG, JPG, WebP).',
+            'qris_image.max' => 'Ukuran gambar QRIS maksimal 2MB.',
+        ]);
+
+        $data = [
+            'bank_name' => $request->bank_name,
+            'bank_account_number' => $request->bank_account_number,
+            'bank_account_holder' => $request->bank_account_holder,
+            'qris_merchant_name' => $request->qris_merchant_name,
+        ];
+
+        if ($request->hasFile('qris_image')) {
+            $path = $request->file('qris_image')->store('qris', 'public');
+            $data['qris_image_url'] = $path;
+        }
+
+        $tenant->update($data);
+
+        return redirect()->route('owner.settings')->with('success', 'Pengaturan rekening bank & QRIS berhasil disimpan. Data ini otomatis muncul di kasir saat transaksi non-tunai.');
     }
 }

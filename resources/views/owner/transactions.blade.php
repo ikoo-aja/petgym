@@ -64,6 +64,7 @@
           <th>Item Transaksi</th>
           <th>Total Nominal</th>
           <th>Status</th>
+          <th class="text-right">Aksi</th>
         </tr>
       </thead>
       <tbody>
@@ -78,7 +79,7 @@
             <td style="font-size: 12px;">
               @if($t->items && $t->items->count())
                 @foreach($t->items as $item)
-                  <div>&bull; {{ $item->product_name ?? 'Produk' }} (x{{ $item->quantity }})</div>
+                  <div>&bull; {{ $item->item_name ?? ($item->product_name ?? 'Produk') }} (x{{ $item->qty ?? ($item->quantity ?? 1) }})</div>
                 @endforeach
               @else
                 <span class="text-muted">Perpanjangan / Layanan Gym</span>
@@ -86,16 +87,23 @@
             </td>
             <td class="font-weight-bold text-success" style="font-size: 13px;">Rp {{ number_format($t->total_amount, 0, ',', '.') }}</td>
             <td>
-              @if($t->status == 'void')
+              @if($t->void_status == 'approved' || $t->status == 'void')
                 <span class="badge badge-danger px-2 py-1">Dibatalkan (Void)</span>
+              @elseif($t->void_status == 'pending')
+                <span class="badge badge-warning px-2 py-1">Menunggu Void</span>
               @else
                 <span class="badge badge-success px-2 py-1">Lunas</span>
               @endif
             </td>
+            <td class="text-right">
+              <button type="button" class="btn btn-xs btn-outline-primary" style="border-radius: 6px; font-size: 11.5px; padding: 2px 8px;" onclick="openInvoiceReceiptModal({{ $t->id }})" title="Lihat Struk Transaksi">
+                <i class="icon-file-text-o mr-1"></i> Struk
+              </button>
+            </td>
           </tr>
         @empty
           <tr>
-            <td colspan="7" class="text-center py-4 text-muted">Belum ada data transaksi kasir ditemukan.</td>
+            <td colspan="8" class="text-center py-4 text-muted">Belum ada data transaksi kasir ditemukan.</td>
           </tr>
         @endforelse
       </tbody>
@@ -106,4 +114,6 @@
     {{ $transactions->links() }}
   </div>
 </div>
+
+@include('partials.receipt-modal')
 @endsection

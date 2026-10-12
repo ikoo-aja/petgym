@@ -269,6 +269,10 @@ class ReceptionistController extends Controller
         $tenant = Auth::user()->tenant;
         $user = Auth::user();
 
+        if ($request->filled('start_cash')) {
+            $request->merge(['start_cash' => preg_replace('/[^0-9]/', '', (string)$request->start_cash)]);
+        }
+
         $request->validate([
             'start_cash' => 'required|numeric|min:0',
         ], [
@@ -311,6 +315,10 @@ class ReceptionistController extends Controller
         $tenant = Auth::user()->tenant;
         $shift = ReceptionistShift::where('tenant_id', $tenant->id)->findOrFail($id);
 
+        if ($request->filled('end_cash')) {
+            $request->merge(['end_cash' => preg_replace('/[^0-9]/', '', (string)$request->end_cash)]);
+        }
+
         $request->validate([
             'end_cash' => 'required|numeric|min:0',
         ], [
@@ -351,6 +359,10 @@ class ReceptionistController extends Controller
             $request->session()->invalidate();
             $request->session()->regenerateToken();
             return redirect('/login')->with('success', 'Anda telah berhasil keluar.');
+        }
+
+        if ($request->filled('end_cash')) {
+            $request->merge(['end_cash' => preg_replace('/[^0-9]/', '', (string)$request->end_cash)]);
         }
 
         $request->validate([

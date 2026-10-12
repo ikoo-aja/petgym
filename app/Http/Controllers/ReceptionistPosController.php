@@ -11,6 +11,7 @@ use App\Models\PosTransaction;
 use App\Models\PosTransactionItem;
 use App\Models\StaffLog;
 use App\Models\PromoCode;
+use App\Models\StockMutation;
 use Carbon\Carbon;
 
 class ReceptionistPosController extends Controller
@@ -24,7 +25,15 @@ class ReceptionistPosController extends Controller
             return redirect()->route('admin.dashboard')->with('warning', 'Fungsi POS Kasir hanya diakses oleh Resepsionis/Kasir. Silakan gunakan menu Langganan Website untuk Pengaturan Sewa Web.');
         }
 
-        $members = Member::where('tenant_id', $tenant->id)->orderBy('name')->get();
+        $members = Member::where('tenant_id', $tenant->id)
+            ->where(function($q) {
+                $q->whereNull('user_id')
+                  ->orWhereHas('user', function($qu) {
+                      $qu->whereNotNull('email_verified_at');
+                  });
+            })
+            ->orderBy('name')
+            ->get();
         $products = Product::where('tenant_id', $tenant->id)->orderBy('name')->get();
         $recentTransactions = PosTransaction::where('tenant_id', $tenant->id)
             ->with(['member', 'user', 'items'])
@@ -62,15 +71,39 @@ class ReceptionistPosController extends Controller
         $request->validate([
             'member_id' => ['nullable', Rule::exists('members', 'id')->where('tenant_id', $tenant->id)],
             'payment_method' => 'required|in:cash,qris,transfer',
-            'type' => 'required|in:membership,inventory',
+            'type' => 'required|in:membership,inventory,mixed',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.item_name' => 'required|string',
             'items.*.qty' => 'required|integer|min:1',
             'items.*.price' => 'required|integer|min:0',
-            'duration_months' => 'nullable|integer|min:1',
+            'items.*.type' => 'nullable|string',
+            'duration_months' => 'nullable|integer|min:0',
             'promo_code' => 'nullable|string',
         ]);
+
+        // Cek apakah transaksi memiliki paket membership
+        $hasMembership = false;
+        $membershipCount = 0;
+        foreach ($request->items as $item) {
+            if (isset($item['type']) && $item['type'] === 'membership') {
+                $hasMembership = true;
+                $membershipCount++;
+            }
+        }
+
+        // Jika duration_months > 0 juga menandakan ada membership
+        if ($request->filled('duration_months') && (int)$request->duration_months > 0) {
+            $hasMembership = true;
+        }
+
+        if ($membershipCount > 1) {
+            return redirect()->back()->with('error', 'Transaksi dibatalkan: Hanya diperbolehkan memilih 1 paket membership dalam satu transaksi.');
+        }
+
+        if ($hasMembership && empty($request->member_id)) {
+            return redirect()->back()->with('error', 'Untuk pembelian paket membership gym, Anda wajib memilih data Member terlebih dahulu.');
+        }
 
         $invNumber = '#POS-' . strtoupper($tenant->subdomain ? substr($tenant->subdomain, 0, 3) : 'GYM') . '-' . date('YmdHis') . '-' . rand(100, 999);
 
@@ -122,11 +155,20 @@ class ReceptionistPosController extends Controller
                 $prod = Product::find($item['product_id']);
                 if ($prod && $prod->category !== 'membership') {
                     $prod->decrement('stock', $item['qty']);
+
+                    StockMutation::create([
+                        'tenant_id' => $tenant->id,
+                        'product_id' => $prod->id,
+                        'user_id' => $user->id,
+                        'type' => 'sale_pos',
+                        'qty' => $item['qty'],
+                        'notes' => "Penjualan POS Kasir ({$invNumber})",
+                    ]);
                 }
             }
         }
 
-        if ($request->type === 'membership' && $request->member_id) {
+        if ($hasMembership && $request->member_id) {
             $member = Member::find($request->member_id);
             if ($member) {
                 $months = (int) ($request->duration_months ?? 1);
@@ -140,8 +182,24 @@ class ReceptionistPosController extends Controller
                     $newExpiry = (clone $currentExpiry)->addDay();
                 }
 
+                // Deteksi tingkatan tier jika nama paket mengandung standard/premium
+                $tier = $member->membership_tier ?: 'basic';
+                foreach ($request->items as $item) {
+                    if (isset($item['type']) && $item['type'] === 'membership') {
+                        $itemNameLower = strtolower($item['item_name'] ?? '');
+                        if (str_contains($itemNameLower, 'premium')) {
+                            $tier = 'premium';
+                        } elseif (str_contains($itemNameLower, 'standard')) {
+                            $tier = 'standard';
+                        } elseif (str_contains($itemNameLower, 'basic')) {
+                            $tier = 'basic';
+                        }
+                    }
+                }
+
                 $member->update([
                     'status' => 'active',
+                    'membership_tier' => $tier,
                     'expired_at' => $newExpiry,
                 ]);
             }
@@ -155,9 +213,7 @@ class ReceptionistPosController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        $redirectRoute = $user->isReceptionist() ? 'receptionist.dashboard' : 'receptionist.pos.index';
-
-        return redirect()->route($redirectRoute)->with([
+        return redirect()->route('receptionist.pos.index')->with([
             'success' => "Transaksi {$invNumber} berhasil diproses!",
             'print_transaction_id' => $transaction->id
         ]);
@@ -166,10 +222,17 @@ class ReceptionistPosController extends Controller
     public function invoiceData($id)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
-        $transaction = PosTransaction::where('tenant_id', $tenant->id)
-            ->with(['member', 'user', 'items', 'tenant'])
-            ->findOrFail($id);
+        $tenantId = $user->tenant_id ?? ($user->tenant ? $user->tenant->id : 1);
+
+        $query = PosTransaction::where('tenant_id', $tenantId)
+            ->with(['member', 'user', 'items', 'tenant']);
+
+        if ($user->role === 'member') {
+            $member = Member::where('user_id', $user->id)->first();
+            $query->where('member_id', $member ? $member->id : 0);
+        }
+
+        $transaction = $query->findOrFail($id);
         return response()->json($transaction);
     }
 
@@ -190,8 +253,7 @@ class ReceptionistPosController extends Controller
             'description' => "Kasir {$user->name} mengajukan pembatalan invoice {$transaction->invoice_number}. Alasan: {$request->void_reason}",
             'ip_address' => $request->ip(),
         ]);
-        $redirectRoute = $user->isReceptionist() ? 'receptionist.dashboard' : 'receptionist.pos.index';
-        return redirect()->route($redirectRoute)->with('success', 'Pengajuan pembatalan transaksi telah dikirim untuk persetujuan.');
+        return redirect()->route('receptionist.pos.index')->with('success', 'Pengajuan pembatalan transaksi telah dikirim untuk persetujuan.');
     }
 
     public function storeProduct(Request $request)
@@ -201,6 +263,10 @@ class ReceptionistPosController extends Controller
 
         if ($tenant && !$tenant->hasFeature('inventory')) {
             return redirect()->back()->with('error', "Fitur Manajemen Inventaris Ritel (Suplemen, Minuman & Merchandise) hanya tersedia pada Paket Pro dan Enterprise. Paket Anda saat ini ({$tenant->plan_name}) hanya mendukung layanan dasar POS & Kasir Member.");
+        }
+
+        if ($request->filled('price')) {
+            $request->merge(['price' => preg_replace('/[^0-9]/', '', (string)$request->price)]);
         }
 
         $request->validate([
@@ -236,6 +302,11 @@ class ReceptionistPosController extends Controller
         }
 
         $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if ($request->filled('price')) {
+            $request->merge(['price' => preg_replace('/[^0-9]/', '', (string)$request->price)]);
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|in:membership,supplement,drink,merchandise',
@@ -278,5 +349,90 @@ class ReceptionistPosController extends Controller
             'ip_address' => $request->ip(),
         ]);
         return redirect()->route('receptionist.pos.index')->with('success', "Produk {$prodName} berhasil dihapus dari katalog.");
+    }
+
+    public function restockProduct(Request $request, $id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+
+        if ($tenant && !$tenant->hasFeature('inventory')) {
+            return redirect()->back()->with('error', "Fitur Manajemen Inventaris Ritel hanya tersedia pada Paket Pro dan Enterprise.");
+        }
+
+        $request->validate([
+            'qty_add' => 'required|integer|min:1',
+            'notes' => 'nullable|string|max:255',
+        ], [
+            'qty_add.required' => 'Jumlah stok masuk wajib diisi.',
+            'qty_add.integer' => 'Jumlah stok masuk harus berupa bilangan bulat.',
+            'qty_add.min' => 'Jumlah stok masuk minimal 1 pcs.',
+        ]);
+
+        $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
+        $oldStock = $product->stock;
+        $product->increment('stock', $request->qty_add);
+        $newStock = $product->stock;
+
+        $noteText = $request->filled('notes') ? " (Catatan: {$request->notes})" : "";
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Restock Stok Barang',
+            'description' => "Kasir/Staf {$user->name} menambahkan stok +{$request->qty_add} pcs untuk '{$product->name}' (Stok: {$oldStock} -> {$newStock}){$noteText}",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('receptionist.pos.index')->with('success', "Stok {$product->name} berhasil ditambah +{$request->qty_add} pcs. Total stok sekarang: {$newStock} pcs.");
+    }
+
+    public function transferToDisplay(Request $request, $id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+
+        if ($tenant && !$tenant->hasFeature('inventory')) {
+            return redirect()->back()->with('error', "Fitur Manajemen Inventaris Ritel hanya tersedia pada Paket Pro dan Enterprise.");
+        }
+
+        $request->validate([
+            'qty_transfer' => 'required|integer|min:1',
+            'notes' => 'nullable|string|max:255',
+        ], [
+            'qty_transfer.required' => 'Jumlah barang yang dipajang wajib diisi.',
+            'qty_transfer.integer' => 'Jumlah barang harus berupa bilangan bulat.',
+            'qty_transfer.min' => 'Jumlah barang minimal 1 pcs.',
+        ]);
+
+        $product = Product::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if ($product->warehouse_stock < $request->qty_transfer) {
+            return redirect()->back()->with('error', "Stok gudang tidak mencukupi! Sisa stok gudang saat ini: {$product->warehouse_stock} pcs (kurang dari permintaan transfer {$request->qty_transfer} pcs).");
+        }
+
+        $product->decrement('warehouse_stock', $request->qty_transfer);
+        $product->increment('stock', $request->qty_transfer);
+
+        $noteText = $request->filled('notes') ? ": {$request->notes}" : "";
+
+        StockMutation::create([
+            'tenant_id' => $tenant->id,
+            'product_id' => $product->id,
+            'user_id' => $user->id,
+            'type' => 'transfer_to_display',
+            'qty' => $request->qty_transfer,
+            'notes' => "Pajang dari Gudang ke Etalase Kasir{$noteText}",
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Pajang Produk ke Etalase',
+            'description' => "Kasir {$user->name} memindahkan {$request->qty_transfer} pcs '{$product->name}' dari Gudang ke Etalase Kasir (Sisa Gudang: {$product->warehouse_stock} pcs, Etalase: {$product->stock} pcs)",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('receptionist.pos.index')->with('success', "Berhasil memajang {$request->qty_transfer} pcs '{$product->name}' ke Etalase. (Sisa Gudang: {$product->warehouse_stock} pcs, Etalase: {$product->stock} pcs)");
     }
 }

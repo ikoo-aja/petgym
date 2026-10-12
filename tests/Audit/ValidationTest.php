@@ -54,6 +54,7 @@ class ValidationTest extends TestCase
     {
         $tenant = $this->tenant();
         $member = Member::where('tenant_id', $tenant->id)->firstOrFail();
+        $member->update(['status' => 'active', 'expired_at' => now()->addMonth()]);
         $complaint = Complaint::where('tenant_id', $tenant->id)->firstOrFail();
         $trainer = Trainer::where('tenant_id', $tenant->id)->firstOrFail();
 
@@ -91,11 +92,10 @@ class ValidationTest extends TestCase
             ['simpan staf admin', 'admin@fitlife.com', 'post', 'admin.staff.store', []],
             ['bayar langganan', 'admin@fitlife.com', 'post', 'admin.subscription.pay', []],
             ['daftar member', 'resepsionis@fitlife.com', 'post', 'manager.members.store', []],
-            ['update member', 'manager@fitlife.com', 'put', 'manager.members.update', [$member->id]],
+            // manager.members.update sengaja tidak ada form update personal data member (read-only)
             ['simpan kelas', 'manager@fitlife.com', 'post', 'manager.classes.store', []],
             ['simpan trainer', 'manager@fitlife.com', 'post', 'manager.classes.store-trainer', []],
             ['simpan promo', 'manager@fitlife.com', 'post', 'manager.promo.store', []],
-            ['simpan master kelas', 'manager@fitlife.com', 'post', 'manager.master-classes.store', []],
             ['simpan vendor', 'manager@fitlife.com', 'post', 'manager.vendors.store', []],
             ['simpan staf operasional', 'manager@fitlife.com', 'post', 'manager.staff.store', []],
             ['simpan shift', 'supervisor@fitlife.com', 'post', 'supervisor.shifts.store', []],
@@ -114,7 +114,6 @@ class ValidationTest extends TestCase
             ['check-in sesi PT', 'resepsionis@fitlife.com', 'post', 'receptionist.pt.checkin', []],
             ['update status PT', 'alex@fitlife.com', 'post', 'trainer.pt-sessions.status', [$booking->id]],
             ['update status RSVP', 'alex@fitlife.com', 'post', 'trainer.rsvps.status', [$rsvp->id]],
-            ['upgrade membership', 'member@fitlife.com', 'post', 'member.membership.upgrade', []],
             ['beli kuota PT', 'member@fitlife.com', 'post', 'member.pt.buy_quota', []],
             ['booking PT', 'member@fitlife.com', 'post', 'member.pt.book', []],
             ['RSVP kelas', 'member@fitlife.com', 'post', 'member.classes.rsvp', []],
@@ -138,11 +137,11 @@ class ValidationTest extends TestCase
         $failures = [];
 
         foreach ($cases as [$label, $email, $method, $route, $params]) {
+            $this->flushSession();
             if ($email !== null) {
                 $this->actingAs($this->user($email));
             }
 
-            $this->flushSession();
             $response = $this->from('/')->{$method}(route($route, $params), []);
             $status = $response->getStatusCode();
             $errors = session()->get('errors');

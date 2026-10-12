@@ -85,7 +85,10 @@
 
 <script>
   function openInvoiceReceiptModal(txId) {
-    $.get('/admin/pos/invoice/' + txId, function(data) {
+    $('#printableReceiptArea').html('<div class="text-center py-4 text-muted"><i class="icon-spinner icon-spin mr-1"></i> Memuat data struk...</div>');
+    $('#invoicePrintModal').modal('show');
+
+    $.get('/invoice/' + txId + '/data', function(data) {
       var tenantName = data.tenant ? data.tenant.name : 'PETGYM SAAS';
       var tenantSub = data.tenant ? (data.tenant.subdomain ? data.tenant.subdomain + '.petgym.com' : '') : '';
       var tenantPhone = data.tenant ? (data.tenant.phone || '-') : '-';
@@ -97,17 +100,47 @@
       });
 
       var itemsHtml = '';
+      var subtotalCalc = 0;
       $.each(data.items, function(i, item) {
         var price = parseInt(item.price).toLocaleString('id-ID');
         var subtotal = parseInt(item.subtotal).toLocaleString('id-ID');
+        subtotalCalc += parseInt(item.subtotal);
         itemsHtml += '<tr>';
-        itemsHtml += '<td style="padding: 2px 0;">' + item.item_name + '<br><small style="font-size:9px; color:#555;">@ Rp ' + price + '</small></td>';
-        itemsHtml += '<td class="text-center" style="padding: 2px 0; vertical-align: top;">' + item.qty + '</td>';
-        itemsHtml += '<td class="text-right" style="padding: 2px 0; vertical-align: top;">Rp ' + subtotal + '</td>';
+        itemsHtml += '<td style="padding: 3px 0;">' + item.item_name + '<br><small style="font-size:9px; color:#555;">@ Rp ' + price + '</small></td>';
+        itemsHtml += '<td class="text-center" style="padding: 3px 0; vertical-align: top;">' + item.qty + '</td>';
+        itemsHtml += '<td class="text-right" style="padding: 3px 0; vertical-align: top;">Rp ' + subtotal + '</td>';
         itemsHtml += '</tr>';
       });
 
       var totalStr = parseInt(data.total_amount).toLocaleString('id-ID');
+      var discountAmount = subtotalCalc - parseInt(data.total_amount);
+      var discountHtml = '';
+      if (discountAmount > 0) {
+        discountHtml = `
+          <tr>
+            <td style="color:#64748b;">Subtotal</td>
+            <td class="text-right" style="color:#64748b;">Rp ${subtotalCalc.toLocaleString('id-ID')}</td>
+          </tr>
+          <tr>
+            <td style="color:#16a34a;">Diskon Promo</td>
+            <td class="text-right text-success">- Rp ${discountAmount.toLocaleString('id-ID')}</td>
+          </tr>
+        `;
+      }
+
+      var statusBadge = '<span class="text-success" style="font-size:10px; font-weight:bold;">[ LUNAS ]</span>';
+      if (data.void_status === 'approved') {
+        statusBadge = '<span class="text-danger" style="font-size:10px; font-weight:bold;">[ VOID / DIBATALKAN ]</span>';
+      } else if (data.void_status === 'pending') {
+        statusBadge = '<span class="text-warning" style="font-size:10px; font-weight:bold;">[ MENUNGGU VOID ]</span>';
+      }
+
+      var paymentMethodText = (data.payment_method || 'CASH').toUpperCase();
+      if (data.payment_method === 'transfer' && data.tenant && data.tenant.bank_name) {
+        paymentMethodText = 'TRANSFER (' + data.tenant.bank_name + ')';
+      } else if (data.payment_method === 'qris') {
+        paymentMethodText = 'QRIS' + (data.tenant && data.tenant.qris_merchant_name ? ' (' + data.tenant.qris_merchant_name + ')' : '');
+      }
 
       var html = `
         <div class="text-center mb-2">
@@ -137,7 +170,7 @@
           </tr>
           <tr>
             <td>Metode Bayar</td>
-            <td class="text-right font-weight-bold" style="text-transform: uppercase;">${data.payment_method}</td>
+            <td class="text-right font-weight-bold">${paymentMethodText}</td>
           </tr>
         </table>
 
@@ -146,7 +179,7 @@
         <table style="width: 100%; font-size: 11px; line-height: 1.4;">
           <thead>
             <tr style="border-bottom: 1px dashed #475569;">
-              <th class="text-left" style="padding-bottom: 4px;">Item Produk</th>
+              <th class="text-left" style="padding-bottom: 4px;">Item Produk / Layanan</th>
               <th class="text-center" style="padding-bottom: 4px; width: 40px;">Qty</th>
               <th class="text-right" style="padding-bottom: 4px;">Subtotal</th>
             </tr>
@@ -158,14 +191,15 @@
 
         <div class="receipt-line-dashed">----------------------------------------</div>
 
-        <table style="width: 100%; font-size: 13px; font-weight: bold; margin-top: 4px;">
-          <tr>
+        <table style="width: 100%; font-size: 12px; line-height: 1.4; margin-top: 4px;">
+          ${discountHtml}
+          <tr style="font-size: 13px; font-weight: bold;">
             <td>TOTAL BAYAR</td>
             <td class="text-right">Rp ${totalStr}</td>
           </tr>
           <tr>
             <td style="font-size:10px; font-weight:normal; color:#444;">Status Pembayaran</td>
-            <td class="text-right text-success" style="font-size:10px; font-weight:bold;">[ LUNAS ]</td>
+            <td class="text-right">${statusBadge}</td>
           </tr>
         </table>
 
@@ -173,13 +207,14 @@
 
         <div class="text-center mt-2" style="font-size: 10px; color: #444; line-height: 1.3;">
           *** TERIMA KASIH ***<br>
-          Simpan struk ini sebagai bukti pembayaran sah.<br>
+          Simpan struk ini sebagai bukti transaksi sah.<br>
           Layanan Pelanggan: ${tenantName}
         </div>
       `;
 
       $('#printableReceiptArea').html(html);
-      $('#invoicePrintModal').modal('show');
+    }).fail(function() {
+      $('#printableReceiptArea').html('<div class="text-center py-4 text-danger font-weight-bold"><i class="icon-warning mr-1"></i> Gagal memuat data struk transaksi. Pastikan transaksi terdaftar pada tenant Anda.</div>');
     });
   }
 </script>
