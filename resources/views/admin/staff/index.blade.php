@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Manajemen Staf (RBAC) &mdash; PetGym')
-@section('page_title', 'Manajemen Akun Staf & Hak Akses')
-@section('page_subtitle', 'Pendaftaran dan pengelolaan akun Pemilik Gym (Owner) dan Manager Gym')
+@section('page_title', 'Data Staf')
+@section('page_subtitle', 'Pengelolaan akun pengelola utama gym')
 
 @section('content')
 <div class="card-custom">
@@ -88,7 +88,7 @@
                   </form>
                 @endif
                 @if(in_array($st->role, ['manager', 'owner']) && Auth::id() !== $st->id)
-                  <form action="{{ route('admin.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun ' . ($st->role === 'owner' ? 'Owner' : 'Manager') . ' ini? Pengguna tidak akan bisa login ke dashboard.' : 'Aktifkan kembali akun ' . ($st->role === 'owner' ? 'Owner' : 'Manager') . ' ini?' }}">
+                  <form action="{{ route('admin.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun ini? Pengguna tidak akan dapat mengakses sistem.' : 'Aktifkan kembali akun ini?' }}">
                     @csrf
                     @if($st->isActive())
                       <button type="submit" class="btn btn-sm btn-outline-warning text-dark font-weight-bold" style="border-radius: 6px;" title="Nonaktifkan Akun">
@@ -103,15 +103,15 @@
                 @endif
                 {{-- Tombol Approval Reset Password jika ada request pending --}}
                 @if($st->latestPendingPasswordReset && Auth::id() !== $st->id)
-                  <form action="{{ route('admin.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui permohonan reset password untuk {{ $st->name }}? Sistem akan mengirimkan tautan reset kata sandi ke email {{ $st->email }}.');">
+                  <form action="{{ route('admin.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui permohonan reset kata sandi? Tautan verifikasi akan dikirimkan ke email terdaftar.');">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-warning text-dark font-weight-bold" style="border-radius: 6px;" title="Setujui permohonan reset kata sandi">
-                      <i class="icon-key mr-1"></i> Setujui Reset PW
+                      <i class="icon-key mr-1"></i> Setujui Reset
                     </button>
                   </form>
                 @endif
                 @if(Auth::id() !== $st->id)
-                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun {{ $st->name }} ({{ ucfirst($st->role) }})?">
+                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun {{ $st->name }}?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 6px;">Hapus</button>

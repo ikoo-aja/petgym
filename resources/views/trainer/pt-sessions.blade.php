@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Booking Sesi PT &mdash; PetGym')
-@section('page_title', 'Booking Sesi Personal Trainer')
-@section('page_subtitle', 'Kelola jadwal latihan privat bersama member dan konfirmasi penyelesaian sesi latihan')
+@section('page_title', 'Jadwal Sesi')
+@section('page_subtitle', 'Daftar jadwal latihan privat dan konfirmasi sesi latihan')
 
 @section('content')
 <div class="card-custom">

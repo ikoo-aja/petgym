@@ -16,6 +16,7 @@ use App\Models\CheckIn;
 use App\Models\StaffLog;
 use App\Models\Product;
 use App\Models\StockMutation;
+use App\Models\Locker;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -111,12 +112,23 @@ class ManagerController extends Controller
             ->orderBy('total_classes', 'desc')
             ->get();
 
-        // 3. Laporan Rekapitulasi Kas Harian
-        $dailyCashRecap = PosTransaction::where('tenant_id', $tenant->id)
-            ->with(['user', 'member'])
-            ->whereDate('created_at', Carbon::today())
-            ->latest()
-            ->get();
+        // 3. Laporan Rekapitulasi Kas Keuangan (Filter: Harian, Mingguan, Bulanan)
+        $cashPeriod = $request->query('period', 'daily');
+        if (!in_array($cashPeriod, ['daily', 'weekly', 'monthly'])) {
+            $cashPeriod = 'daily';
+        }
+
+        $cashQuery = PosTransaction::where('tenant_id', $tenant->id)->with(['user', 'member']);
+
+        if ($cashPeriod === 'daily') {
+            $cashQuery->whereDate('created_at', Carbon::today());
+        } elseif ($cashPeriod === 'weekly') {
+            $cashQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+        } elseif ($cashPeriod === 'monthly') {
+            $cashQuery->whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()]);
+        }
+
+        $dailyCashRecap = $cashQuery->latest()->get();
 
         // 4. Database Vendor & Mitra Eksternal
         $vendors = Vendor::where('tenant_id', $tenant->id)->latest()->get();
@@ -130,11 +142,21 @@ class ManagerController extends Controller
             return $p->stock * ($p->cost_price ?: $p->price * 0.7);
         });
         $totalInventoryValuation = $totalWarehouseValuation + $totalDisplayValuation;
+        // 6. Master Loker Gym
+        $lockers = Locker::where('tenant_id', $tenant->id)
+            ->orderByRaw('CAST(locker_number AS UNSIGNED) ASC')
+            ->orderBy('locker_number')
+            ->get();
+        $totalLockers = $lockers->count();
+        $availableLockers = $lockers->where('status', 'tersedia')->count();
+        $occupiedLockers = $lockers->where('status', 'terpakai')->count();
+        $brokenLockers = $lockers->where('status', 'rusak')->count();
 
         return view('manager.features', compact(
             'user',
             'tenant',
             'activeTab',
+            'cashPeriod',
             'promoCodes',
             'receptionistPerformance',
             'trainerPerformance',
@@ -143,7 +165,12 @@ class ManagerController extends Controller
             'products',
             'totalWarehouseValuation',
             'totalDisplayValuation',
-            'totalInventoryValuation'
+            'totalInventoryValuation',
+            'lockers',
+            'totalLockers',
+            'availableLockers',
+            'occupiedLockers',
+            'brokenLockers'
         ));
     }
 
@@ -243,5 +270,170 @@ class ManagerController extends Controller
         $vendor->delete();
 
         return redirect()->route('manager.features', ['tab' => 'vendor'])->with('success', 'Kontak vendor berhasil dihapus.');
+    }
+
+    // ==========================================
+    // 5. MANAJEMEN MASTER LOKER GYM
+    // ==========================================
+    public function storeLocker(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+        }
+
+        $tenant = $user->tenant;
+        $request->validate([
+            'locker_number' => 'required|string|max:50',
+            'status' => 'nullable|in:tersedia,rusak',
+        ]);
+
+        $exists = Locker::where('tenant_id', $tenant->id)
+            ->where('locker_number', $request->locker_number)
+            ->exists();
+
+        if ($exists) {
+            return redirect()->back()->with('error', "Nomor loker {$request->locker_number} sudah terdaftar.");
+        }
+
+        $locker = Locker::create([
+            'tenant_id' => $tenant->id,
+            'locker_number' => $request->locker_number,
+            'status' => $request->status ?: 'tersedia',
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Tambah Master Loker',
+            'description' => "Manager {$user->name} mendaftarkan loker baru nomor: {$locker->locker_number}",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('manager.features', ['tab' => 'locker'])->with('success', "Loker nomor {$locker->locker_number} berhasil didaftarkan.");
+    }
+
+    public function storeBulkLockers(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+        }
+
+        $tenant = $user->tenant;
+        $mode = $request->input('mode', 'quantity');
+
+        $createdCount = 0;
+        $skippedCount = 0;
+
+        if ($mode === 'quantity') {
+            $request->validate([
+                'quantity' => 'required|integer|min:1|max:100',
+                'prefix' => 'nullable|string|max:10',
+            ]);
+
+            $quantity = (int) $request->quantity;
+            $prefix = trim((string) $request->prefix);
+
+            $existingLockers = Locker::where('tenant_id', $tenant->id)->pluck('locker_number')->toArray();
+
+            $startNum = 1;
+            while (count($existingLockers) > 0 && in_array(($prefix ? $prefix . '-' : '') . str_pad($startNum, 2, '0', STR_PAD_LEFT), $existingLockers)) {
+                $startNum++;
+            }
+
+            $currentNum = $startNum;
+            while ($createdCount < $quantity && $currentNum <= ($startNum + $quantity + 200)) {
+                $numStr = ($prefix ? $prefix . '-' : '') . str_pad($currentNum, 2, '0', STR_PAD_LEFT);
+                if (!in_array($numStr, $existingLockers)) {
+                    Locker::create([
+                        'tenant_id' => $tenant->id,
+                        'locker_number' => $numStr,
+                        'status' => 'tersedia',
+                    ]);
+                    $existingLockers[] = $numStr;
+                    $createdCount++;
+                } else {
+                    $skippedCount++;
+                }
+                $currentNum++;
+            }
+        } else {
+            $request->validate([
+                'start_number' => 'required|integer|min:1',
+                'end_number' => 'required|integer|min:1|gte:start_number',
+                'prefix' => 'nullable|string|max:10',
+            ]);
+
+            $start = (int) $request->start_number;
+            $end = (int) $request->end_number;
+            $prefix = trim((string) $request->prefix);
+
+            if (($end - $start + 1) > 100) {
+                return redirect()->back()->with('error', 'Maksimal 100 loker dapat dibuat dalam satu batch.');
+            }
+
+            $existingLockers = Locker::where('tenant_id', $tenant->id)
+                ->pluck('locker_number')
+                ->toArray();
+
+            for ($i = $start; $i <= $end; $i++) {
+                $numStr = ($prefix ? $prefix . '-' : '') . str_pad($i, 2, '0', STR_PAD_LEFT);
+                if (!in_array($numStr, $existingLockers)) {
+                    Locker::create([
+                        'tenant_id' => $tenant->id,
+                        'locker_number' => $numStr,
+                        'status' => 'tersedia',
+                    ]);
+                    $existingLockers[] = $numStr;
+                    $createdCount++;
+                } else {
+                    $skippedCount++;
+                }
+            }
+        }
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Tambah Loker Massal',
+            'description' => "Manager {$user->name} membuat {$createdCount} loker secara massal" . ($skippedCount > 0 ? " ({$skippedCount} dilewati karena sudah ada)" : ""),
+            'ip_address' => $request->ip(),
+        ]);
+
+        $msg = "Berhasil menambahkan {$createdCount} unit loker baru.";
+        if ($skippedCount > 0) {
+            $msg .= " ({$skippedCount} nomor loker dilewati karena sudah terdaftar sebelumnya).";
+        }
+
+        return redirect()->route('manager.features', ['tab' => 'locker'])->with('success', $msg);
+    }
+
+    public function destroyLocker(Request $request, $id)
+    {
+        $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+        }
+
+        $tenant = $user->tenant;
+        $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if ($locker->status === 'terpakai') {
+            return redirect()->back()->with('error', "Loker nomor {$locker->locker_number} sedang terpakai oleh member dan tidak dapat dihapus.");
+        }
+
+        $num = $locker->locker_number;
+        $locker->delete();
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Hapus Master Loker',
+            'description' => "Manager {$user->name} menghapus loker nomor: {$num}",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('manager.features', ['tab' => 'locker'])->with('success', "Loker nomor {$num} berhasil dihapus.");
     }
 }

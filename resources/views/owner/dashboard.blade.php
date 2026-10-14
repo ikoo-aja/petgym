@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Dashboard Pemilik (Owner)')
-@section('page_title', 'Dashboard Eksekutif Pemilik Gym')
-@section('page_subtitle', 'Pusat pemantauan omset harian, statistik keanggotaan, okupansi loker, dan kesehatan bisnis gym Anda')
+@section('page_title', 'Beranda')
+@section('page_subtitle', 'Ringkasan bisnis, omset, dan pertumbuhan anggota gym')
 
 @section('content')
 <!-- Key Performance Indicators (KPI Grid) -->

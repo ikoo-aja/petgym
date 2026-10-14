@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Data Staf Operasional — PetGym')
-@section('page_title', 'Manajemen Staf Operasional')
-@section('page_subtitle', 'Pengelolaan akun tim Resepsionis / Kasir dan Personal Trainer')
+@section('page_title', 'Data Staf')
+@section('page_subtitle', 'Pengelolaan akun staf operasional lapangan')
 
 @section('content')
 <div class="card border-0 shadow-sm bg-white" style="border-radius: 12px;">
@@ -89,10 +89,10 @@
                 @endif
                 {{-- Tombol Approval Reset Password jika ada request pending --}}
                 @if($st->latestPendingPasswordReset && Auth::id() !== $st->id)
-                  <form action="{{ route('manager.staff.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui permohonan reset password untuk {{ $st->name }}? Sistem akan mengirimkan tautan reset kata sandi ke email {{ $st->email }}.');">
+                  <form action="{{ route('manager.staff.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui permohonan reset kata sandi? Tautan verifikasi akan dikirimkan ke email terdaftar.');">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-warning text-dark font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;" title="Setujui permohonan reset kata sandi">
-                      <i class="icon-key mr-1"></i> Setujui Reset PW
+                      <i class="icon-key mr-1"></i> Setujui Reset
                     </button>
                   </form>
                 @endif

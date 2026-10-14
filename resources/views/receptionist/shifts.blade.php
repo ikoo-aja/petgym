@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Manajemen Shift Kasir &mdash; PetGym')
-@section('page_title', 'Manajemen Shift Kasir')
-@section('page_subtitle', 'Buka shift kasir dengan modal awal, pantau penjualan kasir, dan lakukan setoran fisik penutupan shift')
+@section('page_title', 'Shift Kasir')
+@section('page_subtitle', 'Pembukaan shift, kas awal, dan setoran kas akhir')
 
 @section('content')
 <div class="row mb-4">

@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
 @section('title', 'Status Keanggotaan')
-@section('page_title', 'Status Keanggotaan')
-@section('page_subtitle', 'Kelola paket langganan dan nikmati berbagai keuntungan kebugaran.')
+@section('page_title', 'Paket Keanggotaan')
+@section('page_subtitle', 'Informasi masa aktif membership dan paket latihan Anda')
 
 @section('content')
 <!-- Active Tier Banner -->

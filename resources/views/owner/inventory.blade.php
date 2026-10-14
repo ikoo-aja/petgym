@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Pemantauan Inventaris & Loker (Owner) &mdash; PetGym')
-@section('page_title', 'Pemantauan Inventaris Ritel & Loker Gym')
-@section('page_subtitle', 'Monitoring valuasi aset 2-tier (Gudang & Etalase), vendor pemasok, dan okupansi fasilitas loker')
+@section('page_title', 'Stok Produk & Loker')
+@section('page_subtitle', 'Informasi ketersediaan stok produk dan status penggunaan loker')
 
 @section('content')
 

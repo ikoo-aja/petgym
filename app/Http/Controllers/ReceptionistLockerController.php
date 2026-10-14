@@ -24,7 +24,7 @@ class ReceptionistLockerController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
         }
         $tenant = $user->tenant;
         $request->validate([
@@ -56,7 +56,7 @@ class ReceptionistLockerController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
         }
         $tenant = $user->tenant;
         $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($id);
@@ -89,7 +89,7 @@ class ReceptionistLockerController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
         }
         $tenant = $user->tenant;
         $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($id);

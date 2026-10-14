@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Profil Gym (Owner) &mdash; PetGym')
-@section('page_title', 'Informasi & Profil Tenant Gym')
-@section('page_subtitle', 'Rincian data pendaftaran tenant gym, subdomain, email pemilik, dan paket langganan SaaS aktif')
+@section('page_title', 'Pengaturan')
+@section('page_subtitle', 'Informasi profil gym dan langganan sistem')
 
 @section('content')
 <!-- Banner Mode Pemantauan Eksekutif -->

@@ -3,23 +3,26 @@
 @php
   $featureMeta = [
     'promo' => [
-      'title' => 'Promo dan Voucher',
-      'subtitle' => 'Pengelolaan kode potongan harga untuk anggota dan transaksi kasir',
+      'title' => 'Promo & Voucher',
+      'subtitle' => 'Pengelolaan voucher dan potongan harga pendaftaran',
     ],
     'performance' => [
-      'title' => 'Kinerja Karyawan',
-      'subtitle' => 'Pemantauan pencapaian transaksi kasir dan aktivitas instruktur',
+      'title' => 'Aktivitas Karyawan',
+      'subtitle' => 'Pemantauan aktivitas transaksi kasir dan jadwal kelas',
     ],
     'cash' => [
-      'title' => 'Rekap Kas Keuangan',
-      'subtitle' => 'Ringkasan penerimaan uang kas transaksi kasir harian',
+      'title' => 'Laporan Keuangan',
+      'subtitle' => 'Rekapitulasi penerimaan kas harian, mingguan, dan bulanan',
     ],
     'vendor' => [
-      'title' => 'Database Vendor Mitra',
-      'subtitle' => 'Daftar kontak penyedia peralatan, suplemen, dan mitra operasional gym',
+      'title' => 'Vendor & Mitra',
+      'subtitle' => 'Daftar rekanan penyedia perlengkapan dan operasional gym',
+    ],
+    'locker' => [
+      'title' => 'Pengaturan Loker',
+      'subtitle' => 'Pengelolaan kapasitas dan pemantauan kondisi loker gym',
     ],
   ];
-
   $currentMeta = $featureMeta[$activeTab] ?? $featureMeta['promo'];
 @endphp
 
@@ -189,18 +192,46 @@
   @endif
 
   <!-- ============================================================== -->
+  <!-- ============================================================== -->
   <!-- 3. TAB REKAP KAS KEUANGAN -->
   <!-- ============================================================== -->
   @if($activeTab === 'cash')
+  @php
+    $periodLabels = [
+      'daily' => 'Harian (Hari Ini)',
+      'weekly' => 'Mingguan (Minggu Ini)',
+      'monthly' => 'Bulanan (Bulan Ini)'
+    ];
+    $currentPeriodLabel = $periodLabels[$cashPeriod ?? 'daily'] ?? 'Harian';
+  @endphp
   <div class="card-custom p-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3" style="gap: 12px;">
       <div>
-        <h5 class="font-weight-bold text-dark mb-1">Rekap Transaksi Kas Harian</h5>
-        <p class="text-muted small mb-0">Rincian transaksi kasir hari ini berdasarkan metode pembayaran.</p>
+        <h5 class="font-weight-bold text-dark mb-1">Rekap Transaksi Kas Keuangan</h5>
+        <p class="text-muted small mb-0">Rincian pendapatan kasir berdasarkan metode pembayaran untuk periode: <strong class="text-primary">{{ $currentPeriodLabel }}</strong>.</p>
       </div>
-      <span class="badge badge-info px-3 py-2 font-weight-bold" style="border-radius: 8px; font-size: 12px;">
-        Total Transaksi: {{ $dailyCashRecap->count() }}
-      </span>
+      <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+        <div class="btn-group shadow-sm" role="group" aria-label="Filter Periode Keuangan">
+          <a href="{{ url('/manager/features?tab=cash&period=daily') }}" 
+             class="btn btn-sm {{ ($cashPeriod ?? 'daily') === 'daily' ? 'btn-primary font-weight-bold' : 'btn-outline-secondary' }}" 
+             style="border-radius: 8px 0 0 8px; font-size: 12px; padding: 6px 14px;">
+            <i class="icon-calendar mr-1"></i> Harian
+          </a>
+          <a href="{{ url('/manager/features?tab=cash&period=weekly') }}" 
+             class="btn btn-sm {{ ($cashPeriod ?? 'daily') === 'weekly' ? 'btn-primary font-weight-bold' : 'btn-outline-secondary' }}" 
+             style="font-size: 12px; padding: 6px 14px;">
+            <i class="icon-calendar mr-1"></i> Mingguan
+          </a>
+          <a href="{{ url('/manager/features?tab=cash&period=monthly') }}" 
+             class="btn btn-sm {{ ($cashPeriod ?? 'daily') === 'monthly' ? 'btn-primary font-weight-bold' : 'btn-outline-secondary' }}" 
+             style="border-radius: 0 8px 8px 0; font-size: 12px; padding: 6px 14px;">
+            <i class="icon-calendar mr-1"></i> Bulanan
+          </a>
+        </div>
+        <span class="badge badge-info px-3 py-2 font-weight-bold" style="border-radius: 8px; font-size: 12px;">
+          Total Transaksi: {{ $dailyCashRecap->count() }}
+        </span>
+      </div>
     </div>
 
     @php
@@ -214,31 +245,31 @@
     <div class="row mb-4">
       <div class="col-md-3 mb-2 mb-md-0">
         <div class="p-3 bg-light rounded border text-center">
-          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Total Omset Hari Ini</small>
+          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Total Omset ({{ $currentPeriodLabel }})</small>
           <h4 class="font-weight-bold text-primary mt-1 mb-0">Rp {{ number_format($totalToday, 0, ',', '.') }}</h4>
         </div>
       </div>
       <div class="col-md-3 mb-2 mb-md-0">
         <div class="p-3 bg-light rounded border text-center">
-          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Uang Tunai</small>
+          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Uang Tunai (Cash)</small>
           <h4 class="font-weight-bold text-success mt-1 mb-0">Rp {{ number_format($cashTotal, 0, ',', '.') }}</h4>
         </div>
       </div>
       <div class="col-md-3 mb-2 mb-md-0">
         <div class="p-3 bg-light rounded border text-center">
-          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Pembayaran Digital (QRIS)</small>
+          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Pembayaran QRIS</small>
           <h4 class="font-weight-bold text-info mt-1 mb-0">Rp {{ number_format($qrisTotal, 0, ',', '.') }}</h4>
         </div>
       </div>
       <div class="col-md-3">
         <div class="p-3 bg-light rounded border text-center">
-          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Transfer dan Kartu</small>
+          <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Transfer &amp; Kartu</small>
           <h4 class="font-weight-bold text-dark mt-1 mb-0">Rp {{ number_format($transferTotal + $cardTotal, 0, ',', '.') }}</h4>
         </div>
       </div>
     </div>
 
-    <h6 class="font-weight-bold text-dark mb-3 border-top pt-3">Rincian Transaksi Kasir Hari Ini</h6>
+    <h6 class="font-weight-bold text-dark mb-3 border-top pt-3">Rincian Transaksi Kasir ({{ $currentPeriodLabel }})</h6>
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
@@ -263,7 +294,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="6" class="text-center py-4 text-muted">Belum ada transaksi kasir yang tercatat hari ini.</td>
+              <td colspan="6" class="text-center py-4 text-muted">Belum ada transaksi kasir yang tercatat untuk periode {{ strtolower($currentPeriodLabel) }}.</td>
             </tr>
           @endforelse
         </tbody>
@@ -332,6 +363,154 @@
           @empty
             <tr>
               <td colspan="6" class="text-center py-4 text-muted">Belum ada buku kontak vendor mitra terdaftar.</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @endif
+
+  <!-- ============================================================== -->
+  <!-- 5. TAB MASTER LOKER GYM -->
+  <!-- ============================================================== -->
+  @if($activeTab === 'locker')
+  <div class="row mb-4">
+    <div class="col-sm-6 col-md-3 mb-3 mb-md-0">
+      <div class="card-custom p-3 border-left" style="border-left: 4px solid #4f46e5 !important;">
+        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Total Unit Loker</small>
+        <h3 class="font-weight-bold text-dark mt-1 mb-0">{{ $totalLockers }}</h3>
+        <small class="text-muted">Kapasitas penyimpanan gym</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-3 mb-3 mb-md-0">
+      <div class="card-custom p-3 border-left" style="border-left: 4px solid #10b981 !important;">
+        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Loker Tersedia</small>
+        <h3 class="font-weight-bold text-success mt-1 mb-0">{{ $availableLockers }}</h3>
+        <small class="text-muted">Siap dipinjamkan resepsionis</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-3 mb-3 mb-md-0">
+      <div class="card-custom p-3 border-left" style="border-left: 4px solid #3b82f6 !important;">
+        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Sedang Digunakan</small>
+        <h3 class="font-weight-bold text-primary mt-1 mb-0">{{ $occupiedLockers }}</h3>
+        <small class="text-muted">Kunci sedang dipinjam member</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <div class="card-custom p-3 border-left" style="border-left: 4px solid #ef4444 !important;">
+        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px;">Rusak / Perlu Perbaikan</small>
+        <h3 class="font-weight-bold text-danger mt-1 mb-0">{{ $brokenLockers }}</h3>
+        <small class="text-muted">Ditangani oleh Supervisor</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-custom p-4 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3" style="gap: 12px;">
+      <div>
+        <h5 class="font-weight-bold text-dark mb-1">Peta Visual & Pengelolaan Kapasitas Loker</h5>
+        <p class="text-muted small mb-0">Tambah unit loker gym secara satuan atau langsung tentukan jumlah loker massal.</p>
+      </div>
+      @if(!Auth::user() || !Auth::user()->isOwner())
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-3 py-2 mr-2" data-toggle="modal" data-target="#addSingleLockerModal" style="border-radius: 8px;">
+          <i class="icon-plus mr-1"></i> Tambah Loker Satuan
+        </button>
+        <button type="button" class="btn btn-sm btn-primary font-weight-bold px-3 py-2" data-toggle="modal" data-target="#addBulkLockerModal" style="border-radius: 8px;">
+          <i class="icon-settings mr-1"></i> Buat Jumlah Loker (Massal)
+        </button>
+      </div>
+      @endif
+    </div>
+
+    <!-- Visual Grid Peta Loker -->
+    <div class="p-3 bg-light rounded mb-4 border">
+      <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
+        <span class="font-weight-bold text-dark small text-uppercase" style="letter-spacing: 0.5px;">Visualisasi Grid Loker</span>
+        <div class="d-flex align-items-center flex-wrap gap-3" style="font-size: 12px;">
+          <div class="d-flex align-items-center mr-3"><span style="width:12px;height:12px;border-radius:3px;background:#10b981;display:inline-block;margin-right:6px;"></span> Tersedia</div>
+          <div class="d-flex align-items-center mr-3"><span style="width:12px;height:12px;border-radius:3px;background:#3b82f6;display:inline-block;margin-right:6px;"></span> Terpakai</div>
+          <div class="d-flex align-items-center"><span style="width:12px;height:12px;border-radius:3px;background:#ef4444;display:inline-block;margin-right:6px;"></span> Rusak</div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap" style="gap: 8px; max-height: 280px; overflow-y: auto;">
+        @forelse($lockers as $l)
+          @php
+            $bg = '#10b981';
+            if ($l->status === 'terpakai') $bg = '#3b82f6';
+            elseif ($l->status === 'rusak') $bg = '#ef4444';
+          @endphp
+          <div class="text-center rounded p-2 text-white shadow-sm" style="width: 62px; height: 62px; background: {{ $bg }}; display: flex; flex-direction: column; justify-content: center; align-items: center;" title="Loker #{{ $l->locker_number }} - {{ ucfirst($l->status) }}{{ $l->notes ? ' (' . $l->notes . ')' : '' }}">
+            <span class="font-weight-bold" style="font-size: 15px; line-height: 1.1;">{{ $l->locker_number }}</span>
+            <small style="font-size: 9px; opacity: 0.9;">{{ ucfirst($l->status) }}</small>
+          </div>
+        @empty
+          <div class="text-center py-4 text-muted w-100">Belum ada unit loker terdaftar. Gunakan tombol di atas untuk membuat jumlah loker gym.</div>
+        @endforelse
+      </div>
+    </div>
+
+    <!-- Tabel Daftar Unit Loker -->
+    <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light text-muted" style="font-size: 11.5px; text-transform: uppercase; position: sticky; top: 0; z-index: 1;">
+          <tr>
+            <th>No. Loker</th>
+            <th>Status Okupansi</th>
+            <th>Catatan Kerusakan / Keterangan</th>
+            <th>Terakhir Diperbarui</th>
+            @if(!Auth::user() || !Auth::user()->isOwner())
+            <th class="text-right">Aksi</th>
+            @endif
+          </tr>
+        </thead>
+        <tbody>
+          @forelse($lockers as $l)
+            <tr>
+              <td>
+                <span class="font-weight-bold text-dark" style="font-size: 14px;">#{{ $l->locker_number }}</span>
+              </td>
+              <td>
+                @if($l->status === 'tersedia')
+                  <span class="badge badge-success px-2 py-1">Tersedia</span>
+                @elseif($l->status === 'terpakai')
+                  <span class="badge badge-primary px-2 py-1">Sedang Digunakan</span>
+                @else
+                  <span class="badge badge-danger px-2 py-1"><i class="icon-exclamation-triangle mr-1"></i> Rusak (Perlu Maintenance)</span>
+                @endif
+              </td>
+              <td>
+                @if($l->status === 'rusak' && $l->notes)
+                  <span class="text-danger small font-weight-bold"><i class="icon-wrench mr-1"></i> {{ $l->notes }}</span>
+                @elseif($l->status === 'rusak')
+                  <span class="text-danger small font-italic">Dilaporkan rusak tanpa keterangan tambahan</span>
+                @else
+                  <span class="text-muted small">-</span>
+                @endif
+              </td>
+              <td class="text-muted small">
+                {{ $l->updated_at ? $l->updated_at->format('d M Y H:i') : '-' }}
+              </td>
+              @if(!Auth::user() || !Auth::user()->isOwner())
+              <td class="text-right">
+                @if($l->status !== 'terpakai')
+                  <form action="{{ route('manager.lockers.destroy', $l->id) }}" method="POST" class="d-inline" data-confirm="Hapus unit loker nomor #{{ $l->locker_number }} dari sistem?">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius: 6px;">
+                      <i class="icon-trash"></i> Hapus
+                    </button>
+                  </form>
+                @else
+                  <span class="badge badge-light border text-muted small" title="Loker sedang dipakai member, tidak dapat dihapus">Sedang Digunakan</span>
+                @endif
+              </td>
+              @endif
+            </tr>
+          @empty
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">Belum ada data loker. Silakan tambah jumlah loker gym.</td>
             </tr>
           @endforelse
         </tbody>
@@ -561,8 +740,96 @@
     </form>
   </div>
 </div>
-@endsection
 
+<!-- Modal Tambah Loker Satuan -->
+<div class="modal fade" id="addSingleLockerModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form action="{{ route('manager.lockers.store') }}" method="POST" class="modal-content shadow border-0">
+      @csrf
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Tambah Unit Loker Baru</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark small mb-1">Nomor / Kode Loker *</label>
+          <input type="text" name="locker_number" class="form-control font-weight-bold" placeholder="Contoh: 01, 02, A-01, B-10" required>
+          <small class="text-muted">Nomor atau kode identifikasi loker fisik di gym.</small>
+        </div>
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark small mb-1">Status Awal</label>
+          <select name="status" class="form-control">
+            <option value="tersedia">Tersedia (Siap Digunakan)</option>
+            <option value="rusak">Rusak (Perlu Maintenance)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold px-4">Daftarkan Loker</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Tambah Loker Massal -->
+<div class="modal fade" id="addBulkLockerModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form action="{{ route('manager.lockers.bulk') }}" method="POST" class="modal-content shadow border-0">
+      @csrf
+      <div class="modal-header bg-light">
+        <h5 class="modal-title font-weight-bold text-dark mb-0">Buat Jumlah Loker Gym (Massal)</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="form-group mb-3">
+          <label class="font-weight-bold text-dark small mb-2 d-block">Metode Pembuatan Loker:</label>
+          <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" id="modeQuantity" name="mode" value="quantity" class="custom-control-input" checked>
+            <label class="custom-control-label font-weight-bold text-dark" for="modeQuantity">Berdasarkan Jumlah Unit</label>
+          </div>
+          <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" id="modeRange" name="mode" value="range" class="custom-control-input">
+            <label class="custom-control-label font-weight-bold text-dark" for="modeRange">Rentang Nomor Tertentu</label>
+          </div>
+        </div>
+
+        <div id="sectionQuantity">
+          <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">Berapa Banyak Loker yang Ingin Dibuat? *</label>
+            <input type="number" name="quantity" id="inputQuantity" class="form-control font-weight-bold" min="1" max="100" value="10" placeholder="Contoh: 10, 20, 50">
+            <small class="text-muted">Sistem akan otomatis membuat nomor urut loker yang belum terdaftar.</small>
+          </div>
+        </div>
+
+        <div id="sectionRange" style="display: none;">
+          <div class="row">
+            <div class="col-6 form-group mb-3">
+              <label class="font-weight-bold text-dark small mb-1">Dari Nomor *</label>
+              <input type="number" name="start_number" id="inputStartNumber" class="form-control" min="1" value="1" placeholder="1">
+            </div>
+            <div class="col-6 form-group mb-3">
+              <label class="font-weight-bold text-dark small mb-1">Sampai Nomor *</label>
+              <input type="number" name="end_number" id="inputEndNumber" class="form-control" min="1" value="30" placeholder="30">
+            </div>
+          </div>
+          <small class="text-muted d-block mb-3">Maksimal 100 nomor loker per batch.</small>
+        </div>
+
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark small mb-1">Awalan / Prefix Huruf (Opsional)</label>
+          <input type="text" name="prefix" class="form-control" placeholder="Kosongkan atau contoh: A, B, VIP">
+          <small class="text-muted">Misal diisi <code>A</code>, nomor loker menjadi <code>A-01</code>, <code>A-02</code>, dst.</small>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary font-weight-bold px-4">Generate & Buat Loker</button>
+      </div>
+    </form>
+  </div>
+</div>
+@endsection
 @section('scripts')
 <script>
   $(document).ready(function() {
@@ -593,6 +860,21 @@
       $('#editVendorAddress').val($(this).data('address'));
       $('#editVendorNotes').val($(this).data('notes'));
       $('#editVendorModal').modal('show');
+    });
+
+    // 3. Toggle Mode Bulk Loker
+    $('input[name="mode"]').on('change', function() {
+      if ($(this).val() === 'quantity') {
+        $('#sectionQuantity').show();
+        $('#sectionRange').hide();
+        $('#inputQuantity').prop('required', true);
+        $('#inputStartNumber, #inputEndNumber').prop('required', false);
+      } else {
+        $('#sectionQuantity').hide();
+        $('#sectionRange').show();
+        $('#inputQuantity').prop('required', false);
+        $('#inputStartNumber, #inputEndNumber').prop('required', true);
+      }
     });
   });
 </script>

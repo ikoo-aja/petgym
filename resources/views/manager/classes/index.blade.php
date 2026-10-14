@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Manajemen Kelas & Trainer — PetGym')
-@section('page_title', 'Manajemen Kelas & Trainer')
-@section('page_subtitle', 'Pengaturan jadwal master kelas kebugaran rutin dan penugasan instruktur pelatih')
+@section('page_title', 'Jadwal Kelas & Trainer')
+@section('page_subtitle', 'Pengaturan jadwal kelas rutin dan penugasan instruktur')
 
 @section('content')
 <div class="row">

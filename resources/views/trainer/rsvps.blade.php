@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Daftar Peserta RSVP Kelas &mdash; PetGym')
-@section('page_title', 'Daftar Peserta RSVP Kelas')
-@section('page_subtitle', 'Pantau dan catat kehadiran member yang mendaftar pada kelas latihan yang Anda bimbing')
+@section('page_title', 'Peserta Kelas')
+@section('page_subtitle', 'Daftar dan presensi kehadiran peserta kelas')
 
 @section('content')
 <div class="card-custom">

@@ -84,4 +84,66 @@ class TenantLandingTest extends TestCase
             'Member berhasil login dari portal utama, padahal LoginController seharusnya menolaknya.'
         );
     }
+
+    public function test_admin_dapat_menutup_dan_membuka_landing_page_serta_mode_maintenance(): void
+    {
+        $admin = \App\Models\User::where('email', 'admin@fitlife.com')->first();
+        $this->actingAs($admin);
+
+        $apex = config('app.tenant_apex');
+        $publicUrl = "http://fitlife.{$apex}/";
+
+        // 1. Admin menutup landing page (Mode Maintenance)
+        $response = $this->post(route('admin.landing.update'), [
+            'is_active'           => '0',
+            'maintenance_title'   => 'Perbaikan Fasilitas Gym',
+            'maintenance_message' => 'Kami sedang melakukan pemeliharaan server dan fasilitas gym.',
+            'hero_title'          => 'FitLife Studio',
+        ]);
+
+        $response->assertRedirect(route('admin.landing.edit'));
+        $this->assertDatabaseHas('tenant_landing_settings', [
+            'tenant_id'         => $admin->tenant_id,
+            'is_active'         => false,
+            'maintenance_title' => 'Perbaikan Fasilitas Gym',
+        ]);
+
+        // 2. Publik umum melihat halaman maintenance
+        Auth::logout();
+        $this->flushSession();
+
+        $guestResponse = $this->get($publicUrl);
+        $guestResponse->assertStatus(200);
+        $guestResponse->assertSee('Mode Pemeliharaan');
+        $guestResponse->assertSee('Perbaikan Fasilitas Gym');
+        $guestResponse->assertSee('Kami sedang melakukan pemeliharaan server dan fasilitas gym.');
+        $guestResponse->assertSee('Portal Login Member');
+
+        // 3. Admin dapat melakukan pratinjau halaman penuh dengan ?preview=1
+        $this->actingAs($admin);
+        $previewResponse = $this->get("{$publicUrl}?preview=1");
+        $previewResponse->assertStatus(200);
+        $previewResponse->assertSee('Mode Pratinjau Admin');
+
+        // 4. Admin mengaktifkan kembali landing page
+        $reopenResponse = $this->post(route('admin.landing.update'), [
+            'is_active'  => '1',
+            'hero_title' => 'FitLife Studio Kembali Online',
+        ]);
+        $reopenResponse->assertRedirect(route('admin.landing.edit'));
+
+        $this->assertDatabaseHas('tenant_landing_settings', [
+            'tenant_id' => $admin->tenant_id,
+            'is_active' => true,
+        ]);
+
+        // 5. Publik dapat melihat kembali landing page normal
+        Auth::logout();
+        $this->flushSession();
+
+        $normalResponse = $this->get($publicUrl);
+        $normalResponse->assertStatus(200);
+        $normalResponse->assertDontSee('Mode Pemeliharaan');
+        $normalResponse->assertSee('FitLife Studio Kembali Online');
+    }
 }

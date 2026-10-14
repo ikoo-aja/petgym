@@ -61,13 +61,13 @@ class ManagerMemberController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
         }
         if ($user->isManager()) {
-            return redirect()->back()->with('error', 'Manager bertugas meng-approve (menyetujui) akun member, bukan menambahkan akun dari awal.');
+            return redirect()->back()->with('error', 'Pendaftaran member baru hanya dapat diproses melalui menu kasir/POS.');
         }
         if ($user->isAdmin()) {
-            return redirect()->back()->with('error', 'Admin tidak menambahkan akun member baru secara langsung. Pendaftaran member dilakukan oleh Resepsionis/Kasir melalui POS.');
+            return redirect()->back()->with('error', 'Pendaftaran member baru diproses melalui menu kasir/POS.');
         }
         if ($user->isTrainer()) {
             abort(403, 'Akses Ditolak: Pelatih (Trainer) tidak memiliki izin untuk mendaftarkan member.');
@@ -254,7 +254,7 @@ class ManagerMemberController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Mode Pemantauan Owner: Anda hanya memiliki hak akses untuk melihat data.');
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
         }
         if (!$user->isManager() && !$user->isAdmin() && !$user->isSuperadmin()) {
             abort(403, 'Akses Ditolak: Hanya Manager Gym yang dapat menghapus data member.');
@@ -293,8 +293,10 @@ class ManagerMemberController extends Controller
         $tenant = $user->tenant;
 
         $member = Member::where('tenant_id', $tenant->id)->findOrFail($id);
+        $oneWeekAgo = Carbon::now()->subDays(7)->startOfDay();
         $transactions = PosTransaction::where('tenant_id', $tenant->id)
             ->where('member_id', $member->id)
+            ->where('created_at', '>=', $oneWeekAgo)
             ->with('items')
             ->latest()
             ->get();

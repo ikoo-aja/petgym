@@ -2,7 +2,7 @@
 
 @section('title', 'Kelas Kebugaran')
 @section('page_title', 'Kelas Kebugaran')
-@section('page_subtitle', 'Pilih jadwal kelas dan lakukan reservasi tempat latihan.')
+@section('page_subtitle', 'Jadwal dan reservasi kelas latihan kebugaran')
 
 @section('content')
 <!-- No-Show Penalty Status Alert Card -->

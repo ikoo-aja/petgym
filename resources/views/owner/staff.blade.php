@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Pemantauan Akun Staf (Owner) &mdash; PetGym')
-@section('page_title', 'Pemantauan Akun Staf & Otentikasi Role')
-@section('page_subtitle', 'Monitoring daftar akun karyawan gym dan hak akses Role-Based Access Control')
+@section('page_title', 'Data Staf')
+@section('page_subtitle', 'Daftar akun pengelola dan staf operasional gym')
 
 @section('content')
 

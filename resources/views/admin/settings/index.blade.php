@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Pengaturan Gym &mdash; PetGym')
-@section('page_title', 'Pengaturan Profil Gym (Tenant Preferences)')
-@section('page_subtitle', 'Kustomisasi nama gym, pemilik, kontak resmi, dan preferensi operasional')
+@section('page_title', 'Pengaturan Gym')
+@section('page_subtitle', 'Pengaturan profil, kontak, dan operasional gym')
 
 @section('content')
 <div class="row">

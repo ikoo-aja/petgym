@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Beranda Pelatih &mdash; PetGym')
-@section('page_title', 'Beranda Personal Trainer')
-@section('page_subtitle', 'Ringkasan jadwal sesi latihan privat, penugasan kelas, dan absensi peserta')
+@section('page_title', 'Beranda')
+@section('page_subtitle', 'Ringkasan jadwal sesi latihan dan penugasan kelas Anda')
 
 @section('content')
 <!-- Ringkasan Statistik Trainer -->

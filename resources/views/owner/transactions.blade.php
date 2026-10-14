@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Pemantauan Transaksi Kasir (Owner) &mdash; PetGym')
-@section('page_title', 'Pemantauan Transaksi POS & Kasir')
-@section('page_subtitle', 'Rekapitulasi seluruh riwayat transaksi penjualan kasir dan perpanjangan member')
+@section('page_title', 'Detail Transaksi')
+@section('page_subtitle', 'Ringkasan riwayat transaksi pembayaran dan kasir gym')
 
 @section('content')
 

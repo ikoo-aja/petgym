@@ -2,7 +2,7 @@
 
 @section('title', 'Pengaturan Akun')
 @section('page_title', 'Pengaturan Akun')
-@section('page_subtitle', 'Kelola informasi profil, nama pengguna, dan keamanan kata sandi akun Anda')
+@section('page_subtitle', 'Kelola informasi profil dan keamanan kata sandi Anda')
 
 @section('content')
 <div class="container-fluid py-2">

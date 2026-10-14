@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Master Loker Gym &mdash; PetGym')
-@section('page_title', 'Master Data Loker Gym')
-@section('page_subtitle', 'Setup kapasitas loker, pendaftaran loker baru, dan status loker')
+@section('page_title', 'Manajemen Loker')
+@section('page_subtitle', 'Pengaturan kapasitas dan status loker gym')
 
 @section('content')
 <div class="row">
@@ -86,7 +86,7 @@
               @if(!Auth::user() || !Auth::user()->isOwner())
               <td class="text-right">
                 @if($l->status === 'tersedia')
-                  <form action="{{ route('receptionist.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Blokir loker ini? Status akan menjadi Rusak dan tidak bisa dipakai Resepsionis.">
+                  <form action="{{ route('receptionist.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Tandai loker ini sebagai rusak? Unit tidak akan dapat dipinjamkan sementara waktu.">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">

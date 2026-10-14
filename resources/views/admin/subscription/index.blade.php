@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Kelola Langganan — PetGym Admin')
-@section('page_title', 'Kelola Langganan')
-@section('page_subtitle', 'Pantau status masa aktif website dan riwayat transaksi langganan')
+@section('page_title', 'Langganan')
+@section('page_subtitle', 'Status paket langganan dan perpanjangan sewa website')
 
 @section('content')
 <div class="container-fluid py-4">

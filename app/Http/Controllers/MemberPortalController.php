@@ -227,7 +227,7 @@ class MemberPortalController extends Controller
             'type' => 'inventory',
         ]);
 
-        return redirect()->route('member.lockers')->with('success', "Pembayaran berhasil! Loker #{$locker->locker_number} berhasil disewa. Access PIN Anda: {$pinCode}");
+        return redirect()->route('member.lockers')->with('success', "Pembayaran berhasil. Unit loker #{$locker->locker_number} telah aktif.");
     }
 
     /**

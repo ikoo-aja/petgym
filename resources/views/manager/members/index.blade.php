@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Manajemen Member &mdash; PetGym')
-@section('page_title', 'Manajemen Member Gym')
-@section('page_subtitle', 'Kelola pendaftaran member baru, kode akses statis, dan riwayat transaksi')
+@section('page_title', 'Data Member')
+@section('page_subtitle', 'Pengelolaan data anggota dan status keanggotaan gym')
 
 @section('content')
 <div class="card-custom">
@@ -282,7 +282,10 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content" style="border-radius: 12px;">
       <div class="modal-header">
-        <h5 class="modal-title font-weight-bold" id="historyMemberTitle">Riwayat Transaksi Member</h5>
+        <div>
+          <h5 class="modal-title font-weight-bold mb-0" id="historyMemberTitle">Riwayat Transaksi Member</h5>
+          <small class="text-muted"><i class="icon-calendar mr-1"></i> Menampilkan riwayat transaksi pembayaran selama 1 minggu terakhir</small>
+        </div>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
@@ -430,7 +433,7 @@
             html += '</tr>';
           });
         } else {
-          html = '<tr><td colspan="7" class="text-center text-muted py-3">Member ini belum pernah melakukan transaksi.</td></tr>';
+          html = '<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada riwayat transaksi pembayaran dalam 1 minggu terakhir.</td></tr>';
         }
         $('#historyTableBody').html(html);
       });

@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Kinerja Karyawan — PetGym')
-@section('page_title', 'Pemantauan Kinerja Karyawan')
-@section('page_subtitle', 'Evaluasi performa penjualan kasir resepsionis dan penugasan kelas instruktur trainer')
+@section('page_title', 'Kinerja Karyawan')
+@section('page_subtitle', 'Pemantauan aktivitas dan pencapaian staf kasir serta instruktur')
 
 @section('content')
 <div class="container-fluid py-2">

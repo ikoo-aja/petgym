@@ -42,7 +42,7 @@ class SupervisorRestockTest extends TestCase
         $this->assertEquals($oldWarehouse = $oldWarehouse + 5, $product->warehouse_stock);
 
         // Verify StaffLog was created
-        $staffLog = StaffLog::where('tenant_id', 1)
+        $staffLog = StaffLog::where('tenant_id', $supervisor->tenant_id)
             ->where('user_id', $supervisor->id)
             ->where('action', 'Penerimaan Stok Vendor ke Gudang')
             ->latest()
@@ -53,7 +53,7 @@ class SupervisorRestockTest extends TestCase
         $this->assertStringContainsString("{$product->warehouse_stock} pcs", $staffLog->description);
 
         // Verify StockMutation was created
-        $mutation = StockMutation::where('tenant_id', 1)
+        $mutation = StockMutation::where('tenant_id', $supervisor->tenant_id)
             ->where('product_id', $product->id)
             ->latest()
             ->first();

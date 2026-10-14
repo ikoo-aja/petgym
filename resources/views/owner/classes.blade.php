@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Pemantauan Kelas & Trainer (Owner) &mdash; PetGym')
-@section('page_title', 'Pemantauan Jadwal Kelas & Personal Trainer')
-@section('page_subtitle', 'Monitoring jadwal kelas kebugaran, alokasi instruktur, kuota ruangan, dan daftar Personal Trainer (Mode Pemantauan & Read-Only)')
+@section('page_title', 'Kelas & Trainer')
+@section('page_subtitle', 'Jadwal kelas kebugaran dan daftar instruktur pelatih')
 
 @section('content')
 

@@ -518,8 +518,8 @@
 <main class="member-container">
   <!-- Page Title Header -->
   <div class="mb-3 mb-md-4">
-    <h4 class="font-weight-bold text-dark mb-1 member-page-title">@yield('page_title', 'Beranda Anggota')</h4>
-    <p class="text-muted small mb-0 member-page-subtitle">@yield('page_subtitle', 'Sistem Pengelolaan Keanggotaan Gym')</p>
+    <h4 class="font-weight-bold text-dark mb-1 member-page-title">@yield('page_title', 'Beranda')</h4>
+    <p class="text-muted small mb-0 member-page-subtitle">@yield('page_subtitle', 'Ringkasan aktivitas keanggotaan dan jadwal latihan Anda')</p>
   </div>
 
   {{-- Notification Banner for Inactive Subscription --}}

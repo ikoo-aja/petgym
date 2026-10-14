@@ -2,7 +2,7 @@
 
 @section('title', 'Beranda Anggota')
 @section('page_title', 'Beranda')
-@section('page_subtitle', 'Ringkasan aktivitas keanggotaan dan jadwal kebugaran Anda.')
+@section('page_subtitle', 'Ringkasan aktivitas keanggotaan dan jadwal latihan Anda')
 
 @section('content')
 <!-- Active Locker Banner (Only when active) -->

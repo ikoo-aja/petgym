@@ -46,7 +46,7 @@
           <div class="col-md-8 section-heading mb-2">
             <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform SaaS PetGym</span>
             <h2 class="heading mb-2 text-dark font-weight-bold">Masuk ke Portal Pengelola Gym</h2>
-            <p class="text-muted">Masuk ke portal akun Staf Operasional, Manager, atau Pemilik Gym.</p>
+            <p class="text-muted">Masuk ke portal pengelolaan dan operasional gym Anda.</p>
           </div>
         </div>
 

@@ -143,9 +143,10 @@ class ReceptionistController extends Controller
         return redirect()->route('receptionist.lockers')->with('success', "Kunci Loker {$locker->locker_number} berhasil diberikan.");
     }
 
-    public function returnLocker($id)
+    public function returnLocker(Request $request, $id)
     {
-        $tenant = Auth::user()->tenant;
+        $user = Auth::user();
+        $tenant = $user->tenant;
         $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($id);
 
         $rental = LockerRental::where('tenant_id', $tenant->id)
@@ -157,9 +158,70 @@ class ReceptionistController extends Controller
             $rental->update(['returned_at' => Carbon::now()]);
         }
 
-        $locker->update(['status' => 'tersedia']);
+        $condition = $request->input('condition', 'tersedia');
+        $notes = $request->input('notes');
 
-        return redirect()->route('receptionist.lockers')->with('success', "Kunci Loker {$locker->locker_number} berhasil dikembalikan.");
+        if ($condition === 'rusak') {
+            $locker->update([
+                'status' => 'rusak',
+                'notes' => $notes ?: 'Dilaporkan rusak saat pengembalian kunci oleh member/resepsionis',
+            ]);
+
+            StaffLog::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'action' => 'Lapor Loker Rusak',
+                'description' => "Resepsionis {$user->name} mengonfirmasi pengembalian kunci loker #{$locker->locker_number} dalam kondisi RUSAK: " . ($notes ?: 'Tanpa keterangan') . ". Tiket diteruskan ke Supervisor untuk perbaikan.",
+                'ip_address' => $request->ip(),
+            ]);
+
+            return redirect()->route('receptionist.lockers')->with('warning', "Kunci Loker {$locker->locker_number} dikembalikan dalam kondisi RUSAK. Laporan telah otomatis diteruskan ke Supervisor untuk perbaikan.");
+        }
+
+        $locker->update([
+            'status' => 'tersedia',
+            'notes' => null,
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Pengembalian Kunci Loker',
+            'description' => "Resepsionis {$user->name} menerima pengembalian kunci loker #{$locker->locker_number} dalam kondisi baik.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('receptionist.lockers')->with('success', "Kunci Loker {$locker->locker_number} berhasil dikembalikan dan loker siap digunakan kembali.");
+    }
+
+    public function reportDamage(Request $request, $id)
+    {
+        $user = Auth::user();
+        $tenant = $user->tenant;
+        $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        $request->validate([
+            'notes' => 'required|string|max:500',
+        ]);
+
+        if ($locker->status === 'terpakai') {
+            return redirect()->back()->with('error', "Loker #{$locker->locker_number} saat ini sedang aktif dipinjam member. Lakukan pelaporan saat pengembalian kunci atau pastikan member telah mengembalikan kunci.");
+        }
+
+        $locker->update([
+            'status' => 'rusak',
+            'notes' => $request->notes,
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Lapor Loker Rusak',
+            'description' => "Resepsionis {$user->name} melaporkan loker #{$locker->locker_number} dalam kondisi RUSAK: {$request->notes}. Laporan diteruskan ke Supervisor.",
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('receptionist.lockers')->with('warning', "Loker #{$locker->locker_number} berhasil ditandai RUSAK. Laporan kerusakan telah terkirim ke Supervisor untuk perbaikan.");
     }
 
     /**
@@ -341,7 +403,7 @@ class ReceptionistController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('receptionist.shifts')->with('success', 'Shift kasir berhasil ditutup. Setoran fisik sebesar Rp ' . number_format($request->end_cash, 0, ',', '.') . ' telah dicatat.');
+        return redirect()->route('receptionist.shifts')->with('success', 'Shift kasir berhasil ditutup dan setoran kas akhir telah tercatat.');
     }
 
     public function closeShiftAndLogout(Request $request)
@@ -391,7 +453,7 @@ class ReceptionistController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login')->with('success', 'Shift kasir berhasil ditutup dengan setoran fisik Rp ' . number_format($request->end_cash, 0, ',', '.') . '. Anda telah berhasil keluar dari sistem.');
+        return redirect('/login')->with('success', 'Shift kasir berhasil ditutup dan Anda telah keluar dari sistem.');
     }
 
     /**

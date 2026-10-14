@@ -341,7 +341,7 @@
       <li class="menu-header">Utama</li>
       <li>
         <a href="{{ $dashUrl }}" class="{{ request()->routeIs('*.dashboard') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-dashboard"></span></span> Beranda {{ ucfirst($userRole) }}
+          <span class="icon-wrapper"><span class="icon-dashboard"></span></span> Beranda
         </a>
       </li>
 
@@ -390,7 +390,7 @@
       </li>
       <li>
         <a href="{{ route('owner.classes') }}" class="{{ request()->routeIs('owner.classes') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Jadwal Kelas & Trainer
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Kelas & Trainer
         </a>
       </li>
       <li>
@@ -424,27 +424,27 @@
       @if($userRole === 'admin')
       <li>
         <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Akun Owner & Manager
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Data Staf
         </a>
       </li>
       <li>
         <a href="{{ route('admin.landing.edit') }}" class="{{ request()->routeIs('admin.landing.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-globe"></span></span> Desain Landing Page
+          <span class="icon-wrapper"><span class="icon-globe"></span></span> Landing Page
         </a>
       </li>
       <li>
         <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Profil Gym
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Gym
         </a>
       </li>
       <li>
         <a href="{{ route('admin.subscription.index') }}" class="{{ request()->routeIs('admin.subscription.*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-credit-card"></span></span> Langganan SaaS & Billing
+          <span class="icon-wrapper"><span class="icon-credit-card"></span></span> Langganan
         </a>
       </li>
       <li>
         <a href="{{ route('account.settings') }}" class="{{ request()->routeIs('account.settings*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Pengaturan Akun Admin
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Pengaturan Akun
         </a>
       </li>
       @endif
@@ -512,17 +512,22 @@
       </li>
       <li>
         <a href="/manager/features?tab=performance" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'performance') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Kinerja Karyawan
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Aktivitas Karyawan
         </a>
       </li>
       <li>
         <a href="/manager/features?tab=cash" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'cash') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Rekap Kas Keuangan
+          <span class="icon-wrapper"><span class="icon-file-text"></span></span> Laporan Keuangan
         </a>
       </li>
       <li>
         <a href="/manager/features?tab=vendor" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'vendor') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Database Vendor Mitra
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Vendor & Mitra
+        </a>
+      </li>
+      <li>
+        <a href="/manager/features?tab=locker" class="{{ request()->is('manager/features*') && (request()->query('tab') === 'locker') ? 'active' : '' }}">
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Pengaturan Loker
         </a>
       </li>
       <li class="menu-header">Pengaturan</li>
@@ -537,32 +542,32 @@
       <li class="menu-header">Operasional Lapangan</li>
       <li>
         <a href="/supervisor/features?tab=void" class="{{ request()->is('supervisor/features*') && (request()->query('tab', 'void') === 'void') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-check"></span></span> Otorisasi Pembatalan Kasir
+          <span class="icon-wrapper"><span class="icon-check"></span></span> Pembatalan Kasir
         </a>
       </li>
       <li>
         <a href="/supervisor/features?tab=shift" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'shift') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Shift dan Cuti Staf
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Shift & Cuti
         </a>
       </li>
       <li>
         <a href="/supervisor/features?tab=equipment" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'equipment') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Aset dan Alat Gym
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Aset & Alat
         </a>
       </li>
       <li>
         <a href="/supervisor/features?tab=stock" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'stock') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> Peringatan Stok Barang
+          <span class="icon-wrapper"><span class="icon-shopping-cart"></span></span> Stok Barang
         </a>
       </li>
       <li>
         <a href="/supervisor/features?tab=complaint" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'complaint') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Komplain Member
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Komplain Pelanggan
         </a>
       </li>
       <li>
         <a href="/supervisor/features?tab=locker" class="{{ request()->is('supervisor/features*') && (request()->query('tab') === 'locker') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-settings"></span></span> Master Loker Gym
+          <span class="icon-wrapper"><span class="icon-settings"></span></span> Loker Gym
         </a>
       </li>
       @endif
@@ -571,17 +576,17 @@
       <li class="menu-header">Operasional Pelatih</li>
       <li>
         <a href="{{ route('trainer.pt-sessions') }}" class="{{ request()->routeIs('trainer.pt-sessions*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-person"></span></span> Booking Sesi PT
+          <span class="icon-wrapper"><span class="icon-person"></span></span> Jadwal Sesi
         </a>
       </li>
       <li>
         <a href="{{ route('trainer.classes') }}" class="{{ request()->routeIs('trainer.classes*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Penugasan Kelas
+          <span class="icon-wrapper"><span class="icon-calendar"></span></span> Kelas Trainer
         </a>
       </li>
       <li>
         <a href="{{ route('trainer.rsvps') }}" class="{{ request()->routeIs('trainer.rsvps*') ? 'active' : '' }}">
-          <span class="icon-wrapper"><span class="icon-people"></span></span> Peserta RSVP Kelas
+          <span class="icon-wrapper"><span class="icon-people"></span></span> Peserta Kelas
         </a>
       </li>
       <li class="menu-header">Pengaturan</li>
@@ -598,8 +603,8 @@
   <main class="admin-main">
     <div class="top-navbar">
       <div class="page-title-box">
-        <h5>@yield('page_title', 'Beranda ' . ucfirst($userRole))</h5>
-        <p>@yield('page_subtitle', 'Sistem Pengelolaan Gym')</p>
+        <h5>@yield('page_title', 'Beranda')</h5>
+        <p>@yield('page_subtitle', 'Ringkasan operasional dan aktivitas gym')</p>
       </div>
 
       <div class="user-profile-nav d-flex align-items-center">

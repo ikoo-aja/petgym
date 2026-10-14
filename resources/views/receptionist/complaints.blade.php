@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Keluhan Member &mdash; PetGym')
-@section('page_title', 'Keluhan & Komplain Member')
-@section('page_subtitle', 'Pencatatan laporan keluhan fasilitas/layanan dari member untuk ditindaklanjuti oleh Supervisor dan Manager')
+@section('page_title', 'Keluhan Member')
+@section('page_subtitle', 'Pencatatan saran dan keluhan layanan dari anggota')
 
 @section('content')
 <div class="card-custom">

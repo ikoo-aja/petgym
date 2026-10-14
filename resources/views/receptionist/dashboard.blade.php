@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Beranda Resepsionis — PetGym')
-@section('page_title', 'Beranda Resepsionis')
-@section('page_subtitle', 'Layanan meja depan, presensi anggota, pendaftaran member, dan transaksi kasir')
+@section('page_title', 'Beranda')
+@section('page_subtitle', 'Layanan meja depan, presensi, dan transaksi kasir harian')
 
 @section('content')
 <!-- Shift Status Banner -->

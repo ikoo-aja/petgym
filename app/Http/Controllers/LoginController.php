@@ -76,21 +76,23 @@ class LoginController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
-            // Proteksi: Akun member TIDAK boleh login dari portal utama PetGym.
-            // Member HANYA boleh login melalui subdomain/halaman web gym tempat mereka mendaftar.
+            // Proteksi: Akun member diarahkan ke halaman login gym tempat mereka terdaftar
             $isTenantSubdomain = ($request->route() && $request->route()->hasParameter('slug')) || app()->environment('testing');
             if ($user->role === 'member' && !$isTenantSubdomain) {
+                $tenant = $user->tenant;
+                $gymUrl = $tenant ? $tenant->publicLandingUrl() . '/login' : null;
+
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                $tenant = $user->tenant;
-                $gymUrl = $tenant ? $tenant->publicLandingUrl() . '/login' : null;
-                $errorMsg = $gymUrl 
-                    ? "Akun keanggotaan member tidak dapat login dari portal PetGym utama. Silakan masuk melalui halaman login gym Anda: <a href='{$gymUrl}' class='font-weight-bold text-danger'>{$gymUrl}</a>"
-                    : "Akun keanggotaan member tidak dapat login dari portal PetGym utama. Silakan masuk melalui alamat website gym tempat Anda mendaftar.";
+                if ($gymUrl) {
+                    return redirect()->away($gymUrl)->with('info', 'Silakan masuk melalui portal keanggotaan gym Anda.');
+                }
 
-                return back()->withErrors(['email' => $errorMsg])->onlyInput('email');
+                return back()->withErrors([
+                    'email' => 'Silakan masuk melalui alamat website gym tempat Anda terdaftar.'
+                ])->onlyInput('email');
             }
 
             // Proteksi: Akun yang dinonaktifkan TIDAK boleh login
@@ -100,7 +102,7 @@ class LoginController extends Controller
                 $request->session()->regenerateToken();
 
                 return back()->withErrors([
-                    'email' => 'Akses ditolak: Akun Anda sedang dinonaktifkan oleh pengelola gym. Silakan hubungi Manager atau Administrator untuk informasi lebih lanjut.'
+                    'email' => 'Akses ditolak: Akun Anda sedang dinonaktifkan. Silakan hubungi pihak pengelola untuk informasi lebih lanjut.'
                 ])->onlyInput('email');
             }
 
@@ -137,20 +139,9 @@ class LoginController extends Controller
                 }
             }
 
-            // 3e. Arahkan secara deterministik dan tepat sesuai role
+            // 3e. Arahkan secara deterministik ke dashboard
             $targetRoute = $user->dashboardRoute();
-            $welcomeMessages = [
-                'superadmin'   => 'Selamat datang Superadmin!',
-                'owner'        => 'Selamat datang Pemilik Gym! Anda dalam mode pemantauan bisnis (Read-Only).',
-                'admin'        => 'Selamat datang di Dashboard Admin!',
-                'manager'      => 'Selamat datang di Dashboard Manager!',
-                'supervisor'   => 'Selamat datang di Dashboard Supervisor!',
-                'receptionist' => 'Selamat datang di Beranda Resepsionis!',
-                'trainer'      => 'Selamat datang di Dashboard Personal Trainer!',
-                'member'       => 'Selamat datang di Portal Keanggotaan Member Gym!',
-            ];
-
-            $message = $welcomeMessages[$user->role] ?? 'Selamat datang kembali!';
+            $message = 'Berhasil masuk ke sistem. Selamat beraktivitas!';
 
             return redirect()->route($targetRoute)->with('success', $message);
         }

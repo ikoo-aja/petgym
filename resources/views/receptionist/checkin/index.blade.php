@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Check-In Absensi &mdash; PetGym')
-@section('page_title', 'Sistem Check-In / Absensi Member')
-@section('page_subtitle', 'Antarmuka PIN Numpad kilat & pencarian manual log kedatangan harian')
+@section('page_title', 'Presensi Member')
+@section('page_subtitle', 'Pencatatan kehadiran dan check-in anggota gym')
 
 @section('content')
 <div class="row">

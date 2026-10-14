@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Barang Tertinggal (Lost & Found) &mdash; PetGym')
-@section('page_title', 'Log Barang Tertinggal (Lost & Found)')
-@section('page_subtitle', 'Pencatatan barang hilang/tertinggal di area gym dan verifikasi klaim pengembalian kepada pemilik')
+@section('page_title', 'Barang Tertinggal')
+@section('page_subtitle', 'Pencatatan dan pengambilan barang tertinggal di area gym')
 
 @section('content')
 <div class="card-custom">

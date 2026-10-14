@@ -24,7 +24,18 @@ class TenantLandingController extends Controller
 
         $settings = $tenant->landingSettings();
 
-        return view('landing.default', compact('tenant', 'settings'));
+        // Cek mode pratinjau oleh Admin / Owner tenant
+        $isPreview = request()->boolean('preview') && Auth::check() && (
+            (Auth::user()->tenant_id === $tenant->id && (Auth::user()->isAdmin() || Auth::user()->isOwner()))
+            || (method_exists(Auth::user(), 'isSuperadmin') && Auth::user()->isSuperadmin())
+        );
+
+        // Jika landing page ditutup / nonaktif dan bukan mode pratinjau admin
+        if (!$settings->is_active && !$isPreview) {
+            return response()->view('landing.maintenance', compact('tenant', 'settings'));
+        }
+
+        return view('landing.default', compact('tenant', 'settings', 'isPreview'));
     }
 
     /**
@@ -62,6 +73,9 @@ class TenantLandingController extends Controller
 
         // 1. Aturan validasi dasar — profil tenant & teks landing
         $rules = [
+            'is_active'           => 'nullable|boolean',
+            'maintenance_title'   => 'nullable|string|max:255',
+            'maintenance_message' => 'nullable|string|max:3000',
             'name'                => 'nullable|string|max:255',
             'owner_name'          => 'nullable|string|max:255',
             'owner_email'         => 'nullable|email|max:255',
@@ -113,19 +127,24 @@ class TenantLandingController extends Controller
         }
 
         // 3. Susun data sesuai capability paket (field terlarang tidak ikut tersimpan)
+        $isActive = $request->has('is_active') ? $request->boolean('is_active') : true;
+
         $data = [
-            'brand_display_mode'=> $validated['brand_display_mode'] ?? 'both',
-            'hero_title'     => $validated['hero_title'] ?? null,
-            'hero_tagline'   => $validated['hero_tagline'] ?? null,
-            'about_text'     => $validated['about_text'] ?? null,
-            'address'        => $validated['address'] ?? null,
-            'phone'          => $validated['phone'] ?? null,
-            'email'          => $validated['email'] ?? null,
-            'instagram'      => $validated['instagram'] ?? null,
-            'facebook'       => $validated['facebook'] ?? null,
-            'opening_hours'  => $validated['opening_hours'] ?? null,
-            'cta_text'       => $validated['cta_text'] ?? null,
-            'cta_url'        => $validated['cta_url'] ?? null,
+            'is_active'          => $isActive,
+            'maintenance_title'  => $validated['maintenance_title'] ?? 'Website Sedang Dalam Pemeliharaan',
+            'maintenance_message'=> $validated['maintenance_message'] ?? null,
+            'brand_display_mode' => $validated['brand_display_mode'] ?? 'both',
+            'hero_title'         => $validated['hero_title'] ?? null,
+            'hero_tagline'       => $validated['hero_tagline'] ?? null,
+            'about_text'         => $validated['about_text'] ?? null,
+            'address'            => $validated['address'] ?? null,
+            'phone'              => $validated['phone'] ?? null,
+            'email'              => $validated['email'] ?? null,
+            'instagram'          => $validated['instagram'] ?? null,
+            'facebook'           => $validated['facebook'] ?? null,
+            'opening_hours'      => $validated['opening_hours'] ?? null,
+            'cta_text'           => $validated['cta_text'] ?? null,
+            'cta_url'            => $validated['cta_url'] ?? null,
         ];
 
         // Upload Foto Hero Cover
@@ -183,15 +202,17 @@ class TenantLandingController extends Controller
 
         $settings->update($data);
 
+        $statusLabel = $isActive ? 'Aktif (Terbuka)' : 'Nonaktif / Tutup (Maintenance)';
         StaffLog::create([
             'tenant_id'    => $tenant->id,
             'user_id'      => $user->id,
             'action'       => 'Update Landing Page',
-            'description'  => "Admin memperbarui konten landing page publik {$tenant->name}.",
+            'description'  => "Admin memperbarui landing page {$tenant->name} (Status: {$statusLabel}).",
             'ip_address'   => $request->ip(),
         ]);
 
-        return redirect()->route('admin.landing.edit')->with('success', 'Landing page berhasil diperbarui.');
+        $statusNotice = $isActive ? 'Landing page aktif dan dibuka untuk publik.' : 'Landing page dinonaktifkan sementara (Mode Maintenance).';
+        return redirect()->route('admin.landing.edit')->with('success', "Landing page berhasil diperbarui. {$statusNotice}");
     }
 
     /**

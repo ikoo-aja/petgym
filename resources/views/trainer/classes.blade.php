@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Penugasan Kelas Mengajar &mdash; PetGym')
-@section('page_title', 'Penugasan Kelas Mengajar')
-@section('page_subtitle', 'Daftar jadwal dan alokasi kelas gym yang ditugaskan kepada Anda sebagai instruktur')
+@section('page_title', 'Kelas Trainer')
+@section('page_subtitle', 'Jadwal kelas kebugaran yang Anda bimbing')
 
 @section('content')
 <div class="row">

@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Pengaturan Gym & Landing Page')
-@section('page_title', 'Pengaturan Gym & Landing Page Publik')
-@section('page_subtitle', 'Kustomisasi profil gym, logo brand, dan tampilan website publik Anda')
+@section('page_title', 'Landing Page')
+@section('page_subtitle', 'Pengaturan konten dan tampilan website publik gym')
 
 @section('content')
 
@@ -18,6 +18,85 @@
 
     <form action="{{ route('admin.landing.update') }}" method="POST" enctype="multipart/form-data">
       @csrf
+
+      <!-- ============ KONTROL AKSES & STATUS LANDING PAGE ============ -->
+      <div class="card-custom mb-4" id="section-status" style="border-left: 4px solid {{ $settings->is_active ? '#10b981' : '#f59e0b' }};">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="font-weight-bold text-dark mb-0">
+            <i class="icon-power-off mr-1 {{ $settings->is_active ? 'text-success' : 'text-warning' }}"></i>
+            Status &amp; Akses Landing Page Publik
+          </h6>
+          @if($settings->is_active)
+            <span class="badge badge-success px-2 py-1" style="font-size: 11px;">
+              <i class="icon-check mr-1"></i> Publik Terbuka (Aktif)
+            </span>
+          @else
+            <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 11px;">
+              <i class="icon-clock-o mr-1"></i> Ditutup (Mode Maintenance)
+            </span>
+          @endif
+        </div>
+        <p class="text-muted small mb-3">
+          Atur apakah website landing page publik gym Anda aktif terbuka atau sedang ditutup untuk pemeliharaan (maintenance mode). Jika ditutup, pengunjung umum akan melihat halaman pemeliharaan dan tetap dapat mengakses portal login member.
+        </p>
+
+        <div class="row mb-3">
+          <div class="col-md-6 mb-2">
+            <label class="d-block p-3 border rounded h-100 cursor-pointer status-card-label {{ $settings->is_active ? 'border-success bg-light' : 'bg-white' }}" style="cursor: pointer; transition: all 0.2s ease;">
+              <div class="d-flex align-items-start">
+                <input type="radio" name="is_active" value="1" {{ $settings->is_active ? 'checked' : '' }} class="mr-2 mt-1 status-radio">
+                <div>
+                  <div class="font-weight-bold text-dark" style="font-size: 13.5px;">
+                    <span class="text-success mr-1">●</span> Buka Landing Page (Aktif)
+                  </div>
+                  <small class="text-muted d-block mt-1">Website publik aktif dan dapat diakses bebas oleh semua calon member.</small>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="col-md-6 mb-2">
+            <label class="d-block p-3 border rounded h-100 cursor-pointer status-card-label {{ !$settings->is_active ? 'border-warning bg-light' : 'bg-white' }}" style="cursor: pointer; transition: all 0.2s ease;">
+              <div class="d-flex align-items-start">
+                <input type="radio" name="is_active" value="0" {{ !$settings->is_active ? 'checked' : '' }} class="mr-2 mt-1 status-radio">
+                <div>
+                  <div class="font-weight-bold text-dark" style="font-size: 13.5px;">
+                    <span class="text-warning mr-1">●</span> Tutup Sementara (Maintenance)
+                  </div>
+                  <small class="text-muted d-block mt-1">Landing page ditutup sementara untuk perbaikan. Pengunjung melihat tampilan pemeliharaan.</small>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Pengaturan teks halaman maintenance -->
+        <div id="maintenanceConfigBox" class="p-3 border rounded mb-2" style="background-color: #fffbeb; border-color: #fde68a !important; {{ $settings->is_active ? 'display: none;' : '' }}">
+          <div class="d-flex align-items-center mb-2">
+            <i class="icon-wrench text-warning mr-2" style="font-size: 16px;"></i>
+            <h6 class="font-weight-bold text-dark mb-0" style="font-size: 13px;">Pengaturan Halaman Pemeliharaan (Maintenance)</h6>
+          </div>
+          <p class="text-muted mb-3" style="font-size: 12px;">
+            Kustomisasi judul dan pesan penjelasan yang akan tampil kepada pengunjung saat landing page ditutup.
+          </p>
+
+          <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark" style="font-size: 12.5px;">Judul Pemeliharaan (Title)</label>
+            <input type="text" name="maintenance_title" class="form-control bg-white"
+                   value="{{ $settings->maintenance_title ?: 'Website Sedang Dalam Pemeliharaan' }}"
+                   placeholder="Contoh: Website Sedang Dalam Pemeliharaan"
+                   style="border-radius: 8px; font-size: 13px;">
+          </div>
+
+          <div class="form-group mb-0">
+            <label class="font-weight-bold text-dark" style="font-size: 12.5px;">Pesan / Penjelasan Pemeliharaan</label>
+            <textarea name="maintenance_message" rows="3" class="form-control bg-white"
+                      placeholder="Contoh: Mohon maaf, kami sedang melakukan pembaruan sistem dan fasilitas. Website akan segera kembali aktif."
+                      style="border-radius: 8px; font-size: 13px;">{{ $settings->maintenance_message }}</textarea>
+            <small class="text-muted mt-1 d-block" style="font-size: 11.5px;">Kosongkan jika ingin menggunakan pesan bawaan sistem.</small>
+          </div>
+        </div>
+      </div>
 
       <!-- ============ PROFIL & LOGO GYM ============ -->
       <div class="card-custom" id="gym-identity">
@@ -340,14 +419,49 @@
   <!-- ============ SIDEBAR INFO ============ -->
   <div class="col-md-4">
     <div class="card-custom">
-      <h6 class="font-weight-bold text-dark mb-3">Paket &amp; Alamat Landing Page</h6>
-      <div class="p-3 bg-light rounded mb-3">
-        <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10px;">Paket Aktif</small>
+      <h6 class="font-weight-bold text-dark mb-3">Status &amp; Akses Landing Page</h6>
+
+      <div class="p-3 rounded mb-3" style="{{ !$settings->is_active ? 'background-color: #fffbeb; border: 1px solid #fde68a;' : 'background-color: #f8fafc; border: 1px solid #e2e8f0;' }}">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10px;">Status Website</small>
+          @if($settings->is_active)
+            <span class="badge badge-success px-2 py-1" style="font-size: 10px;">
+              <i class="icon-check mr-1"></i> AKTIF (ONLINE)
+            </span>
+          @else
+            <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 10px;">
+              <i class="icon-clock-o mr-1"></i> MAINTENANCE
+            </span>
+          @endif
+        </div>
+        <div class="font-weight-bold text-dark mb-0" style="font-size: 13px;">
+          {{ $settings->is_active ? 'Website Terbuka untuk Umum' : 'Website Ditutup Sementara' }}
+        </div>
+        <small class="text-muted d-block mt-1" style="font-size: 11px;">
+          {{ $settings->is_active ? 'Pengunjung umum dapat mengakses seluruh landing page.' : 'Pengunjung umum melihat tampilan maintenance.' }}
+        </small>
+      </div>
+
+      <div class="p-3 bg-light rounded mb-3" style="border: 1px solid #e2e8f0;">
+        <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10px;">Paket Berlangganan</small>
         <h4 class="font-weight-bold text-success mb-0">{{ $tenant->plan_name ?: 'Paket Basic' }}</h4>
       </div>
-      <a href="{{ $landingUrl }}" target="_blank" class="btn btn-dark btn-block font-weight-bold mb-3" style="border-radius: 8px;">
-        <i class="icon-globe mr-1"></i> Buka Landing Page
-      </a>
+
+      <div class="mb-3">
+        @if($settings->is_active)
+          <a href="{{ $landingUrl }}" target="_blank" class="btn btn-dark btn-block font-weight-bold" style="border-radius: 8px;">
+            <i class="icon-globe mr-1"></i> Buka Landing Page
+          </a>
+        @else
+          <a href="{{ $landingUrl }}" target="_blank" class="btn btn-warning btn-block font-weight-bold mb-2 text-dark" style="border-radius: 8px;">
+            <i class="icon-eye mr-1"></i> Lihat Tampilan Maintenance
+          </a>
+          <a href="{{ $landingUrl }}?preview=1" target="_blank" class="btn btn-outline-dark btn-block font-weight-bold" style="border-radius: 8px;">
+            <i class="icon-globe mr-1"></i> Pratinjau Landing Page Penuh
+          </a>
+        @endif
+      </div>
+
       <div class="mb-2" style="font-size: 12.5px;">
         <div class="d-flex justify-content-between py-1">
           <span class="text-muted">Alamat publik:</span>
@@ -355,7 +469,6 @@
         </div>
       </div>
     </div>
-  </div>
 </div>
 @endsection
 
@@ -437,6 +550,20 @@
     $(document).on('click', '.btn-remove-stat', function() {
       if ($('#statRows .stat-row').length <= 1) return;
       $(this).closest('.stat-row').remove();
+    });
+    // Toggle status landing page & maintenance config box
+    $('input[name="is_active"]').on('change', function() {
+      var isOpened = $(this).val() === '1';
+      $('.status-card-label').removeClass('border-success border-warning bg-light').addClass('bg-white');
+      if (isOpened) {
+        $(this).closest('.status-card-label').removeClass('bg-white').addClass('border-success bg-light');
+        $('#maintenanceConfigBox').slideUp(200);
+        $('#section-status').css('border-left-color', '#10b981');
+      } else {
+        $(this).closest('.status-card-label').removeClass('bg-white').addClass('border-warning bg-light');
+        $('#maintenanceConfigBox').slideDown(200);
+        $('#section-status').css('border-left-color', '#f59e0b');
+      }
     });
   });
 </script>

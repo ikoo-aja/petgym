@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Laporan Eksekutif (Owner) &mdash; PetGym')
-@section('page_title', 'Pusat Laporan & Omset Eksekutif')
-@section('page_subtitle', 'Analisis keuangan, pertumbuhan member, rekapitulasi penjualan kasir, dan kesehatan finansial gym')
+@section('page_title', 'Laporan Keuangan')
+@section('page_subtitle', 'Ringkasan pendapatan, omset, dan laporan keuangan gym')
 
 @section('content')
 <!-- Banner Mode Pemantauan Eksekutif -->

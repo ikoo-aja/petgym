@@ -165,7 +165,10 @@ class SupervisorController extends Controller
         $members = Member::where('tenant_id', $tenant->id)->get();
 
         // 6. Master Loker Gym
-        $lockers = Locker::where('tenant_id', $tenant->id)->get();
+        $lockers = Locker::where('tenant_id', $tenant->id)
+            ->orderByRaw('CAST(locker_number AS UNSIGNED) ASC')
+            ->orderBy('locker_number')
+            ->get();
         $availableLockers = $lockers->where('status', 'tersedia')->count();
         $occupiedLockers = $lockers->where('status', 'terpakai')->count();
         $brokenLockers = $lockers->where('status', 'rusak')->count();
@@ -669,5 +672,41 @@ class SupervisorController extends Controller
         ]);
 
         return redirect()->route('supervisor.features', ['tab' => 'stock'])->with('success', "Produk '{$prodName}' berhasil dihapus.");
+    }
+
+    /**
+     * Perbaikan & Pemeliharaan Unit Loker Gym
+     */
+    public function repairLocker(Request $request, $id)
+    {
+        $user = Auth::user();
+        if ($user->isOwner()) {
+            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+        }
+
+        $tenant = $user->tenant;
+        $locker = Locker::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if ($locker->status !== 'rusak') {
+            return redirect()->back()->with('error', "Loker nomor #{$locker->locker_number} saat ini tidak dalam status rusak.");
+        }
+
+        $oldNotes = $locker->notes;
+        $repairNotes = $request->input('repair_notes');
+
+        $locker->update([
+            'status' => 'tersedia',
+            'notes' => null,
+        ]);
+
+        StaffLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $user->id,
+            'action' => 'Perbaikan Loker Selesai',
+            'description' => "Supervisor {$user->name} menyelesaikan perbaikan loker nomor #{$locker->locker_number}. Status dikembalikan menjadi Tersedia." . ($repairNotes ? " Catatan perbaikan: {$repairNotes}." : "") . ($oldNotes ? " (Keluhan sebelumnya: {$oldNotes})" : ""),
+            'ip_address' => $request->ip(),
+        ]);
+
+        return redirect()->route('supervisor.features', ['tab' => 'locker'])->with('success', "Loker nomor #{$locker->locker_number} berhasil diperbaiki dan status dikembalikan menjadi Tersedia.");
     }
 }

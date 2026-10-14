@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
 @section('title', 'Pelatih Pribadi')
-@section('page_title', 'Pelatih Pribadi (Personal Trainer)')
-@section('page_subtitle', 'Beli kuota sesi latihan dan jadwalkan latihan bersama pelatih pilihan Anda.')
+@section('page_title', 'Personal Trainer')
+@section('page_subtitle', 'Pemesanan sesi latihan bersama instruktur pilihan')
 
 @section('content')
 <!-- Quota Summary Header Card -->

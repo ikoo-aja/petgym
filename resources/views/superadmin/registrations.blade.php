@@ -156,28 +156,33 @@
                   </div>
                 </div>
 
-                <!-- Tombol Buat Akun (Jika belum approved) -->
+                <!-- Tombol Buat Akun (Hanya jika belum approved) -->
                 @if($regStatus !== 'approved')
                   <button type="button" class="btn btn-sm btn-primary py-1 px-3 font-weight-bold" data-toggle="modal" data-target="#approveModal{{ $reg->id }}" style="font-size: 12px;">
                     <span class="icon-check mr-1"></span> Buat Akun
                   </button>
-                @else
-                  <span class="badge badge-light border border-success px-2 py-2 text-success font-weight-bold small">
-                    <span class="icon-check mr-1"></span> Akun Siap
-                  </span>
                 @endif
 
-                <!-- Dropdown Opsi: Edit Data, Ubah Status, Hapus -->
+                <!-- Dropdown Opsi: Reset Password, Ubah Status, Hapus -->
                 <div class="dropdown">
-                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-1 px-2 font-weight-bold" type="button" id="moreActionMenu{{ $reg->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 12px;">
-                    <span class="icon-more_vert"></span>
+                  <button class="btn btn-sm {{ !empty($reg->pending_reset) ? 'btn-warning text-dark border-warning' : 'btn-outline-secondary' }} dropdown-toggle py-1 px-2 font-weight-bold" type="button" id="moreActionMenu{{ $reg->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 12px;" title="{{ !empty($reg->pending_reset) ? 'Ada permohonan reset password dari Admin!' : 'Menu Opsi' }}">
+                    <span class="{{ !empty($reg->pending_reset) ? 'icon-lock' : 'icon-more_vert' }}"></span>
+                    @if(!empty($reg->pending_reset))
+                      <span class="badge badge-danger text-white ml-1" style="font-size: 9px; padding: 2px 4px;">!</span>
+                    @endif
                   </button>
-                  <div class="dropdown-menu dropdown-menu-right shadow-sm border-0" aria-labelledby="moreActionMenu{{ $reg->id }}" style="border-radius: 8px; min-width: 190px;">
-                    <!-- 1. Edit Data Prospek -->
-                    <a class="dropdown-item small py-2 font-weight-bold text-dark" href="#" data-toggle="modal" data-target="#editRegistrationModal{{ $reg->id }}">
-                      <span class="icon-pencil mr-2 text-primary"></span> Ubah Data Prospek
-                    </a>
-
+                  <div class="dropdown-menu dropdown-menu-right shadow-sm border-0" aria-labelledby="moreActionMenu{{ $reg->id }}" style="border-radius: 8px; min-width: 210px;">
+                    <!-- 1. Reset Password Admin (Aktif jika ada request reset password, disabled jika tidak ada) -->
+                    @if(!empty($reg->pending_reset))
+                      <a class="dropdown-item small py-2 font-weight-bold text-dark" href="#" data-toggle="modal" data-target="#resetPasswordModal{{ $reg->id }}" style="background-color: #fffbeb;">
+                        <span class="icon-lock mr-2 text-warning"></span> Reset Password
+                        <span class="badge badge-warning text-dark ml-1 font-weight-bold" style="font-size: 10px;">Approval</span>
+                      </a>
+                    @else
+                      <span class="dropdown-item small py-2 font-weight-bold text-muted disabled" style="cursor: not-allowed; opacity: 0.5;" title="Tidak ada permohonan reset password dari admin ini">
+                        <span class="icon-lock mr-2 text-muted"></span> Reset Password
+                      </span>
+                    @endif
                     <div class="dropdown-divider my-1"></div>
                     <div class="dropdown-header py-1 text-muted small text-uppercase font-weight-bold">Ubah Status Cepat:</div>
 
@@ -228,61 +233,72 @@
                 </div>
               </div>
 
-              <!-- MODAL 1: EDIT DATA CALON PENYEWA -->
-              <div class="modal fade text-left" id="editRegistrationModal{{ $reg->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+              @if(!empty($reg->pending_reset))
+              <!-- MODAL: APPROVAL RESET PASSWORD ADMIN -->
+              <div class="modal fade text-left" id="resetPasswordModal{{ $reg->id }}" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered" role="document">
-                  <form action="{{ route('superadmin.registrations.update', $reg->id) }}" method="POST" class="modal-content shadow-lg border-0" style="border-radius: 12px; overflow: hidden;">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-header bg-white border-bottom py-3 px-4 text-dark">
-                      <h5 class="modal-title font-weight-bold text-dark mb-0">Ubah Data Calon Penyewa</h5>
+                  <div class="modal-content shadow-lg border-0" style="border-radius: 12px; overflow: hidden;">
+                    <div class="modal-header bg-warning py-3 px-4 text-dark d-flex justify-content-between align-items-center">
+                      <h5 class="modal-title font-weight-bold mb-0" style="font-size: 16px;">
+                        <span class="icon-lock mr-1"></span> Persetujuan Reset Password Admin
+                      </h5>
                       <button type="button" class="close text-dark" data-dismiss="modal">&times;</button>
                     </div>
                     <div class="modal-body p-4">
-                      <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark small">Nama Calon Penyewa <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" value="{{ $reg->name }}" required>
+                      <div class="alert alert-warning border-0 p-3 mb-3 small" style="background-color: #fffbeb; color: #92400e; border-radius: 8px;">
+                        <strong>Perhatian:</strong> Admin gym ini telah mengajukan permohonan reset password. Superadmin dapat menyetujui permohonan agar tautan pembuatan password baru dikirimkan ke email, atau menolak permohonan.
                       </div>
-                      <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark small">Nomor WhatsApp <span class="text-danger">*</span></label>
-                        <input type="text" name="phone" class="form-control" value="{{ $reg->phone }}" required>
-                      </div>
-                      <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark small">Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control" value="{{ $reg->email }}" required>
-                      </div>
-                      <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark small">Paket Sewa Diminati</label>
-                        <select name="plan_id" class="form-control">
-                          <option value="">Pilih Paket...</option>
-                          @foreach($plans as $p)
-                            <option value="{{ $p->id }}" {{ ($reg->plan_id == $p->id || stripos($reg->plan_name, $p->name) !== false) ? 'selected' : '' }}>
-                              {{ $p->name }} (Rp {{ number_format($p->price, 0, ',', '.') }}/bln)
-                            </option>
-                          @endforeach
-                        </select>
-                      </div>
-                      <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark small">Status Prospek</label>
-                        <select name="status" class="form-control">
-                          <option value="pending" {{ $regStatus == 'pending' ? 'selected' : '' }}>Pending (Menunggu Tindak Lanjut)</option>
-                          <option value="contacted" {{ $regStatus == 'contacted' ? 'selected' : '' }}>Contacted (Sudah Dihubungi)</option>
-                          <option value="approved" {{ $regStatus == 'approved' ? 'selected' : '' }}>Approved (Sudah Dibuatkan Akun)</option>
-                          <option value="rejected" {{ $regStatus == 'rejected' ? 'selected' : '' }}>Rejected (Ditolak / Batal)</option>
-                        </select>
-                      </div>
-                      <div class="form-group mb-0">
-                        <label class="font-weight-bold text-dark small">Catatan Tambahan</label>
-                        <textarea name="notes" rows="2" class="form-control">{{ $reg->notes }}</textarea>
+
+                      <table class="table table-sm table-borderless mb-3 small">
+                        <tr>
+                          <td class="text-muted font-weight-bold" style="width: 140px;">Penyewa / Gym:</td>
+                          <td class="text-dark font-weight-bold">{{ $reg->name }}</td>
+                        </tr>
+                        <tr>
+                          <td class="text-muted font-weight-bold">Nama Admin:</td>
+                          <td class="text-dark">{{ $reg->pending_reset->admin_name }}</td>
+                        </tr>
+                        <tr>
+                          <td class="text-muted font-weight-bold">Email Admin:</td>
+                          <td class="text-dark font-weight-bold text-primary">{{ $reg->pending_reset->email }}</td>
+                        </tr>
+                        <tr>
+                          <td class="text-muted font-weight-bold">Waktu Request:</td>
+                          <td class="text-dark">{{ $reg->pending_reset->created_at ? $reg->pending_reset->created_at->format('d M Y, H:i') : '-' }}</td>
+                        </tr>
+                      </table>
+
+                      <div class="collapse mt-2" id="rejectBox{{ $reg->id }}">
+                        <form action="{{ route('superadmin.password-resets.reject', $reg->pending_reset->id) }}" method="POST" class="p-3 border rounded bg-light">
+                          @csrf
+                          <label class="font-weight-bold text-dark small mb-1">Alasan Penolakan (Opsional):</label>
+                          <textarea name="notes" rows="2" class="form-control form-control-sm mb-2" placeholder="Tuliskan catatan alasan penolakan..."></textarea>
+                          <button type="submit" class="btn btn-danger btn-sm font-weight-bold px-3">
+                            <span class="icon-close mr-1"></span> Konfirmasi Tolak Permohonan
+                          </button>
+                        </form>
                       </div>
                     </div>
-                    <div class="modal-footer bg-light py-2 px-4">
-                      <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
-                      <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-3">Simpan Perubahan</button>
+                    <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between align-items-center">
+                      <div>
+                        <button type="button" class="btn btn-outline-danger btn-sm font-weight-bold" data-toggle="collapse" data-target="#rejectBox{{ $reg->id }}">
+                          <span class="icon-close mr-1"></span> Tolak Permohonan
+                        </button>
+                      </div>
+                      <div class="d-flex" style="gap: 8px;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
+                        <form action="{{ route('superadmin.password-resets.approve', $reg->pending_reset->id) }}" method="POST" onsubmit="return confirm('Setujui permohonan reset password Admin {{ $reg->pending_reset->admin_name }}? Tautan baru akan dikirimkan ke email {{ $reg->pending_reset->email }}.');">
+                          @csrf
+                          <button type="submit" class="btn btn-success btn-sm font-weight-bold px-3">
+                            <span class="icon-check mr-1"></span> Setujui &amp; Kirim Link
+                          </button>
+                        </form>
+                      </div>
                     </div>
-                  </form>
+                  </div>
                 </div>
               </div>
+              @endif
 
               <!-- MODAL 2: BUAT AKUN & AKTIFKAN PENYEWA -->
               <div class="modal fade text-left" id="approveModal{{ $reg->id }}" tabindex="-1" role="dialog" aria-hidden="true">

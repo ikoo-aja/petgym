@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Beranda Manager — PetGym')
-@section('page_title', 'Beranda Manager Gym')
-@section('page_subtitle', 'Pengawasan operasional harian, pendapatan bulanan, dan log aktivitas staf')
+@section('page_title', 'Beranda')
+@section('page_subtitle', 'Ringkasan operasional harian dan data aktivitas gym')
 
 @section('content')
 <div class="row">

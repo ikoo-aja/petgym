@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
 @section('title', 'Penyewaan Loker')
-@section('page_title', 'Penyewaan Loker')
-@section('page_subtitle', 'Pilih unit loker digital untuk menyimpan barang bawaan Anda secara aman.')
+@section('page_title', 'Manajemen Loker Gym')
+@section('page_subtitle', 'Penyewaan dan nomor unit loker penyimpanan Anda')
 
 @section('content')
 <!-- Active Rental Card -->

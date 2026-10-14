@@ -32,8 +32,8 @@
         <small class="text-muted">Akun Admin gym mengajukan permohonan pemulihan kata sandi yang membutuhkan verifikasi Superadmin.</small>
       </div>
     </div>
-    <a href="{{ route('superadmin.password-resets') }}" class="btn btn-warning btn-sm font-weight-bold px-3 text-dark shadow-sm" style="border-radius: 20px;">
-      Tinjau & Setujui <span class="icon-arrow-right ml-1"></span>
+    <a href="{{ route('superadmin.registrations') }}" class="btn btn-warning btn-sm font-weight-bold px-3 text-dark shadow-sm" style="border-radius: 20px;">
+      Tinjau di Daftar Penyewa <span class="icon-arrow-right ml-1"></span>
     </a>
   </div>
   @endif

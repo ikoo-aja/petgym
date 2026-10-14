@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Dashboard Admin — PetGym')
-@section('page_title', 'Dashboard Website & Pengelolaan')
-@section('page_subtitle', 'Pantau performa website gym, status masa sewa SaaS, dan pengumuman sistem')
+@section('page_title', 'Beranda')
+@section('page_subtitle', 'Ringkasan operasional dan informasi sistem gym')
 
 @section('content')
 <div class="container-fluid py-4">
@@ -161,52 +161,47 @@
     <div class="modal fade" id="welcomeSetupModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content shadow-lg border-0" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header bg-primary text-white py-3 px-4">
-                    <div class="d-flex align-items-center">
-                        <div class="mr-3 bg-white text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 20px;">
-                            <i class="icon-sparkles">★</i>
-                        </div>
-                        <div>
-                            <h5 class="modal-title font-weight-bold mb-0 text-white">Selamat Datang di Portal Admin {{ $tenant->name ?? 'Gym' }}!</h5>
-                            <small class="text-white-50">Langkah Awal: Penyiapan Akun Pemilik (Owner) &amp; Manager</small>
-                        </div>
+                <div class="modal-header bg-white border-bottom py-3 px-4">
+                    <div>
+                        <h5 class="modal-title font-weight-bold mb-0 text-dark">Penyiapan Akun Pengelola</h5>
+                        <small class="text-muted">Langkah awal untuk memulai operasional gym</small>
                     </div>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.8;">
+                    <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="alert alert-light border py-3 px-3 mb-4 rounded" style="background-color: #f8fafc; font-size: 13.5px; line-height: 1.6;">
-                        <span class="font-weight-bold text-dark">Halo, {{ $user->name }}!</span> Akun Admin Anda telah aktif. Sebagai Admin, tugas utama Anda berikutnya adalah mendaftarkan akun untuk <strong>Pemilik Gym (Owner)</strong> dan <strong>Manager Gym</strong> agar operasional dan keuangan gym berjalan optimal.
-                    </div>
+                    <p class="text-secondary small mb-3">
+                        Langkah awal untuk memulai operasional: silakan daftarkan akun pengelola utama berikut.
+                    </p>
 
                     <div class="row">
                         <!-- Item 1: Akun Owner -->
                         <div class="col-md-6 mb-3 mb-md-0">
-                            <div class="p-3 border rounded h-100 {{ $ownerUser ? 'bg-light-success border-success' : 'bg-light' }}" style="border-radius: 12px;">
-                                <div class="d-flex align-items-center mb-2">
-                                    <span class="badge {{ $ownerUser ? 'badge-success' : 'badge-warning text-dark' }} font-weight-bold px-2 py-1 mr-2" style="font-size: 11px;">
-                                        {{ $ownerUser ? '✓ Sudah Ada' : '1. Akun Pemilik (Owner)' }}
+                            <div class="p-3 border rounded h-100 bg-light" style="border-radius: 10px;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="font-weight-bold text-dark mb-0">Akun Pemilik</h6>
+                                    <span class="badge {{ $ownerUser ? 'badge-success' : 'badge-light border text-muted' }} font-weight-bold px-2 py-1" style="font-size: 11px;">
+                                        {{ $ownerUser ? 'Terdaftar' : 'Belum Dibuat' }}
                                     </span>
                                 </div>
-                                <h6 class="font-weight-bold text-dark mb-1">Pemilik Gym (Owner)</h6>
                                 <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.5;">
-                                    Dibuat untuk pemilik gym guna memantau laporan pendapatan, laporan eksekutif, serta mendaftarkan <strong>nomor rekening &amp; QRIS kasir</strong> gym.
+                                    Untuk pemantauan laporan pendapatan dan pengaturan rekening kasir / QRIS.
                                 </p>
                             </div>
                         </div>
 
                         <!-- Item 2: Akun Manager -->
                         <div class="col-md-6">
-                            <div class="p-3 border rounded h-100 {{ $managerUser ? 'bg-light-success border-success' : 'bg-light' }}" style="border-radius: 12px;">
-                                <div class="d-flex align-items-center mb-2">
-                                    <span class="badge {{ $managerUser ? 'badge-success' : 'badge-info text-white' }} font-weight-bold px-2 py-1 mr-2" style="font-size: 11px;">
-                                        {{ $managerUser ? '✓ Sudah Ada' : '2. Akun Manager Gym' }}
+                            <div class="p-3 border rounded h-100 bg-light" style="border-radius: 10px;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="font-weight-bold text-dark mb-0">Akun Manager</h6>
+                                    <span class="badge {{ $managerUser ? 'badge-success' : 'badge-light border text-muted' }} font-weight-bold px-2 py-1" style="font-size: 11px;">
+                                        {{ $managerUser ? 'Terdaftar' : 'Belum Dibuat' }}
                                     </span>
                                 </div>
-                                <h6 class="font-weight-bold text-dark mb-1">Manager Gym</h6>
                                 <p class="text-muted small mb-0" style="font-size: 12px; line-height: 1.5;">
-                                    Dibuat untuk kepala operasional guna mengatur jadwal kelas &amp; trainer, verifikasi member, serta mendaftarkan staf kasir &amp; trainer.
+                                    Untuk pengelolaan operasional harian, jadwal kelas, dan staf lapangan.
                                 </p>
                             </div>
                         </div>

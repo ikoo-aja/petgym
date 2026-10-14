@@ -103,6 +103,9 @@ class Tenant extends Model
 
         $settings = $this->landing()->create([
             'template'          => 'default',
+            'is_active'         => true,
+            'maintenance_title' => 'Website Sedang Dalam Pemeliharaan',
+            'maintenance_message' => "Halaman website {$this->name} sedang dalam pemeliharaan sistem untuk peningkatan layanan. Kami akan segera kembali.",
             'hero_title'        => $this->name,
             'hero_tagline'      => "Selamat datang di {$this->name} — partner kebugaran Anda.",
             'about_text'        => "{$this->name} adalah pusat kebugaran modern yang siap membantu Anda mencapai target kesehatan dan kebugaran.",

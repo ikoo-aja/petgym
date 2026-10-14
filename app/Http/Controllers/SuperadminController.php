@@ -171,7 +171,7 @@ class SuperadminController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar! Akun Admin ({$adminUser->email}) dibuat otomatis (Password default: 1234). Setelah masuk, Admin dapat membuat akun Owner dan Manager melalui menu Manajemen Staf.");
+        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenant->name}' berhasil terdaftar dan akun Admin ({$adminUser->email}) telah dibuat.");
     }
 
     /**
@@ -560,34 +560,6 @@ class SuperadminController extends Controller
     {
         return $this->approveRenewal($request, $id);
     }
-    /**
-     * Tampilkan Halaman Permohonan Reset Password Admin Tenant.
-     */
-    public function passwordResets(Request $request)
-    {
-        $query = AdminPasswordResetRequest::with(['user', 'tenant', 'approver']);
-
-        if ($request->filled('status') && $request->query('status') !== 'all') {
-            $query->where('status', $request->query('status'));
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('email', 'like', "%{$search}%")
-                  ->orWhere('admin_name', 'like', "%{$search}%")
-                  ->orWhereHas('tenant', function ($t) use ($search) {
-                      $t->where('name', 'like', "%{$search}%")
-                        ->orWhere('subdomain', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        $requests = $query->latest('id')->paginate(15)->withQueryString();
-        $pendingCount = AdminPasswordResetRequest::where('status', 'pending')->count();
-
-        return view('superadmin.password-resets', compact('requests', 'pendingCount'));
-    }
 
     /**
      * Setujui Permohonan Reset Password Admin Tenant dan Kirim Tautan Reset ke Email.
@@ -664,7 +636,7 @@ class SuperadminController extends Controller
      */
     public function registrations(Request $request)
     {
-        $query = TenantRegistration::with('plan');
+        $query = TenantRegistration::with(['plan', 'createdUser']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->query('status'));
@@ -682,6 +654,25 @@ class SuperadminController extends Controller
 
         $registrations = $query->latest('id')->paginate(10)->withQueryString();
         $plans = Plan::where('status', 'active')->get();
+
+        // Ambil seluruh permohonan reset password admin yang berstatus pending
+        $pendingResets = AdminPasswordResetRequest::where('status', 'pending')
+            ->where(function ($q) {
+                $q->where('target_type', 'superadmin')
+                  ->orWhereNull('target_type');
+            })
+            ->get();
+
+        // Petakan ke setiap baris data penyewa
+        $registrations->getCollection()->transform(function ($reg) use ($pendingResets) {
+            $reg->pending_reset = $pendingResets->first(function ($reset) use ($reg) {
+                if ($reg->created_user_id && $reset->user_id == $reg->created_user_id) {
+                    return true;
+                }
+                return strtolower(trim($reset->email)) === strtolower(trim($reg->email));
+            });
+            return $reg;
+        });
 
         return view('superadmin.registrations', compact('registrations', 'plans'));
     }
@@ -727,48 +718,6 @@ class SuperadminController extends Controller
         return redirect()->route('superadmin.registrations')->with('success', "Data calon penyewa '{$registration->name}' berhasil ditambahkan ke daftar prospek!");
     }
 
-    /**
-     * Perbarui Informasi Calon Penyewa.
-     */
-    public function updateRegistration(Request $request, $id)
-    {
-        $registration = TenantRegistration::findOrFail($id);
-
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|max:255',
-            'phone'    => 'required|string|max:30',
-            'plan_id'  => 'nullable|exists:plans,id',
-            'status'   => 'required|in:pending,contacted,approved,rejected',
-            'notes'    => 'nullable|string',
-        ], [
-            'name.required'  => 'Nama calon penyewa wajib diisi.',
-            'email.required' => 'Email calon penyewa wajib diisi.',
-            'phone.required' => 'Nomor WhatsApp calon penyewa wajib diisi.',
-        ]);
-
-        $plan = $request->plan_id ? Plan::find($request->plan_id) : null;
-        $planName = $plan ? $plan->name : $registration->plan_name;
-
-        $registration->update([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'phone'     => $request->phone,
-            'plan_id'   => $plan ? $plan->id : $registration->plan_id,
-            'plan_name' => $planName,
-            'status'    => $request->status,
-            'notes'     => $request->notes,
-        ]);
-
-        SystemLog::create([
-            'user_id'     => Auth::id(),
-            'action'      => 'Update Data Calon Penyewa',
-            'description' => "Superadmin memperbarui data calon penyewa #REG-{$registration->id} ({$registration->name}).",
-            'ip_address'  => $request->ip(),
-        ]);
-
-        return redirect()->route('superadmin.registrations')->with('success', "Data calon penyewa '{$registration->name}' berhasil diperbarui!");
-    }
 
     /**
      * Setujui Pembayaran & Buat Akun Login untuk Penyewa Baru.
@@ -852,7 +801,7 @@ class SuperadminController extends Controller
             'ip_address'  => $request->ip(),
         ]);
 
-        return redirect()->route('superadmin.registrations')->with('success', "Pendaftaran {$registration->name} BERHASIL DISETUJUI! Akun Admin ({$adminUser->email}) telah dibuat (Password: {$request->password}). Website gym aktif di domain {$tenant->subdomain}. Setelah masuk, Admin dapat membuat akun Owner dan Manager.");
+        return redirect()->route('superadmin.registrations')->with('success', "Pendaftaran {$registration->name} berhasil disetujui. Akun Admin ({$adminUser->email}) telah dibuat dan website aktif di domain {$tenant->subdomain}.");
     }
 
     /**

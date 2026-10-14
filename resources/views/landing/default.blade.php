@@ -812,6 +812,14 @@
   </style>
 </head>
 <body>
+  @if(!empty($isPreview))
+    <div style="background: #fbbf24; color: #78350f; font-weight: 600; font-size: 13.5px; padding: 10px 16px; text-align: center; border-bottom: 1px solid #f59e0b; position: sticky; top: 0; z-index: 10000; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
+      <div class="container" style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+        <span>⚠️ <strong>Mode Pratinjau Admin:</strong> Landing page publik saat ini sedang <strong>NONAKTIF / DITUTUP</strong> (Mode Pemeliharaan).</span>
+        <a href="{{ route('admin.landing.edit') }}" style="background: #78350f; color: #ffffff; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; text-decoration: none;">Kembali ke Dashboard Admin</a>
+      </div>
+    </div>
+  @endif
 
   <!-- SITE NAVIGATION -->
   <nav class="site-nav">

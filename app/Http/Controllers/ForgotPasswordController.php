@@ -10,11 +10,10 @@ use App\Models\SystemLog;
 class ForgotPasswordController extends Controller
 {
     /**
-     * Pesan anti user-enumeration & notifikasi permohonan.
+     * Pesan respon netral berorientasi privasi (anti-enumeration & aman).
      */
-    private const SAFE_RESPONSE = 'Jika email tersebut terdaftar di sistem kami, permohonan atur ulang kata sandi telah diproses ke Administrator.';
-    private const ADMIN_PENDING_RESPONSE = 'Permohonan atur ulang kata sandi Admin telah dikirimkan ke Superadmin untuk persetujuan (approval). Anda akan menerima email tautan reset segera setelah disetujui.';
-    private const USER_PENDING_RESPONSE = 'Permohonan atur ulang kata sandi telah dikirimkan ke Admin Gym Anda untuk persetujuan (approval). Anda akan menerima email tautan reset segera setelah disetujui.';
+    private const SAFE_RESPONSE = 'Permohonan atur ulang kata sandi telah diproses. Tautan verifikasi akan dikirimkan ke email terdaftar Anda.';
+    private const PENDING_RESPONSE = 'Permohonan atur ulang kata sandi telah kami terima dan sedang diproses. Anda akan menerima email tautan verifikasi segera setelah diverifikasi.';
 
     /**
      * Menampilkan form "Lupa Password" (input email).
@@ -70,12 +69,11 @@ class ForgotPasswordController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'status'  => 'success',
-                    'role'    => 'admin',
-                    'message' => 'Permintaan reset kata sandi akun Admin telah dikirim ke Superadmin. Silakan tunggu konfirmasi persetujuan dari Superadmin.',
+                    'message' => self::PENDING_RESPONSE,
                 ]);
             }
 
-            return back()->with('status', self::ADMIN_PENDING_RESPONSE);
+            return back()->with('status', self::PENDING_RESPONSE);
         }
 
         // 3. ROLE OWNER, MANAGER, SUPERVISOR, TRAINER, RECEPTIONIST, MEMBER:
@@ -103,7 +101,7 @@ class ForgotPasswordController extends Controller
                         'tenant_id'   => $targetUser->tenant_id,
                         'user_id'     => $targetUser->id,
                         'action'      => 'Pengajuan Reset Password',
-                        'description' => "Pengguna {$targetUser->name} ({$targetUser->role} - {$targetUser->email}) mengajukan permohonan reset password (menunggu approval Admin).",
+                        'description' => "Pengguna {$targetUser->name} ({$targetUser->email}) mengajukan permohonan reset kata sandi.",
                         'ip_address'  => $request->ip(),
                     ]);
                 }
@@ -112,19 +110,17 @@ class ForgotPasswordController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'status'  => 'success',
-                    'role'    => $targetUser->role,
-                    'message' => 'Permintaan reset kata sandi Anda telah dikirim ke Admin Gym untuk disetujui. Tautan pembuatan kata sandi baru akan dikirimkan ke email Anda setelah disetujui.',
+                    'message' => self::PENDING_RESPONSE,
                 ]);
             }
 
-            return back()->with('status', self::USER_PENDING_RESPONSE);
+            return back()->with('status', self::PENDING_RESPONSE);
         }
 
         // 4. Default fallback jika email tidak terdaftar atau superadmin
         if ($request->wantsJson()) {
             return response()->json([
                 'status'  => 'success',
-                'role'    => 'user',
                 'message' => self::SAFE_RESPONSE,
             ]);
         }

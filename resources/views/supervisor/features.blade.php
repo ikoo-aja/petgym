@@ -3,33 +3,33 @@
 @php
   $featureMeta = [
     'void' => [
-      'title' => 'Otorisasi Pembatalan Kasir',
-      'subtitle' => 'Persetujuan pembatalan transaksi kasir dan pengembalian stok barang',
+      'title' => 'Pembatalan Kasir',
+      'subtitle' => 'Persetujuan pembatalan transaksi dan penyesuaian stok',
     ],
     'shift' => [
-      'title' => 'Shift dan Cuti Staf',
-      'subtitle' => 'Pengaturan jadwal kerja harian dan permohonan cuti staf operasional',
+      'title' => 'Shift & Cuti',
+      'subtitle' => 'Jadwal kerja dan permohonan cuti staf operasional',
     ],
     'equipment' => [
-      'title' => 'Aset dan Alat Gym',
-      'subtitle' => 'Pencatatan inventaris peralatan dan riwayat pemeliharaan alat',
+      'title' => 'Aset & Alat',
+      'subtitle' => 'Pencatatan inventaris dan riwayat servis peralatan gym',
     ],
     'stock' => [
-      'title' => 'Peringatan Stok Barang',
-      'subtitle' => 'Pemantauan ketersediaan produk kasir dengan batas minimum stok',
+      'title' => 'Stok Barang',
+      'subtitle' => 'Pemantauan ketersediaan dan penambahan stok produk',
     ],
     'complaint' => [
-      'title' => 'Komplain Member',
-      'subtitle' => 'Penanganan dan tindak lanjut keluhan fasilitas serta layanan pelanggan',
+      'title' => 'Komplain Pelanggan',
+      'subtitle' => 'Tindak lanjut laporan keluhan dan layanan pelanggan',
     ],
     'locker' => [
-      'title' => 'Master Loker Gym',
-      'subtitle' => 'Pemantauan status ketersediaan dan kondisi unit loker penyimpanan',
+      'title' => 'Loker Gym',
+      'subtitle' => 'Pemeriksaan kondisi fisik dan ketersediaan loker',
     ],
   ];
 
   $currentMeta = $featureMeta[$activeTab] ?? [
-    'title' => 'Operasional Lapangan',
+    'title' => 'Beranda',
     'subtitle' => 'Pengawasan operasional harian dan fasilitas gym',
   ];
 @endphp
@@ -750,16 +750,82 @@
             </div>
           </div>
         </div>
+        @if($brokenLockers > 0)
+          <div class="alert alert-danger d-flex align-items-center mb-4 p-3 shadow-sm" style="border-radius: 10px;">
+            <span class="icon-wrench mr-3" style="font-size: 28px;"></span>
+            <div class="flex-grow-1">
+              <strong class="d-block" style="font-size: 15px;">Perhatian: Ada {{ $brokenLockers }} Loker Rusak Membutuhkan Maintenance!</strong>
+              <span class="small">Laporan kerusakan masuk dari meja kasir/resepsionis. Klik tombol <strong>Perbaiki Loker</strong> pada loker terkait untuk mengembalikan kondisinya menjadi siap pakai (Tersedia).</span>
+            </div>
+          </div>
 
+          <!-- Tabel Khusus Loker Rusak -->
+          <div class="card p-3 mb-4 border-danger" style="border-radius: 10px; background-color: #fff9f9;">
+            <h6 class="font-weight-bold text-danger mb-2"><i class="icon-wrench mr-1"></i> Antrean Perbaikan Loker Gym</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="text-muted" style="font-size: 11px; text-transform: uppercase;">
+                  <tr>
+                    <th>No. Loker</th>
+                    <th>Keterangan / Laporan Kerusakan Resepsionis</th>
+                    <th>Waktu Dilaporkan</th>
+                    <th class="text-right">Eksekusi Perbaikan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($lockers->where('status', 'rusak') as $bl)
+                    <tr>
+                      <td><strong class="text-danger" style="font-size: 14px;">#{{ $bl->locker_number }}</strong></td>
+                      <td>
+                        <span class="text-dark small font-weight-bold">
+                          {{ $bl->notes ?: 'Tidak ada keterangan spesifik' }}
+                        </span>
+                      </td>
+                      <td class="text-muted small">{{ $bl->updated_at ? $bl->updated_at->format('d M Y H:i') : '-' }}</td>
+                      <td class="text-right">
+                        <button type="button" class="btn btn-xs btn-danger font-weight-bold btn-repair-locker"
+                          data-id="{{ $bl->id }}"
+                          data-number="{{ $bl->locker_number }}"
+                          data-notes="{{ $bl->notes ?: 'Tidak ada keterangan spesifik' }}"
+                          style="border-radius: 6px; padding: 4px 10px;">
+                          <i class="icon-wrench mr-1"></i> Perbaiki Sekarang
+                        </button>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          </div>
+        @endif
+
+        <h6 class="font-weight-bold text-dark mb-3">Peta Seluruh Unit Loker</h6>
         <div class="row">
           @forelse($lockers as $l)
             <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
-              <div class="p-3 rounded text-center border {{ $l->status === 'tersedia' ? 'border-success bg-light-success' : ($l->status === 'terpakai' ? 'border-warning bg-light-warning' : 'border-danger bg-light-danger') }}">
-                <div class="font-weight-bold text-dark" style="font-size: 16px;">#{{ $l->locker_number }}</div>
-                <small class="d-block font-weight-bold {{ $l->status === 'tersedia' ? 'text-success' : ($l->status === 'terpakai' ? 'text-warning' : 'text-danger') }}">
-                  {{ ucfirst($l->status) }}
-                </small>
-              </div>
+              @if($l->status === 'rusak')
+                <div class="p-3 rounded text-center border border-danger bg-light-danger btn-repair-locker shadow-sm"
+                  data-id="{{ $l->id }}"
+                  data-number="{{ $l->locker_number }}"
+                  data-notes="{{ $l->notes ?: 'Tidak ada keterangan spesifik' }}"
+                  style="cursor: pointer; transition: transform 0.15s ease;"
+                  onmouseover="this.style.transform='scale(1.05)'"
+                  onmouseout="this.style.transform='scale(1)'"
+                  title="Klik untuk memperbaiki loker #{{ $l->locker_number }}">
+                  <div class="font-weight-bold text-danger" style="font-size: 16px;">#{{ $l->locker_number }}</div>
+                  <small class="d-block font-weight-bold text-danger mb-1">Rusak</small>
+                  <button type="button" class="btn btn-xs btn-outline-danger font-weight-bold px-2 py-0" style="font-size: 10px; border-radius: 4px;">
+                    <i class="icon-wrench"></i> Perbaiki
+                  </button>
+                </div>
+              @else
+                <div class="p-3 rounded text-center border {{ $l->status === 'tersedia' ? 'border-success bg-light-success' : 'border-warning bg-light-warning' }}">
+                  <div class="font-weight-bold text-dark" style="font-size: 16px;">#{{ $l->locker_number }}</div>
+                  <small class="d-block font-weight-bold {{ $l->status === 'tersedia' ? 'text-success' : 'text-warning' }}">
+                    {{ ucfirst($l->status) }}
+                  </small>
+                </div>
+              @endif
             </div>
           @empty
             <div class="col-12 text-center py-4 text-muted">
@@ -767,7 +833,6 @@
             </div>
           @endforelse
         </div>
-      </div>
     </div>
 
   </div>
@@ -1327,6 +1392,41 @@
   </div>
 </div>
 
+<!-- Modal Perbaikan & Maintenance Loker -->
+<div class="modal fade" id="repairLockerModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <form id="repairLockerForm" action="" method="POST" class="modal-content shadow border-0" style="border-radius: 12px;">
+      @csrf
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title font-weight-bold mb-0">
+          <i class="icon-wrench mr-2"></i> Perbaikan Loker Gym #<span id="repairLockerNum"></span>
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-danger mb-3 p-3" style="border-radius: 8px;">
+          <strong class="d-block mb-1" style="font-size: 13px;">
+            <i class="icon-exclamation-triangle mr-1"></i> Laporan Kerusakan dari Resepsionis:
+          </strong>
+          <span id="repairLockerNotes" class="text-dark font-weight-bold" style="font-size: 13.5px;">-</span>
+        </div>
+
+        <div class="form-group mb-0">
+          <label class="font-weight-bold text-dark small mb-1">Catatan Tindakan Perbaikan (Opsional)</label>
+          <textarea name="repair_notes" class="form-control" rows="3" placeholder="Contoh: Kunci diganti baru, engsel pintu dilumasi, loker dibersihkan dan dicek berfungsi baik." style="border-radius: 8px;"></textarea>
+          <small class="text-muted">Catatan tindakan maintenance ini akan tersimpan otomatis di Audit Trail internal.</small>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary font-weight-bold px-3" data-dismiss="modal" style="border-radius: 8px;">Batal</button>
+        <button type="submit" class="btn btn-success font-weight-bold px-4" style="border-radius: 8px;">
+          <i class="icon-check mr-1"></i> Selesaikan Perbaikan (Kembalikan ke Tersedia)
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 @include('partials.receipt-modal')
 
 @endsection
@@ -1395,6 +1495,18 @@
       $('#editProdCost').val($(this).data('cost') || 0);
       $('#editProdPrice').val($(this).data('price') || 0);
       $('#editProductModal').modal('show');
+    });
+
+    // 6. Repair Locker Modal
+    $('.btn-repair-locker').on('click', function() {
+      const id = $(this).data('id');
+      const number = $(this).data('number');
+      const notes = $(this).data('notes');
+
+      $('#repairLockerForm').attr('action', '/supervisor/lockers/' + id + '/repair');
+      $('#repairLockerNum').text(number);
+      $('#repairLockerNotes').text(notes || 'Tidak ada keterangan spesifik');
+      $('#repairLockerModal').modal('show');
     });
   });
 </script>

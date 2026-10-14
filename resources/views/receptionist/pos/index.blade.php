@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'POS Kasir & Struk &mdash; PetGym')
-@section('page_title', 'Point of Sales (POS) Kasir')
-@section('page_subtitle', 'Modul kasir pendaftaran membership dan penjualan barang ritel inventaris')
+@section('page_title', 'Kasir')
+@section('page_subtitle', 'Transaksi penjualan membership, produk, dan layanan gym')
 
 @section('content')
 <div class="row">

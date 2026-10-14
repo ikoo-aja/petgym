@@ -103,7 +103,6 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::get('/dashboard', [SuperadminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::get('/registrations', [SuperadminController::class, 'registrations'])->name('superadmin.registrations');
     Route::post('/registrations', [SuperadminController::class, 'storeRegistration'])->name('superadmin.registrations.store');
-    Route::put('/registrations/{id}', [SuperadminController::class, 'updateRegistration'])->name('superadmin.registrations.update');
     Route::post('/registrations/{id}/approve', [SuperadminController::class, 'approveRegistration'])->name('superadmin.registrations.approve');
     Route::post('/registrations/{id}/status', [SuperadminController::class, 'updateRegistrationStatus'])->name('superadmin.registrations.status');
     Route::delete('/registrations/{id}', [SuperadminController::class, 'destroyRegistration'])->name('superadmin.registrations.destroy');
@@ -123,8 +122,6 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::post('/billing/{id}/reject', [SuperadminController::class, 'rejectRenewal'])->name('superadmin.billing.reject');
     Route::post('/billing/{id}/verify-dp', [SuperadminController::class, 'verifyDpPayment'])->name('superadmin.billing.verify-dp');
     Route::post('/billing/{id}/verify', [SuperadminController::class, 'verifyInvoice'])->name('superadmin.billing.verify');
-    // Approval Reset Password Admin Tenant
-    Route::get('/password-resets', [SuperadminController::class, 'passwordResets'])->name('superadmin.password-resets');
     Route::post('/password-resets/{id}/approve', [SuperadminController::class, 'approvePasswordReset'])->name('superadmin.password-resets.approve');
     Route::post('/password-resets/{id}/reject', [SuperadminController::class, 'rejectPasswordReset'])->name('superadmin.password-resets.reject');
     Route::get('/announcements', [SuperadminController::class, 'announcements'])->name('superadmin.announcements');
@@ -209,6 +206,10 @@ Route::middleware(['auth', 'verified', 'role:manager'])->prefix('manager')->grou
     Route::put('/vendors/{id}', [ManagerController::class, 'updateVendor'])->name('manager.vendors.update');
     Route::delete('/vendors/{id}', [ManagerController::class, 'destroyVendor'])->name('manager.vendors.destroy');
 
+    // Manajemen Master Loker Gym (Setup Kapasitas & Jumlah Loker)
+    Route::post('/lockers', [ManagerController::class, 'storeLocker'])->name('manager.lockers.store');
+    Route::post('/lockers/bulk', [ManagerController::class, 'storeBulkLockers'])->name('manager.lockers.bulk');
+    Route::delete('/lockers/{id}', [ManagerController::class, 'destroyLocker'])->name('manager.lockers.destroy');
     // Akun Staf Operasional (Supervisor, Resepsionis/Kasir, dan Personal Trainer)
     Route::get('/staff', [ManagerStaffController::class, 'index'])->name('manager.staff.index');
     Route::post('/staff', [ManagerStaffController::class, 'store'])->name('manager.staff.store');
@@ -250,6 +251,9 @@ Route::middleware(['auth', 'verified', 'role:supervisor'])->prefix('supervisor')
     Route::put('/products/{id}', [SupervisorController::class, 'updateProduct'])->name('supervisor.products.update');
     Route::post('/products/{id}/restock', [SupervisorController::class, 'restockProduct'])->name('supervisor.products.restock');
     Route::delete('/products/{id}', [SupervisorController::class, 'destroyProduct'])->name('supervisor.products.destroy');
+
+    // Perbaikan & Pemeliharaan Loker Gym
+    Route::post('/lockers/{id}/repair', [SupervisorController::class, 'repairLocker'])->name('supervisor.lockers.repair');
 });
 
 // Group Resepsionis / Frontdesk (Operasional Kasir, Checkin, Loker)
@@ -283,7 +287,7 @@ Route::middleware(['auth', 'verified', 'role:receptionist,manager', 'receptionis
     Route::get('/lockers', [ReceptionistController::class, 'lockers'])->name('receptionist.lockers');
     Route::post('/lockers/assign', [ReceptionistController::class, 'assignLocker'])->name('receptionist.lockers.assign');
     Route::post('/lockers/{id}/return', [ReceptionistController::class, 'returnLocker'])->name('receptionist.lockers.return');
-
+    Route::post('/lockers/{id}/report-damage', [ReceptionistController::class, 'reportDamage'])->name('receptionist.lockers.report-damage');
 
     // 6. Log Barang Tertinggal (Lost & Found)
     Route::get('/lost-found', [ReceptionistController::class, 'lostFound'])->name('receptionist.lost-found');

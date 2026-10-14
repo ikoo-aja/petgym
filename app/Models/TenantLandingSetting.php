@@ -10,6 +10,9 @@ class TenantLandingSetting extends Model
         'tenant_id',
         'template',
         'brand_display_mode',
+        'is_active',
+        'maintenance_title',
+        'maintenance_message',
         'hero_title',
         'hero_tagline',
         'hero_image',
@@ -32,6 +35,7 @@ class TenantLandingSetting extends Model
     ];
 
     protected $casts = [
+        'is_active'       => 'boolean',
         'features'        => 'array',
         'stats'           => 'array',
         'sections_enabled'=> 'array',

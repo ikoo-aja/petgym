@@ -46,7 +46,7 @@
           <div class="col-md-8 section-heading mb-2">
             <span class="subheading text-primary font-weight-bold" style="letter-spacing: 1px;">Platform SaaS PetGym</span>
             <h2 class="heading mb-2 text-dark font-weight-bold">Atur Ulang Kata Sandi</h2>
-            <p class="text-muted">Masukkan email akun Anda untuk mengajukan permohonan reset kata sandi ke Administrator.</p>
+            <p class="text-muted">Masukkan email terdaftar Anda untuk menerima tautan atur ulang kata sandi.</p>
           </div>
         </div>
 

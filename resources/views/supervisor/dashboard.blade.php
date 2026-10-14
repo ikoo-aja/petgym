@@ -1,8 +1,8 @@
 @extends('layouts.layout')
 
 @section('title', 'Beranda Supervisor — PetGym')
-@section('page_title', 'Beranda Supervisor Gym')
-@section('page_subtitle', 'Pengawasan operasional lapangan, otorisasi kasir, dan fasilitas gym')
+@section('page_title', 'Beranda')
+@section('page_subtitle', 'Ringkasan operasional lapangan dan fasilitas gym')
 
 @section('content')
 <div class="container-fluid p-0">
@@ -102,6 +102,26 @@
       </div>
     </div>
   </div>
+
+  @php
+    $brokenLockersCount = $lockers->where('status', 'rusak')->count();
+  @endphp
+  @if($brokenLockersCount > 0)
+    <div class="alert alert-danger d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 p-3 shadow-sm" style="border-radius: 12px; gap: 12px;">
+      <div class="d-flex align-items-center">
+        <div class="rounded-circle bg-white text-danger mr-3 text-center" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <span class="icon-wrench" style="font-size: 20px;"></span>
+        </div>
+        <div>
+          <strong class="d-block text-danger font-weight-bold" style="font-size: 15px;">Terdapat {{ $brokenLockersCount }} Loker Rusak yang Dilaporkan Resepsionis!</strong>
+          <span class="text-dark small">Loker membutuhkan inspeksi fisik dan perbaikan teknis sebelum dapat digunakan member kembali.</span>
+        </div>
+      </div>
+      <a href="/supervisor/features?tab=locker" class="btn btn-sm btn-danger font-weight-bold px-3 py-2 shadow-sm" style="border-radius: 8px; white-space: nowrap;">
+        <i class="icon-wrench mr-1"></i> Eksekusi Perbaikan Loker
+      </a>
+    </div>
+  @endif
 
   <!-- Row: Main Tasks & Operations -->
   <div class="row">

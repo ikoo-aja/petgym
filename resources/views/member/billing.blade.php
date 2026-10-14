@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
 @section('title', 'Riwayat Tagihan')
-@section('page_title', 'Riwayat & Tagihan')
-@section('page_subtitle', 'Pantau seluruh catatan transaksi, pembayaran, dan struk digital Anda.')
+@section('page_title', 'Struk & Tagihan')
+@section('page_subtitle', 'Riwayat pembayaran dan bukti transaksi digital Anda')
 
 @section('content')
 <!-- Filter Navigation (Separated Buttons & Spacing) -->

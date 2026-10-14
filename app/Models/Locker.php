@@ -13,6 +13,7 @@ class Locker extends Model
         'tenant_id',
         'locker_number',
         'status', // tersedia, terpakai, rusak
+        'notes',
     ];
 
     public function tenant()
