@@ -85,7 +85,7 @@
 
 <script>
   function openInvoiceReceiptModal(txId) {
-    $('#printableReceiptArea').html('<div class="text-center py-4 text-muted"><i class="icon-spinner icon-spin mr-1"></i> Memuat data struk...</div>');
+    $('#printableReceiptArea').html('<div class="text-center py-4 text-muted"><i class="icon-spinner pg-icon-spin mr-1"></i> Memuat data struk...</div>');
     $('#invoicePrintModal').modal('show');
 
     $.get('/invoice/' + txId + '/data', function(data) {

@@ -2,7 +2,7 @@
 
 @section('title', 'Manajemen Member &mdash; PetGym')
 @section('page_title', 'Data Member')
-@section('page_subtitle', 'Pengelolaan data anggota dan status keanggotaan gym')
+@section('page_subtitle', 'Pengelolaan data member dan status keanggotaan gym')
 
 @section('content')
 <div class="card-custom">
@@ -91,7 +91,7 @@
                     </button>
                   </form>
                 @endif
-                <form action="{{ route('manager.members.destroy', $m->id) }}" method="POST" class="d-inline" data-confirm="Apakah Anda yakin ingin menghapus akun member ini secara permanen? Akun yang dihapus tidak akan dapat login kembali.">
+                <form action="{{ route('manager.members.destroy', $m->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun member \"{{ $m->name }}\" secara permanen? Akun tidak dapat login kembali dan seluruh riwayat keanggotaannya ikut terhapus.">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">

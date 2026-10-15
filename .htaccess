@@ -1,0 +1,30 @@
+# Proteksi Root Direktori PetGym
+# Mencegah akses langsung ke berkas sensitif (.env, .git, storage, source code)
+# jika DocumentRoot web server salah diarahkan ke root folder proyek.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. Tolak akses ke file tersembunyi (.env, .git, dsb)
+    RewriteRule (^|/)\.(env|git|editorconfig) - [F,L]
+
+    # 2. Tolak akses ke file definisi dependency & konfigurasi
+    RewriteRule ^(composer\.(json|lock)|package\.(json|lock)|phpunit\.xml|README\.md)$ - [F,L]
+
+    # 3. Tolak akses langsung ke folder backend / internal
+    RewriteRule ^(app|bootstrap|config|database|resources|storage|tests)/ - [F,L]
+
+    # 4. Alihkan request yang masuk ke root agar aman masuk ke public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^$ public/ [L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Fallback proteksi jika mod_rewrite tidak aktif
+<FilesMatch "^\.(env|git)">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(composer\.(json|lock)|package\.(json|lock)|phpunit\.xml)$">
+    Require all denied
+</FilesMatch>

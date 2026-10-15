@@ -55,7 +55,7 @@
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
             <h5 class="font-weight-bold text-dark mb-1" style="font-size: 16px;">{{ $c->name }}</h5>
-            <small class="text-muted">Instruktur: <strong class="text-dark">{{ $c->trainer ? $c->trainer->name : 'Instruktur Gym' }}</strong></small>
+            <small class="text-muted">Trainer: <strong class="text-dark">{{ $c->trainer ? $c->trainer->name : 'Trainer Gym' }}</strong></small>
           </div>
           <span class="badge badge-info font-weight-bold px-2 py-1" style="font-size: 11px;">{{ $c->day }}</span>
         </div>
@@ -107,7 +107,7 @@
           <h6 class="font-weight-bold text-dark mb-1" style="font-size: 13.5px;">{{ $r->gymClass ? $r->gymClass->name : 'Kelas Gym' }}</h6>
           <small class="text-muted">
             <span class="icon-calendar mr-1"></span> {{ \Carbon\Carbon::parse($r->class_date)->format('d M Y') }} &bull;
-            Instruktur: <strong class="text-dark">{{ $r->gymClass && $r->gymClass->trainer ? $r->gymClass->trainer->name : 'Staf' }}</strong>
+            Trainer: <strong class="text-dark">{{ $r->gymClass && $r->gymClass->trainer ? $r->gymClass->trainer->name : 'Staf' }}</strong>
           </small>
         </div>
       </div>
@@ -127,7 +127,7 @@
         </div>
         <div>
           @if(in_array($r->status, ['confirmed', 'waitlist']))
-            <form action="{{ route('member.classes.cancel', $r->id) }}" method="POST" data-confirm="Batalkan reservasi kelas ini?">
+            <form action="{{ route('member.classes.cancel', $r->id) }}" method="POST" data-confirm="Batalkan reservasi kelas \"{{ $r->gymClass ? $r->gymClass->name : 'ini' }}\"? Slot Anda akan dilepas untuk member lain di daftar tunggu.">
               @csrf
               <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold py-1 px-2" style="border-radius: 6px; font-size: 11.5px;">Batal</button>
             </form>

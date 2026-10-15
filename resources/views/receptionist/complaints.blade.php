@@ -2,7 +2,7 @@
 
 @section('title', 'Keluhan Member &mdash; PetGym')
 @section('page_title', 'Keluhan Member')
-@section('page_subtitle', 'Pencatatan saran dan keluhan layanan dari anggota')
+@section('page_subtitle', 'Pencatatan saran dan keluhan layanan dari member')
 
 @section('content')
 <div class="card-custom">

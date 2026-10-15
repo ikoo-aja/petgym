@@ -12,7 +12,7 @@
       Semua
     </a>
     <a href="{{ route('member.billing', ['type' => 'membership']) }}" class="btn font-weight-bold px-3 py-1 {{ request('type') == 'membership' ? 'btn-primary' : 'btn-outline-primary' }}" style="border-radius: 8px; font-size: 13px;">
-      Keanggotaan & Pelatih
+      Keanggotaan & Personal Trainer
     </a>
     <a href="{{ route('member.billing', ['type' => 'inventory']) }}" class="btn font-weight-bold px-3 py-1 {{ request('type') == 'inventory' ? 'btn-primary' : 'btn-outline-primary' }}" style="border-radius: 8px; font-size: 13px;">
       Loker & Ritel

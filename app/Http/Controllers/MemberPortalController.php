@@ -40,7 +40,7 @@ class MemberPortalController extends Controller
                     'user_id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'phone' => '081234567890',
+                    'phone' => null,
                     'access_code' => 'MBR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
                     'membership_tier' => 'basic',
                     'status' => 'inactive',
@@ -137,7 +137,7 @@ class MemberPortalController extends Controller
         $tenantId = $member->tenant_id;
 
         if (!$member->hasActiveSubscription()) {
-            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Layanan sewa loker hanya dapat digunakan oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Kasir Gym.');
+            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Layanan sewa loker hanya dapat digunakan oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Resepsionis.');
         }
 
         $this->checkExpiredLockers($tenantId);
@@ -160,7 +160,7 @@ class MemberPortalController extends Controller
         $tenantId = $member->tenant_id;
 
         if (!$member->hasActiveSubscription()) {
-            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan pembayaran dan aktivasi di Meja Kasir Gym.');
+            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan pembayaran dan aktivasi di Meja Resepsionis.');
         }
 
         $request->validate([
@@ -168,66 +168,77 @@ class MemberPortalController extends Controller
             'rental_type' => 'required|in:daily,monthly',
         ]);
 
-        $locker = Locker::where('tenant_id', $tenantId)->findOrFail($request->locker_id);
+        $rentalResult = \Illuminate\Support\Facades\DB::transaction(function () use ($tenantId, $member, $request) {
+            $locker = Locker::where('tenant_id', $tenantId)->lockForUpdate()->findOrFail($request->locker_id);
 
-        // Anti Double-Booking Validation
-        if ($locker->status !== 'tersedia') {
-            return back()->with('error', "Loker #{$locker->locker_number} sudah disewa orang lain atau tidak tersedia!");
+            // Anti Double-Booking Validation
+            if ($locker->status !== 'tersedia') {
+                return ['status' => 'unavailable', 'locker' => $locker];
+            }
+
+            // Cek apakah user sudah punya sewa aktif
+            $existingRental = LockerRental::where('member_id', $member->id)->where('status', 'active')->first();
+            if ($existingRental) {
+                return ['status' => 'already_active', 'rental' => $existingRental];
+            }
+
+            // Tentukan Durasi & Biaya
+            $isMonthly = $request->rental_type === 'monthly';
+            $startDate = now();
+            $endDate = $isMonthly ? now()->addDays(30) : now()->addDays(1);
+
+            // Premium Tier Free Locker Bundling
+            $amount = 0;
+            if ($member->membership_tier === 'premium' && $isMonthly) {
+                $amount = 0; // Bundling Gratis!
+            } else {
+                $amount = $isMonthly ? 150000 : 15000;
+            }
+
+            // Generate 6-digit Access PIN
+            $pinCode = str_pad(rand(1000, 999999), 6, '0', STR_PAD_LEFT);
+
+            // Lock Locker State in DB (Anti Double-Booking)
+            $locker->update(['status' => 'terpakai']);
+
+            // Record Rental
+            $rental = LockerRental::create([
+                'tenant_id' => $tenantId,
+                'locker_id' => $locker->id,
+                'member_id' => $member->id,
+                'rental_type' => $request->rental_type,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'pin_code' => $pinCode,
+                'amount' => $amount,
+                'payment_status' => 'paid',
+                'status' => 'active',
+                'rented_at' => now(),
+            ]);
+
+            // Invoice Record
+            $paymentMethod = $request->input('payment_method', 'qris');
+            PosTransaction::create([
+                'tenant_id' => $tenantId,
+                'user_id' => Auth::id(),
+                'member_id' => $member->id,
+                'invoice_number' => 'INV-LKR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
+                'total_amount' => $amount,
+                'payment_method' => $paymentMethod,
+                'type' => 'inventory',
+            ]);
+
+            return ['status' => 'success', 'locker' => $locker];
+        });
+
+        if ($rentalResult['status'] === 'unavailable') {
+            return back()->with('error', "Loker #{$rentalResult['locker']->locker_number} sudah disewa orang lain atau tidak tersedia!");
+        }
+        if ($rentalResult['status'] === 'already_active') {
+            return back()->with('error', "Anda masih memiliki sewa Loker #{$rentalResult['rental']->locker->locker_number} yang sedang aktif!");
         }
 
-        // Cek apakah user sudah punya sewa aktif
-        $existingRental = LockerRental::where('member_id', $member->id)->where('status', 'active')->first();
-        if ($existingRental) {
-            return back()->with('error', "Anda masih memiliki sewa Loker #{$existingRental->locker->locker_number} yang sedang aktif!");
-        }
-
-        // Tentukan Durasi & Biaya
-        $isMonthly = $request->rental_type === 'monthly';
-        $startDate = now();
-        $endDate = $isMonthly ? now()->addDays(30) : now()->addDays(1);
-
-        // Premium Tier Free Locker Bundling
-        $amount = 0;
-        if ($member->membership_tier === 'premium' && $isMonthly) {
-            $amount = 0; // Bundling Gratis!
-        } else {
-            $amount = $isMonthly ? 150000 : 15000;
-        }
-
-        // Generate 6-digit Access PIN
-        $pinCode = str_pad(rand(1000, 999999), 6, '0', STR_PAD_LEFT);
-
-        // Lock Locker State in DB (Anti Double-Booking)
-        $locker->update(['status' => 'terpakai']);
-
-        // Record Rental
-        $rental = LockerRental::create([
-            'tenant_id' => $tenantId,
-            'locker_id' => $locker->id,
-            'member_id' => $member->id,
-            'rental_type' => $request->rental_type,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-            'pin_code' => $pinCode,
-            'amount' => $amount,
-            'payment_status' => 'paid',
-            'status' => 'active',
-            'rented_at' => now(),
-        ]);
-
-        // Invoice Record
-        $paymentMethod = $request->input('payment_method', 'qris');
-        PosTransaction::create([
-            'tenant_id' => $tenantId,
-            'user_id' => Auth::id(),
-            'member_id' => $member->id,
-            'invoice_number' => 'INV-LKR-' . strtoupper(substr(md5(uniqid()), 0, 6)),
-            'total_amount' => $amount,
-            'payment_method' => $paymentMethod,
-            'type' => 'inventory',
-        ]);
-
-        return redirect()->route('member.lockers')->with('success', "Pembayaran berhasil. Unit loker #{$locker->locker_number} telah aktif.");
+        return redirect()->route('member.lockers')->with('success', "Pembayaran berhasil. Unit loker #{$rentalResult['locker']->locker_number} telah aktif.");
     }
 
     /**
@@ -267,7 +278,7 @@ class MemberPortalController extends Controller
     public function upgradeMembership(Request $request)
     {
         $member = $this->getMemberProfile();
-        return redirect()->route('member.membership')->with('info', "Aktivasi dan pembayaran paket membership diproses langsung melalui Kasir Gym. Silakan tunjukkan Kode Akses Member ({$member->access_code}) Anda ke Meja Kasir.");
+        return redirect()->route('member.membership')->with('info', "Aktivasi dan pembayaran paket membership diproses langsung melalui Meja Resepsionis. Silakan tunjukkan Kode Akses Member ({$member->access_code}) Anda kepada petugas.");
     }
 
     /**
@@ -279,7 +290,7 @@ class MemberPortalController extends Controller
         $tenantId = $member->tenant_id;
 
         if (!$member->hasActiveSubscription()) {
-            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Layanan Personal Trainer (PT) hanya dapat digunakan oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Kasir Gym.');
+            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Layanan Personal Trainer (PT) hanya dapat digunakan oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Resepsionis.');
         }
 
         $trainers = Trainer::where('tenant_id', $tenantId)->where('status', 'active')->get();
@@ -295,7 +306,7 @@ class MemberPortalController extends Controller
         $tenantId = $member->tenant_id;
 
         if (!$member->hasActiveSubscription()) {
-            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Kasir Gym terlebih dahulu.');
+            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Resepsionis terlebih dahulu.');
         }
 
         $request->validate([
@@ -348,7 +359,7 @@ class MemberPortalController extends Controller
         $tenantId = $member->tenant_id;
 
         if (!$member->hasActiveSubscription()) {
-            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Kasir Gym terlebih dahulu.');
+            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Resepsionis terlebih dahulu.');
         }
 
         $request->validate([
@@ -418,7 +429,7 @@ class MemberPortalController extends Controller
         $tenantId = $member->tenant_id;
 
         if (!$member->hasActiveSubscription()) {
-            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Jadwal dan reservasi kelas kebugaran hanya dapat diakses oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Kasir Gym.');
+            return redirect()->route('member.dashboard')->with('warning', 'Akses Terkunci: Jadwal dan reservasi kelas kebugaran hanya dapat diakses oleh member yang memiliki paket langganan aktif. Silakan lakukan aktivasi paket di Meja Resepsionis.');
         }
 
         $classes = GymClass::where('tenant_id', $tenantId)->with('trainer')->get();
@@ -433,7 +444,7 @@ class MemberPortalController extends Controller
         $tenantId = $member->tenant_id;
 
         if (!$member->hasActiveSubscription()) {
-            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Kasir Gym terlebih dahulu.');
+            return back()->with('error', 'Akses Ditolak: Anda belum memiliki paket langganan aktif. Silakan lakukan aktivasi di Meja Resepsionis terlebih dahulu.');
         }
 
         // Cek Penalti Blocked Status
@@ -447,65 +458,71 @@ class MemberPortalController extends Controller
             'class_date' => 'required|date',
         ]);
 
-        $gymClass = GymClass::where('tenant_id', $tenantId)->findOrFail($request->gym_class_id);
-
         $classDateObj = Carbon::parse($request->class_date);
+        $classDateStr = $classDateObj->format('Y-m-d');
 
-        if ($classDateObj->isBefore(Carbon::today())) {
-            return back()->with('error', 'Tanggal kelas tidak boleh di masa lalu.');
-        }
+        $rsvpResult = \Illuminate\Support\Facades\DB::transaction(function () use ($tenantId, $member, $request, $classDateStr) {
+            $gymClass = GymClass::where('tenant_id', $tenantId)->lockForUpdate()->findOrFail($request->gym_class_id);
 
-        $maxAllowedDate = Carbon::today()->addDays(7);
-        if ($classDateObj->greaterThan($maxAllowedDate)) {
-            return back()->with('error', "Pendaftaran kelas hanya dibuka hingga 7 hari ke depan (maksimal tanggal " . $maxAllowedDate->format('d M Y') . ").");
-        }
+            // Cek RSVP ganda
+            $alreadyRsvpd = ClassRsvp::where('gym_class_id', $gymClass->id)
+                ->where('member_id', $member->id)
+                ->whereDate('class_date', $classDateStr)
+                ->whereIn('status', ['confirmed', 'waitlist'])
+                ->lockForUpdate()
+                ->exists();
 
-        // Cek RSVP ganda
-        $alreadyRsvpd = ClassRsvp::where('gym_class_id', $gymClass->id)
-            ->where('member_id', $member->id)
-            ->whereDate('class_date', $request->class_date)
-            ->whereIn('status', ['confirmed', 'waitlist'])
-            ->exists();
+            if ($alreadyRsvpd) {
+                return ['status' => 'already_rsvpd', 'class' => $gymClass];
+            }
 
-        if ($alreadyRsvpd) {
-            return back()->with('error', "Anda sudah terdaftar untuk kelas {$gymClass->name} pada tanggal tersebut!");
-        }
-
-        // Cek Kuota Kelas & Waitlist Queue
-        $activeRsvpsCount = ClassRsvp::where('gym_class_id', $gymClass->id)
-            ->whereDate('class_date', $request->class_date)
-            ->where('status', 'confirmed')
-            ->count();
-
-        $isFull = $activeRsvpsCount >= $gymClass->max_capacity;
-
-        if ($isFull) {
-            $waitlistCount = ClassRsvp::where('gym_class_id', $gymClass->id)
-                ->whereDate('class_date', $request->class_date)
-                ->where('status', 'waitlist')
+            // Cek Kuota Kelas & Waitlist Queue dengan lock
+            $activeRsvpsCount = ClassRsvp::where('gym_class_id', $gymClass->id)
+                ->whereDate('class_date', $classDateStr)
+                ->where('status', 'confirmed')
+                ->lockForUpdate()
                 ->count();
+
+            $isFull = $activeRsvpsCount >= $gymClass->max_capacity;
+
+            if ($isFull) {
+                $waitlistCount = ClassRsvp::where('gym_class_id', $gymClass->id)
+                    ->whereDate('class_date', $classDateStr)
+                    ->where('status', 'waitlist')
+                    ->lockForUpdate()
+                    ->count();
+
+                ClassRsvp::create([
+                    'tenant_id' => $tenantId,
+                    'gym_class_id' => $gymClass->id,
+                    'member_id' => $member->id,
+                    'class_date' => $classDateStr,
+                    'status' => 'waitlist',
+                    'queue_position' => $waitlistCount + 1,
+                ]);
+
+                return ['status' => 'waitlist', 'class' => $gymClass, 'position' => $waitlistCount + 1];
+            }
 
             ClassRsvp::create([
                 'tenant_id' => $tenantId,
                 'gym_class_id' => $gymClass->id,
                 'member_id' => $member->id,
-                'class_date' => $request->class_date,
-                'status' => 'waitlist',
-                'queue_position' => $waitlistCount + 1,
+                'class_date' => $classDateStr,
+                'status' => 'confirmed',
             ]);
 
-            return redirect()->route('member.classes')->with('warning', "Kelas {$gymClass->name} sudah penuh! Anda masuk dalam Antrean Waitlist Posisi #" . ($waitlistCount + 1));
+            return ['status' => 'confirmed', 'class' => $gymClass];
+        });
+
+        if ($rsvpResult['status'] === 'already_rsvpd') {
+            return back()->with('error', "Anda sudah terdaftar untuk kelas {$rsvpResult['class']->name} pada tanggal tersebut!");
+        }
+        if ($rsvpResult['status'] === 'waitlist') {
+            return redirect()->route('member.classes')->with('warning', "Kelas {$rsvpResult['class']->name} sudah penuh! Anda masuk dalam Antrean Waitlist Posisi #{$rsvpResult['position']}");
         }
 
-        ClassRsvp::create([
-            'tenant_id' => $tenantId,
-            'gym_class_id' => $gymClass->id,
-            'member_id' => $member->id,
-            'class_date' => $request->class_date,
-            'status' => 'confirmed',
-        ]);
-
-        return redirect()->route('member.classes')->with('success', "RSVP Kelas {$gymClass->name} pada tanggal " . $classDateObj->format('d M Y') . " Berhasil Dikonfirmasi!");
+        return redirect()->route('member.classes')->with('success', "RSVP Kelas {$rsvpResult['class']->name} pada tanggal " . $classDateObj->format('d M Y') . " Berhasil Dikonfirmasi!");
     }
 
     public function cancelRsvp($id)
@@ -551,8 +568,10 @@ class MemberPortalController extends Controller
         $member = $this->getMemberProfile();
         
         $query = PosTransaction::where('tenant_id', $member->tenant_id)
-            ->where('user_id', Auth::id());
-
+            ->where(function ($q) use ($member) {
+                $q->where('member_id', $member->id)
+                  ->orWhere('user_id', Auth::id());
+            });
         if ($request->has('type') && in_array($request->type, ['membership', 'inventory'])) {
             $query->where('type', $request->type);
         }
@@ -629,7 +648,7 @@ class MemberPortalController extends Controller
             'address' => $request->address,
         ]);
 
-        return redirect()->route('member.settings')->with('success', 'Informasi profil akun Anda berhasil diperbarui!');
+        return redirect()->route('member.settings')->with('success', __('messages.auth.profile_updated'));
     }
 
     public function updatePassword(Request $request)
@@ -649,7 +668,7 @@ class MemberPortalController extends Controller
             'password' => \Illuminate\Support\Facades\Hash::make($request->new_password)
         ]);
 
-        return redirect()->route('member.settings')->with('success', 'Kata sandi akun Anda berhasil diubah!');
+        return redirect()->route('member.settings')->with('success', __('messages.auth.password_changed'));
     }
 
     public function sendFeedback(Request $request)

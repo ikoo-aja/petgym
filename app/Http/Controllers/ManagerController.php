@@ -279,7 +279,7 @@ class ManagerController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+            return redirect()->back()->with('error', 'Anda tidak dapat melakukan perubahan ini karena akun Anda hanya memiliki akses pantau (baca saja). Hubungi pemilik akun utama untuk melakukan perubahan.');
         }
 
         $tenant = $user->tenant;
@@ -317,7 +317,7 @@ class ManagerController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+            return redirect()->back()->with('error', 'Anda tidak dapat melakukan perubahan ini karena akun Anda hanya memiliki akses pantau (baca saja). Hubungi pemilik akun utama untuk melakukan perubahan.');
         }
 
         $tenant = $user->tenant;
@@ -413,7 +413,7 @@ class ManagerController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+            return redirect()->back()->with('error', 'Anda tidak dapat melakukan perubahan ini karena akun Anda hanya memiliki akses pantau (baca saja). Hubungi pemilik akun utama untuk melakukan perubahan.');
         }
 
         $tenant = $user->tenant;

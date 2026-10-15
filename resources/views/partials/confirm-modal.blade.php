@@ -104,6 +104,50 @@
     e.stopImmediatePropagation();
     const msg = $form.attr('data-confirm');
 
+    // Sesuaikan label tombol konfirmasi dengan jenis aksi pada pesan
+    const lower = (msg || '').toLowerCase();
+    let confirmText = 'Ya, Lanjutkan';
+    let variant = 'danger';
+    let title = 'Konfirmasi Tindakan';
+    if (lower.indexOf('hapus') !== -1) {
+      confirmText = 'Ya, Hapus';
+      title = 'Konfirmasi Hapus Data';
+    } else if (lower.indexOf('tolak') !== -1) {
+      confirmText = 'Ya, Tolak';
+      title = 'Konfirmasi Penolakan';
+    } else if (lower.indexOf('batalkan') !== -1 || lower.indexOf('batal') !== -1) {
+      confirmText = 'Ya, Batalkan';
+      title = 'Konfirmasi Pembatalan';
+    } else if (lower.indexOf('setujui') !== -1 || lower.indexOf('approve') !== -1) {
+      confirmText = 'Ya, Setujui';
+      variant = 'primary';
+      title = 'Konfirmasi Persetujuan';
+    } else if (lower.indexOf('blokir') !== -1) {
+      confirmText = 'Ya, Blokir';
+      variant = 'warning';
+      title = 'Konfirmasi Blokir';
+    } else if (lower.indexOf('nonaktifkan') !== -1) {
+      confirmText = 'Ya, Nonaktifkan';
+      variant = 'warning';
+      title = 'Konfirmasi Nonaktifkan Akun';
+    } else if (lower.indexOf('aktifkan') !== -1) {
+      confirmText = 'Ya, Aktifkan';
+      variant = 'primary';
+      title = 'Konfirmasi Aktifkan Akun';
+    } else if (lower.indexOf('tutup shift') !== -1) {
+      confirmText = 'Ya, Tutup Shift';
+      variant = 'warning';
+      title = 'Konfirmasi Tutup Shift';
+    } else if (lower.indexOf('tandai') !== -1 || lower.indexOf('selesai') !== -1) {
+      confirmText = 'Ya, Tandai';
+      variant = 'primary';
+      title = 'Konfirmasi Perubahan Status';
+    } else if (lower.indexOf('kembalikan') !== -1) {
+      confirmText = 'Ya, Kembalikan';
+      variant = 'warning';
+      title = 'Konfirmasi Pengembalian';
+    }
+
     if (typeof window.showConfirm !== 'function') {
       if (window.confirm(msg)) {
         $form.data('confirmed', true);
@@ -113,9 +157,10 @@
     }
 
     window.showConfirm({
-      title: 'Konfirmasi Tindakan',
+      title: title,
       message: msg,
-      variant: 'danger'
+      confirmText: confirmText,
+      variant: variant
     }, function() {
       $form.data('confirmed', true);
       $form.get(0).submit();

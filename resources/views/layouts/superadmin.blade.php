@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <title>@yield('title', 'Superadmin Dashboard &mdash; Workout Website Template by Colorlib')</title>
+  <title>@yield('title', 'Superadmin Dashboard — PetGym')</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <x-dynamic-favicon />
@@ -11,16 +11,6 @@
   <link rel="stylesheet" href="{{ asset('fonts/icomoon/style.css') }}">
 
   <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/jquery-ui.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/owl.carousel.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/owl.theme.default.min.css') }}">
-
-  <link rel="stylesheet" href="{{ asset('css/jquery.fancybox.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/bootstrap-datepicker.css') }}">
-  <link rel="stylesheet" href="{{ asset('fonts/flaticon/font/flaticon.css') }}">
-
-  <link rel="stylesheet" href="{{ asset('css/aos.css') }}">
-  <link href="{{ asset('css/jquery.mb.YTPlayer.min.css') }}" media="all" rel="stylesheet" type="text/css">
 
   <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
@@ -52,8 +42,8 @@
     }
     .admin-sidebar {
       width: 260px;
-      background: #1a1a1a;
-      color: #fff;
+      background: #111827;
+      color: #9ca3af;
       position: fixed;
       top: 0;
       bottom: 0;
@@ -63,17 +53,18 @@
       transition: top 0.2s ease;
     }
     .admin-sidebar .sidebar-brand {
-      padding: 25px 20px;
-      font-size: 24px;
+      padding: 24px 20px;
+      background: #0f172a;
+      font-size: 20px;
       font-weight: 900;
       color: #fff;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid #1e293b;
     }
     .admin-sidebar .sidebar-brand span {
-      color: #f38181;
+      color: #f43f5e;
     }
     .admin-sidebar .nav-link {
-      color: #b3b3b3;
+      color: #9ca3af;
       padding: 12px 20px;
       font-weight: 700;
       font-size: 14px;
@@ -84,8 +75,8 @@
     .admin-sidebar .nav-link:hover,
     .admin-sidebar .nav-link.active {
       color: #fff;
-      background: #262626;
-      border-left: 4px solid #f38181;
+      background: #1f2937;
+      border-left: 3px solid #f43f5e;
     }
     .admin-sidebar .nav-link span[class^="icon-"] {
       margin-right: 12px;
@@ -102,22 +93,42 @@
       margin: -30px -30px 30px -30px;
       border-bottom: 1px solid #e9ecef;
     }
+    .card-custom {
+      border: none;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
     .stat-card {
       background: #fff;
-      border-radius: 4px;
+      border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      border-left: 4px solid #ee6e73;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      border-left: 4px solid #f43f5e;
     }
     .stat-card .stat-number {
       font-size: 28px;
       font-weight: 900;
-      color: #000;
+      color: #111827;
     }
     .table-custom {
       background: #fff;
-      border-radius: 4px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    .btn {
+      border-radius: 8px;
+    }
+    .form-control, .custom-select {
+      border-radius: 8px;
+    }
+    .modal-content {
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
     .badge-status-active { background: #d4edda; color: #155724; }
     .badge-status-suspended { background: #f8d7da; color: #721c24; }
@@ -273,7 +284,7 @@
 
       <!-- Footer Admin -->
       <footer class="mt-5 pt-4 border-top text-center text-muted" style="font-size: 13px;">
-        <p>Copyright &copy; {{ date('Y') }} Workout SaaS Management Engine. Integrated with Colorlib Admin UI Standard.</p>
+        <p>Copyright &copy; {{ date('Y') }} PetGym Cloud Management SaaS Platform.</p>
       </footer>
 
     </main>

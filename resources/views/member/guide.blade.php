@@ -2,13 +2,13 @@
 
 @section('title', 'Panduan Penggunaan')
 @section('page_title', 'Panduan Penggunaan')
-@section('page_subtitle', 'Petunjuk langkah demi langkah untuk menggunakan seluruh fasilitas portal anggota.')
+@section('page_subtitle', 'Petunjuk langkah demi langkah untuk menggunakan seluruh fasilitas portal member.')
 
 @section('content')
 <!-- Overview Header Banner -->
 <div class="card-custom border-left border-primary mb-3 mb-md-4" style="border-left-width: 4px !important;">
   <h5 class="font-weight-bold text-dark mb-1" style="font-size: 16px;">Selamat Datang di Portal Anggota {{ $tenantName }}</h5>
-  <p class="text-muted mb-0 small">Gunakan panduan berikut untuk memahami tata cara transaksi, penjadwalan pelatih pribadi, reservasi kelas, dan penyewaan loker digital.</p>
+  <p class="text-muted mb-0 small">Gunakan panduan berikut untuk memahami tata cara transaksi, penjadwalan pelatih pribadi, reservasi kelas, dan sewa loker digital.</p>
 </div>
 
 <!-- Step by Step Guides -->
@@ -21,7 +21,7 @@
         <h6 class="font-weight-bold text-dark mb-0">Menyewa Loker Digital</h6>
       </div>
       <ol class="text-muted pl-3 mb-0 small" style="line-height: 1.8;">
-        <li>Buka menu <strong>Penyewaan Loker</strong> dari bilah navigasi.</li>
+        <li>Buka menu <strong>Sewa Loker</strong> dari bilah navigasi.</li>
         <li>Pilih nomor loker yang berstatus <strong>Tersedia (Kotak Hijau)</strong>.</li>
         <li>Pilih durasi sewa (<strong>Harian Rp 15.000</strong> atau <strong>Bulanan Rp 150.000</strong>). *Member Tingkat Premium gratis bulanan.</li>
         <li>Pilih metode pembayaran (QRIS / Transfer Bank / Tunai di Kasir).</li>
@@ -36,10 +36,10 @@
     <div class="card-custom h-100">
       <div class="d-flex align-items-center mb-3">
         <div class="badge badge-primary font-weight-bold px-3 py-2 mr-2" style="font-size: 13px; border-radius: 8px;">Langkah 2</div>
-        <h6 class="font-weight-bold text-dark mb-0">Beli Kuota & Jadwal Pelatih Pribadi (PT)</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Beli Kuota & Jadwal Personal Trainer (PT)</h6>
       </div>
       <ol class="text-muted pl-3 mb-0 small" style="line-height: 1.8;">
-        <li>Buka menu <strong>Pelatih Pribadi</strong> dari navigasi portal.</li>
+        <li>Buka menu <strong>Personal Trainer</strong> dari navigasi portal.</li>
         <li>Jika kuota Anda kosong, pilih pelatih yang diinginkan lalu klik <strong>Beli Kuota</strong>.</li>
         <li>Pilih paket kuota sesi (5, 10, atau 20 sesi) dan selesaikan pembayaran. Kuota akan langsung bertambah.</li>
         <li>Klik <strong>Jadwalkan</strong> pada profil pelatih, pilih tanggal dan slot jam sesi latihan.</li>
@@ -76,7 +76,7 @@
       <ol class="text-muted pl-3 mb-0 small" style="line-height: 1.8;">
         <li>Buka menu <strong>Keanggotaan</strong> atau <strong>Beranda</strong> pada portal.</li>
         <li>Lihat daftar pilihan paket (Basic, Standard, atau Premium) beserta rincian fasilitasnya.</li>
-        <li>Kunjungi <strong>Meja Kasir Gym</strong> dan tunjukkan <strong>PIN / Kode Akses</strong> Anda.</li>
+        <li>Kunjungi <strong>Meja Resepsionis</strong> dan tunjukkan <strong>PIN / Kode Akses</strong> Anda.</li>
         <li>Selesaikan pembayaran di kasir (Tunai, QRIS, atau Transfer). Akun dan seluruh fitur kebugaran akan aktif seketika.</li>
       </ol>
     </div>

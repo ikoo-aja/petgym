@@ -29,7 +29,7 @@
               <th>Nama Kelas & Ruangan</th>
               <th>Jam & Durasi</th>
               <th>Kuota</th>
-              <th>Instruktur / Trainer</th>
+              <th>Trainer</th>
               @if(Auth::user() && Auth::user()->isManager())
               <th class="text-right">Aksi</th>
               @endif
@@ -72,7 +72,7 @@
                     data-max_capacity="{{ $c->max_capacity }}"
                     data-trainer_id="{{ $c->trainer_id }}"
                     style="border-radius: 6px; font-size: 12px;">Ubah</button>
-                  <form action="{{ route('manager.classes.destroy', $c->id) }}" method="POST" class="d-inline" data-confirm="Hapus jadwal kelas ini?">
+                  <form action="{{ route('manager.classes.destroy', $c->id) }}" method="POST" class="d-inline" data-confirm="Hapus jadwal kelas \"{{ $c->name }}\" secara permanen? Peserta yang sudah RSVP akan kehilangan jadwal ini.">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">Hapus</button>
@@ -99,7 +99,7 @@
     <div class="card-custom h-100">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <h6 class="font-weight-bold text-dark mb-1">Daftar Trainer / Pelatih</h6>
+          <h6 class="font-weight-bold text-dark mb-1">Daftar Trainer</h6>
           <small class="text-muted">Master data instruktur kebugaran gym</small>
         </div>
         @if(Auth::user() && Auth::user()->isManager())
@@ -144,7 +144,7 @@
                     data-phone="{{ $t->phone }}"
                     data-specialization="{{ $t->specialization }}"
                     style="border-radius: 6px; font-size: 12px;">Ubah</button>
-                  <form action="{{ route('manager.classes.destroy-trainer', $t->id) }}" method="POST" class="d-inline" data-confirm="Hapus data trainer ini?">
+                  <form action="{{ route('manager.classes.destroy-trainer', $t->id) }}" method="POST" class="d-inline" data-confirm="Hapus data trainer \"{{ $t->name }}\" secara permanen? Jadwal kelas yang terkait akan kehilangan penugasan trainer.">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">Hapus</button>
@@ -220,7 +220,7 @@
           </div>
         </div>
         <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Instruktur / Trainer</label>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Trainer</label>
           <select name="trainer_id" class="form-control">
             <option value="">-- Tanpa Trainer / Belum Ditugaskan --</option>
             @foreach($trainers as $t)
@@ -291,7 +291,7 @@
           </div>
         </div>
         <div class="form-group mb-0">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Instruktur / Trainer</label>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Pilih Trainer</label>
           <select name="trainer_id" id="editClassTrainerId" class="form-control">
             <option value="">-- Tanpa Trainer / Belum Ditugaskan --</option>
             @foreach($trainers as $t)
@@ -321,7 +321,7 @@
       </div>
       <div class="modal-body p-4">
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Trainer / Instruktur *</label>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Trainer *</label>
           <input type="text" name="name" id="editTrainerName" class="form-control" required>
         </div>
         <div class="form-group mb-3">

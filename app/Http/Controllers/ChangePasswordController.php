@@ -26,11 +26,11 @@ class ChangePasswordController extends Controller
 
         $request->validate([
             'current_password' => ['required', 'string'],
-            'new_password' => ['required', 'string', 'min:4', 'confirmed'],
+            'new_password' => ['required', 'string', 'confirmed', \App\Rules\StaffPassword::rule()],
         ], [
             'current_password.required' => 'Password saat ini wajib diisi.',
             'new_password.required' => 'Password baru wajib diisi.',
-            'new_password.min' => 'Password baru minimal 4 karakter.',
+            'new_password.min' => 'Password baru minimal 8 karakter.',
             'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
         ]);
 

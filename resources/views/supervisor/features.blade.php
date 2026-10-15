@@ -166,7 +166,7 @@
                       data-start_time="{{ substr($sh->start_time, 0, 5) }}"
                       data-end_time="{{ substr($sh->end_time, 0, 5) }}"
                       data-notes="{{ $sh->notes }}" style="border-radius: 6px;">Ubah</button>
-                    <form action="{{ route('supervisor.shifts.destroy', $sh->id) }}" method="POST" class="d-inline" data-confirm="Hapus shift kerja ini?">
+                    <form action="{{ route('supervisor.shifts.destroy', $sh->id) }}" method="POST" class="d-inline" data-confirm="Hapus shift kerja \"{{ $sh->shift_name }}\" ini? Jadwal shift pada hari tersebut akan hilang.">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="btn btn-xs btn-outline-danger" style="border-radius: 6px;">Hapus</button>
@@ -225,11 +225,11 @@
                   </td>
                   <td class="text-right">
                     @if($lr->status === 'pending')
-                      <form action="{{ route('supervisor.leave.approve', $lr->id) }}" method="POST" class="d-inline mr-1" data-confirm="Setujui permohonan cuti untuk {{ $lr->user->name ?? 'staf' }}?">
+                      <form action="{{ route('supervisor.leave.approve', $lr->id) }}" method="POST" class="d-inline mr-1" data-confirm="Setujui permohonan cuti dari {{ $lr->user->name ?? 'staf' }}? Status cuti akan tercatat sebagai disetujui.">
                         @csrf
                         <button type="submit" class="btn btn-xs btn-success font-weight-bold" style="border-radius: 6px;">Setujui</button>
                       </form>
-                      <form action="{{ route('supervisor.leave.reject', $lr->id) }}" method="POST" class="d-inline" data-confirm="Tolak permohonan cuti ini?">
+                      <form action="{{ route('supervisor.leave.reject', $lr->id) }}" method="POST" class="d-inline" data-confirm="Tolak permohonan cuti dari {{ $lr->user->name ?? 'staf' }}? Staf akan menerima notifikasi penolakan.">
                         @csrf
                         <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius: 6px;">Tolak</button>
                       </form>
@@ -287,10 +287,10 @@
                   <td>
                     @if($eq->status === 'berfungsi')
                       <span class="badge badge-success font-weight-bold">Berfungsi Normal</span>
-                    @elseif($eq->status === 'perlu_perbaikan')
+                    @elseif($eq->status === 'perlu_servis' || $eq->status === 'perlu_perbaikan')
                       <span class="badge badge-warning text-dark font-weight-bold">Perlu Servis</span>
                     @else
-                      <span class="badge badge-danger font-weight-bold">Rusak Berat</span>
+                      <span class="badge badge-danger font-weight-bold">Rusak</span>
                     @endif
                   </td>
                   <td class="small text-muted">{{ $eq->purchase_date ? $eq->purchase_date->format('d M Y') : '-' }}</td>
@@ -305,7 +305,7 @@
                       data-purchase_date="{{ $eq->purchase_date ? $eq->purchase_date->format('Y-m-d') : '' }}"
                       data-next_service_date="{{ $eq->next_service_date ? $eq->next_service_date->format('Y-m-d') : '' }}"
                       data-notes="{{ $eq->notes }}" style="border-radius: 6px;">Ubah</button>
-                    <form action="{{ route('supervisor.equipment.destroy', $eq->id) }}" method="POST" class="d-inline" data-confirm="Hapus alat ini dari inventaris?">
+                    <form action="{{ route('supervisor.equipment.destroy', $eq->id) }}" method="POST" class="d-inline" data-confirm="Hapus alat \"{{ $eq->name }}\" dari inventaris secara permanen? Riwayat servisnya ikut terhapus.">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="btn btn-xs btn-outline-danger" style="border-radius: 6px;">Hapus</button>
@@ -551,7 +551,7 @@
                       title="Ubah Data Produk">
                       <i class="icon-pencil"></i>
                     </button>
-                    <form action="{{ route('supervisor.products.destroy', $p->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini dari database?');">
+                    <form action="{{ route('supervisor.products.destroy', $p->id) }}" method="POST" class="d-inline" data-confirm="Hapus produk \"{{ $p->name }}\" dari katalog secara permanen? Stok dan riwayat mutasinya ikut terhapus.">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" title="Hapus Produk">
@@ -755,7 +755,7 @@
             <span class="icon-wrench mr-3" style="font-size: 28px;"></span>
             <div class="flex-grow-1">
               <strong class="d-block" style="font-size: 15px;">Perhatian: Ada {{ $brokenLockers }} Loker Rusak Membutuhkan Maintenance!</strong>
-              <span class="small">Laporan kerusakan masuk dari meja kasir/resepsionis. Klik tombol <strong>Perbaiki Loker</strong> pada loker terkait untuk mengembalikan kondisinya menjadi siap pakai (Tersedia).</span>
+              <span class="small">Laporan kerusakan masuk dari meja resepsionis. Klik tombol <strong>Perbaiki Loker</strong> pada loker terkait untuk mengembalikan kondisinya menjadi siap pakai (Tersedia).</span>
             </div>
           </div>
 
@@ -877,8 +877,8 @@
             <label class="font-weight-bold text-dark small mb-1">Status Awal *</label>
             <select name="status" class="form-control" required style="border-radius: 8px;">
               <option value="berfungsi">Berfungsi Normal</option>
-              <option value="perlu_perbaikan">Perlu Servis</option>
-              <option value="rusak_berat">Rusak Berat</option>
+              <option value="perlu_servis">Perlu Servis</option>
+              <option value="rusak">Rusak</option>
             </select>
           </div>
           <div class="col-md-6 form-group mb-3">
@@ -934,8 +934,8 @@
             <label class="font-weight-bold text-dark small mb-1">Status Alat *</label>
             <select name="status" id="editEqStatus" class="form-control" required style="border-radius: 8px;">
               <option value="berfungsi">Berfungsi Normal</option>
-              <option value="perlu_perbaikan">Perlu Servis</option>
-              <option value="rusak_berat">Rusak Berat</option>
+              <option value="perlu_servis">Perlu Servis</option>
+              <option value="rusak">Rusak</option>
             </select>
           </div>
           <div class="col-md-6 form-group mb-3">

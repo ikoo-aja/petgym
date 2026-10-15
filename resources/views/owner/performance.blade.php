@@ -25,7 +25,7 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
                                 <tr>
-                                    <th class="px-4 py-3">Nama Resepsionis / Kasir</th>
+                                    <th class="px-4 py-3">Nama Resepsionis</th>
                                     <th class="py-3 text-center">Transaksi</th>
                                     <th class="px-4 py-3 text-right">Total Omset</th>
                                 </tr>
@@ -68,7 +68,7 @@
                         <small class="text-muted">Distribusi jadwal dan jumlah kelas kebugaran aktif</small>
                     </div>
                     <span class="badge badge-light border text-info font-weight-bold px-2 py-1" style="font-size: 11px; border-radius: 6px;">
-                        <i class="icon-calendar mr-1"></i> Instruktur
+                        <i class="icon-calendar mr-1"></i> Trainer
                     </span>
                 </div>
                 <div class="card-body p-0">

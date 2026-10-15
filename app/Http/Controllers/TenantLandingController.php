@@ -79,7 +79,7 @@ class TenantLandingController extends Controller
             'name'                => 'nullable|string|max:255',
             'owner_name'          => 'nullable|string|max:255',
             'owner_email'         => 'nullable|email|max:255',
-            'logo'                => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'logo'                => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'brand_display_mode'  => 'nullable|string|in:both,logo,text',
             'hero_title'          => 'nullable|string|max:255',
             'hero_tagline'        => 'nullable|string|max:500',

@@ -72,7 +72,7 @@
               <div class="row">
                 <div class="col-md-6 form-group mb-3">
                   <label for="password" class="text-dark font-weight-bold small">Kata Sandi *</label>
-                  <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Min. 4 karakter" required style="font-size: 15px;">
+                  <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Min. 8 karakter" required style="font-size: 15px;">
                 </div>
                 <div class="col-md-6 form-group mb-3">
                   <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Kata Sandi *</label>

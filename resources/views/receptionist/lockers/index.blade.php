@@ -86,7 +86,7 @@
               @if(!Auth::user() || !Auth::user()->isOwner())
               <td class="text-right">
                 @if($l->status === 'tersedia')
-                  <form action="{{ route('receptionist.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Tandai loker ini sebagai rusak? Unit tidak akan dapat dipinjamkan sementara waktu.">
+                  <form action="{{ route('receptionist.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Blokir loker #{{ $l->locker_number }} sebagai rusak? Unit ini tidak dapat disewakan sampai diperbaiki oleh Supervisor.">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">
@@ -94,7 +94,7 @@
                     <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius:6px;">Blokir (Rusak)</button>
                   </form>
                 @elseif($l->status === 'rusak')
-                  <form action="{{ route('receptionist.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Aktifkan kembali loker ini?">
+                  <form action="{{ route('receptionist.lockers.update', $l->id) }}" method="POST" style="display:inline;" data-confirm="Aktifkan kembali loker #{{ $l->locker_number }}? Unit ini akan tersedia untuk disewakan lagi.">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="locker_number" value="{{ $l->locker_number }}">
@@ -106,7 +106,7 @@
                 @endif
 
                 @if($l->status !== 'terpakai')
-                <form action="{{ route('receptionist.lockers.destroy', $l->id) }}" method="POST" style="display:inline;" data-confirm="Hapus loker ini dari database secara permanen?">
+                <form action="{{ route('receptionist.lockers.destroy', $l->id) }}" method="POST" style="display:inline;" data-confirm="Hapus loker #{{ $l->locker_number }} secara permanen? Nomor loker ini tidak dapat digunakan lagi.">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-xs btn-outline-dark font-weight-bold ml-1" style="border-radius:6px;">Hapus</button>

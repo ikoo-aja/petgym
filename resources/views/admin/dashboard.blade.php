@@ -5,7 +5,6 @@
 @section('page_subtitle', 'Ringkasan operasional dan informasi sistem gym')
 
 @section('content')
-<div class="container-fluid py-4">
 
     <!-- 1. 4 KARTU METRIK UTAMA (FOKUS WEBSITE & SAAS) -->
     @if(($pendingResetCount ?? 0) > 0)
@@ -17,7 +16,7 @@
                 <small class="text-muted">Staf atau Member gym Anda mengajukan reset kata sandi dan membutuhkan persetujuan Admin sebelum tautan dikirim.</small>
             </div>
         </div>
-        <a href="{{ route('admin.staff.index') }}" class="btn btn-warning btn-sm font-weight-bold px-3 text-dark shadow-sm" style="border-radius: 20px;">
+        <a href="{{ route('admin.staff.index') }}" class="btn btn-warning btn-sm font-weight-bold px-3 text-dark shadow-sm" style="border-radius: 8px;">
             Tinjau di Kelola Staf <span class="icon-arrow-right ml-1"></span>
         </a>
     </div>
@@ -25,7 +24,7 @@
     <div class="row mb-4">
         <!-- Kartu 1: Status & Masa Sewa -->
         <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
-            <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px;">
+            <div class="card-custom h-100 mb-0">
                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -65,7 +64,7 @@
 
         <!-- Kartu 2: Pengunjung Web -->
         <div class="col-xl-3 col-md-6 mb-3 mb-xl-0">
-            <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px;">
+            <div class="card-custom h-100 mb-0">
                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -93,13 +92,13 @@
 
         <!-- Kartu 3: Pesan Masuk (Leads) -->
         <div class="col-xl-3 col-md-6 mb-3 mb-md-0">
-            <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px;">
+            <div class="card-custom h-100 mb-0">
                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Pesan Masuk (Leads)</span>
                             <span class="badge badge-light border text-warning" style="font-size: 11px; border-radius: 6px;">
-                                <i class="icon-mail"></i>
+                                <i class="icon-envelope"></i>
                             </span>
                         </div>
                         <h4 class="font-weight-bold text-dark mb-1">
@@ -121,7 +120,7 @@
 
         <!-- Kartu 4: Status Landing Page -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px;">
+            <div class="card-custom h-100 mb-0">
                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -137,7 +136,7 @@
                                 </span>
                             @else
                                 <span class="text-danger font-weight-bold" style="font-size: 18px;">
-                                    <i class="icon-alert-triangle mr-1"></i> Maintenance
+                                    <i class="icon-warning mr-1"></i> Maintenance
                                 </span>
                             @endif
                         </h4>
@@ -241,7 +240,7 @@
                                             </small>
                                         </div>
                                         <div class="text-muted small" style="line-height: 1.5;">
-                                            {!! $anc->message !!}
+                                            {!! nl2br(e($anc->message)) !!}
                                         </div>
                                     </div>
                                 </div>
@@ -249,14 +248,13 @@
                         </div>
                     @else
                         <div class="text-center py-4 text-muted small">
-                            <span class="icon-bell-off h4 d-block mb-1 text-muted"></span>
+                            <span class="icon-notifications_off h4 d-block mb-1 text-muted"></span>
                             Belum ada pengumuman baru.
                         </div>
                     @endif
                 </div>
             </div>
         </div>
-</div>
 @endsection
 
 @section('scripts')

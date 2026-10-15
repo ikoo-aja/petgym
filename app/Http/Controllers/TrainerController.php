@@ -25,12 +25,23 @@ class TrainerController extends Controller
             return null;
         }
 
-        return Trainer::where('tenant_id', $tenant->id)
-            ->where(function($q) use ($user) {
-                $q->where('name', $user->name)
-                  ->orWhere('name', 'like', "%{$user->name}%");
-            })
-            ->first() ?? Trainer::where('tenant_id', $tenant->id)->first();
+        // 1. Cari profil trainer berdasarkan user_id akun yang login
+        $trainer = Trainer::where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        // 2. Fallback untuk data lama: cari berdasarkan kesamaan nama dan hubungkan user_id
+        if (!$trainer) {
+            $trainer = Trainer::where('tenant_id', $tenant->id)
+                ->where('name', $user->name)
+                ->first();
+
+            if ($trainer && empty($trainer->user_id)) {
+                $trainer->update(['user_id' => $user->id]);
+            }
+        }
+
+        return $trainer;
     }
 
     /**

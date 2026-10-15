@@ -340,6 +340,16 @@
       color: #ffffff !important;
     }
 
+    /* Loading spinner utility */
+    .pg-icon-spin {
+      display: inline-block;
+      animation: pg-spin 1s linear infinite;
+    }
+    @keyframes pg-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
     [data-theme="dark"] .btn-light {
       background-color: var(--mp-pill-bg) !important;
       border-color: var(--mp-border) !important;
@@ -426,7 +436,7 @@
       </li>
       <li>
         <a href="{{ route('member.lockers') }}" class="{{ request()->routeIs('member.lockers*') ? 'active' : '' }} {{ !$hasActiveSubscription ? 'text-muted' : '' }}">
-          <span class="icon-lock mr-3" style="font-size: 16px;"></span> Penyewaan Loker
+          <span class="icon-lock mr-3" style="font-size: 16px;"></span> Sewa Loker
           @if(!$hasActiveSubscription)
             <span class="badge badge-secondary ml-auto font-weight-bold" style="font-size: 10px;">Terkunci</span>
           @endif
@@ -434,7 +444,7 @@
       </li>
       <li>
         <a href="{{ route('member.pt') }}" class="{{ request()->routeIs('member.pt*') ? 'active' : '' }} {{ !$hasActiveSubscription ? 'text-muted' : '' }}">
-          <span class="icon-user mr-3" style="font-size: 16px;"></span> Pelatih Pribadi (PT)
+          <span class="icon-user mr-3" style="font-size: 16px;"></span> Personal Trainer (PT)
           @if(!$hasActiveSubscription)
             <span class="badge badge-secondary ml-auto font-weight-bold" style="font-size: 10px;">Terkunci</span>
           @endif
@@ -455,7 +465,7 @@
       </li>
       <li>
         <a href="{{ route('member.guide') }}" class="{{ request()->routeIs('member.guide*') ? 'active' : '' }}">
-          <span class="icon-help-with-circle mr-3" style="font-size: 16px;"></span> Panduan Penggunaan
+          <span class="icon-help mr-3" style="font-size: 16px;"></span> Panduan Penggunaan
         </a>
       </li>
       <li>
@@ -534,7 +544,7 @@
             <div>
               <h6 class="font-weight-bold text-dark mb-1">Akun Belum Memiliki Paket Langganan Aktif</h6>
               <p class="text-muted small mb-0">
-                Untuk mulai menikmati fasilitas & seluruh fitur kebugaran gym (Sewa Loker, Pelatih Pribadi, dan Kelas Gym), silakan pilih paket langganan dan lakukan aktivasi pembayaran langsung di <strong>Meja Kasir / Resepsionis Gym</strong>.
+                Untuk mulai menikmati fasilitas & seluruh fitur kebugaran gym (Sewa Loker, Personal Trainer, dan Kelas Gym), silakan pilih paket langganan dan lakukan aktivasi pembayaran langsung di <strong>Meja Resepsionis</strong>.
               </p>
             </div>
           </div>

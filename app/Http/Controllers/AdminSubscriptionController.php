@@ -21,7 +21,7 @@ class AdminSubscriptionController extends Controller
         $tenant = $user->tenant;
 
         if (!$tenant) {
-            return redirect()->route('admin.dashboard')->with('error', 'Data gym Anda belum ditemukan.');
+            return redirect()->route('admin.dashboard')->with('error', 'Data gym Anda belum terdaftar. Hubungi Superadmin untuk melengkapi data gym.');
         }
 
         $plans = Plan::where('status', 'active')->get();
@@ -31,8 +31,10 @@ class AdminSubscriptionController extends Controller
             ->whereIn('status', ['pending', 'dp_pending'])
             ->latest('id')
             ->first();
+        $systemBilling = \App\Models\SystemSetting::getGroup('billing');
+        $systemSupport = \App\Models\SystemSetting::getGroup('support');
 
-        return view('admin.subscription.index', compact('tenant', 'plans', 'plan', 'invoices', 'pendingInvoice'));
+        return view('admin.subscription.index', compact('tenant', 'plans', 'plan', 'invoices', 'pendingInvoice', 'systemBilling', 'systemSupport'));
     }
 
     /**
@@ -44,7 +46,7 @@ class AdminSubscriptionController extends Controller
         $tenant = $user->tenant;
 
         if (!$tenant) {
-            return redirect()->route('admin.dashboard')->with('error', 'Data gym Anda belum ditemukan.');
+            return redirect()->route('admin.dashboard')->with('error', 'Data gym Anda belum terdaftar. Hubungi Superadmin untuk melengkapi data gym.');
         }
 
         // Cegah pengajuan berulang jika masih ada invoice pending
@@ -75,17 +77,14 @@ class AdminSubscriptionController extends Controller
         $durationMonths = (int) $request->duration_months;
         $totalAmount = $plan->price * $durationMonths;
 
-        // Upload bukti pembayaran
+        // Upload bukti pembayaran (SEC-03: disimpan di storage PRIVAT, tidak dapat diakses publik)
         $proofUrl = null;
         if ($request->hasFile('proof_file')) {
             $file = $request->file('proof_file');
             $filename = 'renewal_proof_' . $tenant->id . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $targetDir = public_path('uploads/proofs');
-            if (!file_exists($targetDir)) {
-                mkdir($targetDir, 0755, true);
-            }
-            $file->move($targetDir, $filename);
-            $proofUrl = 'uploads/proofs/' . $filename;
+            // Simpan di disk privat (storage/app/private/proofs)
+            $file->storeAs('proofs', $filename, 'local');
+            $proofUrl = 'proofs/' . $filename;
         }
 
         // Generate nomor invoice perpanjangan yang unik

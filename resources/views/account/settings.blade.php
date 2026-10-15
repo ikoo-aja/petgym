@@ -86,7 +86,7 @@
 
                         <div class="form-group mb-3">
                             <label class="font-weight-bold text-dark small mb-1">Kata Sandi Baru <span class="text-danger">*</span></label>
-                            <input type="password" name="new_password" class="form-control @error('new_password') is-invalid @enderror" required placeholder="Minimal 4 karakter">
+                            <input type="password" name="new_password" class="form-control @error('new_password') is-invalid @enderror" required placeholder="Minimal 8 karakter (huruf & angka)">
                             @error('new_password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

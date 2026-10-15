@@ -24,6 +24,13 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFour();
 
+        // SEC-04: Paksa mode debug MATI di luar lingkungan local/testing.
+        // Mencegah kebocoran stack trace, query SQL, dan isi .env bila variabel
+        // lingkungan APP_DEBUG ter-set menjadi true secara tidak sengaja di produksi.
+        if (!app()->environment(['local', 'testing'])) {
+            config(['app.debug' => false]);
+        }
+
         $simulatorTo = env('MAIL_SIMULATOR_TO');
         if ($simulatorTo) {
             \Illuminate\Support\Facades\Event::listen(\Illuminate\Mail\Events\MessageSending::class, function ($event) use ($simulatorTo) {

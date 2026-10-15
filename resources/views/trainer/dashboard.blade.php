@@ -1,6 +1,6 @@
 @extends('layouts.layout')
 
-@section('title', 'Beranda Pelatih &mdash; PetGym')
+@section('title', 'Beranda Trainer &mdash; PetGym')
 @section('page_title', 'Beranda')
 @section('page_subtitle', 'Ringkasan jadwal sesi latihan dan penugasan kelas Anda')
 
@@ -8,7 +8,7 @@
 <!-- Ringkasan Statistik Trainer -->
 <div class="row mb-4">
   <div class="col-md-3 mb-3 mb-md-0">
-    <div class="card-custom bg-white border-0 shadow-sm p-3 d-flex align-items-center" style="border-radius: 12px;">
+    <div class="card-custom p-3 d-flex align-items-center mb-0 h-100">
       <div class="mr-3 d-flex align-items-center justify-content-center bg-primary text-white rounded-circle" style="width: 48px; height: 48px; font-size: 20px;">
         <span class="icon-person"></span>
       </div>
@@ -20,7 +20,7 @@
   </div>
 
   <div class="col-md-3 mb-3 mb-md-0">
-    <div class="card-custom bg-white border-0 shadow-sm p-3 d-flex align-items-center" style="border-radius: 12px;">
+    <div class="card-custom p-3 d-flex align-items-center mb-0 h-100">
       <div class="mr-3 d-flex align-items-center justify-content-center bg-success text-white rounded-circle" style="width: 48px; height: 48px; font-size: 20px;">
         <span class="icon-check"></span>
       </div>
@@ -32,7 +32,7 @@
   </div>
 
   <div class="col-md-3 mb-3 mb-md-0">
-    <div class="card-custom bg-white border-0 shadow-sm p-3 d-flex align-items-center" style="border-radius: 12px;">
+    <div class="card-custom p-3 d-flex align-items-center mb-0 h-100">
       <div class="mr-3 d-flex align-items-center justify-content-center bg-info text-white rounded-circle" style="width: 48px; height: 48px; font-size: 20px;">
         <span class="icon-calendar"></span>
       </div>
@@ -44,7 +44,7 @@
   </div>
 
   <div class="col-md-3 mb-3 mb-md-0">
-    <div class="card-custom bg-white border-0 shadow-sm p-3 d-flex align-items-center" style="border-radius: 12px;">
+    <div class="card-custom p-3 d-flex align-items-center mb-0 h-100">
       <div class="mr-3 d-flex align-items-center justify-content-center bg-warning text-dark rounded-circle" style="width: 48px; height: 48px; font-size: 20px;">
         <span class="icon-people"></span>
       </div>
@@ -120,7 +120,7 @@
                 </td>
                 <td class="text-right">
                   @if($b->status === 'scheduled')
-                    <form action="{{ route('trainer.pt-sessions.status', $b->id) }}" method="POST" class="d-inline" data-confirm="Tandai sesi latihan PT bersama member ini telah selesai?">
+                    <form action="{{ route('trainer.pt-sessions.status', $b->id) }}" method="POST" class="d-inline" data-confirm="Tandai sesi PT bersama {{ $b->member ? $b->member->name : 'member' }} sebagai selesai? Kuota sesi member akan terpotong satu.">
                       @csrf
                       <input type="hidden" name="status" value="completed">
                       <button type="submit" class="btn btn-sm btn-outline-success font-weight-bold" style="border-radius: 6px;">Selesai</button>

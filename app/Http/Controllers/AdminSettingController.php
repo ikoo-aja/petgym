@@ -18,7 +18,7 @@ class AdminSettingController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+            return redirect()->back()->with('error', 'Anda tidak dapat melakukan perubahan ini karena akun Anda hanya memiliki akses pantau (baca saja). Hubungi pemilik akun utama untuk melakukan perubahan.');
         }
 
         $tenant = $user->tenant;
@@ -27,7 +27,7 @@ class AdminSettingController extends Controller
             'name' => 'required|string|max:255',
             'owner_name' => 'required|string|max:255',
             'owner_email' => 'required|email|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         $logoUrl = $tenant->logo_url;

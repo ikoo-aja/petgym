@@ -9,9 +9,9 @@
 <!-- 2. KELOLA PENYEWA (TENANT MANAGEMENT) -->
 <section id="tenants" class="mb-5">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="font-weight-bold text-black mb-0">Daftar Seluruh Gym (Tenant List)</h4>
+    <h4 class="font-weight-bold text-black mb-0">Daftar Seluruh Penyewa</h4>
     <button class="btn btn-primary btn-sm px-3 font-weight-bold" data-toggle="modal" data-target="#createTenantModal">
-      <span class="icon-plus mr-1"></span> Tambah Tenant Baru
+      <span class="icon-plus mr-1"></span> Tambah Penyewa Baru
     </button>
   </div>
 
@@ -100,7 +100,7 @@
               </div>
               <div>
                 <span class="badge badge-light border text-dark font-weight-bold" style="font-size: 10px;">
-                  <i class="icon-user-check text-success mr-1"></i> Login Admin: {{ $adminEmail }}
+                  <i class="icon-user-plus text-success mr-1"></i> Login Admin: {{ $adminEmail }}
                 </span>
               </div>
             </td>
@@ -164,7 +164,7 @@
                   @endif
                   <div class="dropdown-divider my-1"></div>
                   <a class="dropdown-item text-danger btn-delete-tenant py-2" href="#" data-id="{{ $tenant->id }}" data-name="{{ $tenant->name }}">
-                    <span class="icon-close mr-2"></span> Hapus Tenant
+                    <span class="icon-close mr-2"></span> Hapus Penyewa
                   </a>
                 </div>
               </div>
@@ -199,7 +199,7 @@
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-header-title font-weight-bold text-black">Daftarkan Tenant / Gym Baru</h5>
+        <h5 class="modal-header-title font-weight-bold text-black">Daftarkan Penyewa Baru</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -291,18 +291,18 @@
         }
       })
       .catch(err => {
-        showToast('Error', 'Gagal memperbarui status tenant di database.', 'error');
+        showToast('Gagal', 'Tidak dapat memperbarui status penyewa. Silakan coba lagi.', 'error');
       });
     });
 
-    // 3. Hapus Tenant dari Database
+    // 3. Hapus Penyewa dari Database
     $(document).on('click', '.btn-delete-tenant', function(e) {
       e.preventDefault();
       const tenantId = $(this).data('id');
       const tenantName = $(this).data('name');
 
       window.showConfirm({
-        title: 'Hapus Tenant',
+        title: 'Hapus Penyewa',
         message: `Apakah Anda yakin ingin menghapus tenant "${tenantName}" dari database?`,
         variant: 'danger',
         confirmText: 'Ya, Hapus'
@@ -322,7 +322,7 @@
           }
         })
         .catch(err => {
-          showToast('Error', 'Gagal menghapus tenant dari database.', 'error');
+          showToast('Gagal', 'Tidak dapat menghapus penyewa. Silakan coba lagi.', 'error');
         });
       });
     });

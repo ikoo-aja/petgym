@@ -175,7 +175,7 @@ class ReceptionistController extends Controller
                 'ip_address' => $request->ip(),
             ]);
 
-            return redirect()->route('receptionist.lockers')->with('warning', "Kunci Loker {$locker->locker_number} dikembalikan dalam kondisi RUSAK. Laporan telah otomatis diteruskan ke Supervisor untuk perbaikan.");
+            return redirect()->route('receptionist.lockers')->with('warning', "Kunci Loker {$locker->locker_number} dikembalikan dalam kondisi rusak. Laporan telah otomatis diteruskan ke Supervisor untuk perbaikan.");
         }
 
         $locker->update([
@@ -221,7 +221,7 @@ class ReceptionistController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('receptionist.lockers')->with('warning', "Loker #{$locker->locker_number} berhasil ditandai RUSAK. Laporan kerusakan telah terkirim ke Supervisor untuk perbaikan.");
+        return redirect()->route('receptionist.lockers')->with('warning', "Loker #{$locker->locker_number} berhasil ditandai rusak. Laporan kerusakan telah terkirim ke Supervisor untuk perbaikan.");
     }
 
     /**

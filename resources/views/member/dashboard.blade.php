@@ -17,7 +17,7 @@
     <div class="mt-3 mt-md-0 text-md-right">
       <small class="text-muted text-uppercase font-weight-bold d-block mb-1">Kode PIN Akses (6 Digit)</small>
       <div class="d-inline-block bg-light text-dark font-weight-bold px-3 py-2 rounded border" style="font-size: 20px; letter-spacing: 4px;">
-        {{ $activeRental->pin_code ?? '849201' }}
+        {{ $activeRental->pin_code ?? '-' }}
       </div>
       <div class="mt-1 text-muted small">Berlaku sampai: {{ \Carbon\Carbon::parse($activeRental->end_date)->format('d M Y') }}</div>
     </div>
@@ -48,7 +48,7 @@
 
   <div class="col-12 col-md-4 mb-3 mb-md-0">
     <div class="card-custom h-100">
-      <div class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Paket Pelatih Pribadi</div>
+      <div class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Paket Personal Trainer</div>
       <h3 class="font-weight-bold text-primary mb-1 mt-2">{{ $ptQuotas->sum('remaining_sessions') }} Sesi</h3>
       <div class="d-flex align-items-center justify-content-between mt-2">
         <span class="text-muted small">Dari {{ $ptQuotas->count() }} paket pelatih</span>
@@ -82,7 +82,7 @@
       <h5 class="font-weight-bold text-dark mb-1">
         <span class="icon-file-text text-primary mr-1"></span> Pilihan Paket Langganan di Kasir
       </h5>
-      <p class="text-muted small mb-0">Pilih paket keanggotaan di bawah ini dan lakukan pembayaran langsung di meja kasir gym.</p>
+      <p class="text-muted small mb-0">Pilih paket keanggotaan di bawah ini dan lakukan pembayaran langsung di meja resepsionis.</p>
     </div>
     <div class="mt-2 mt-md-0">
       <a href="{{ route('member.membership') }}" class="btn btn-sm btn-outline-primary font-weight-bold">
@@ -186,7 +186,7 @@
           </div>
           <div>
             <div class="d-flex align-items-center">
-              <h6 class="font-weight-bold text-dark mb-1" style="font-size: 14px;">Pelatih Pribadi</h6>
+              <h6 class="font-weight-bold text-dark mb-1" style="font-size: 14px;">Personal Trainer</h6>
               @if(!$hasActiveSubscription)
                 <span class="badge badge-secondary ml-2" style="font-size: 10px;">Terkunci</span>
               @endif
@@ -223,7 +223,7 @@
   <div class="col-12 col-md-6 mb-3 mb-md-4">
     <div class="card-custom h-100">
       <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-        <h6 class="font-weight-bold text-dark mb-0">Jadwal Pelatih Pribadi</h6>
+        <h6 class="font-weight-bold text-dark mb-0">Jadwal Personal Trainer</h6>
         <a href="{{ route('member.pt') }}" class="btn btn-sm btn-link text-primary font-weight-bold p-0">Semua Jadwal &rarr;</a>
       </div>
 
@@ -234,7 +234,7 @@
               {{ substr($ptb->trainer ? $ptb->trainer->name : 'P', 0, 1) }}
             </div>
             <div>
-              <h6 class="font-weight-bold text-dark mb-1" style="font-size: 13.5px;">{{ $ptb->trainer ? $ptb->trainer->name : 'Pelatih Pribadi' }}</h6>
+              <h6 class="font-weight-bold text-dark mb-1" style="font-size: 13.5px;">{{ $ptb->trainer ? $ptb->trainer->name : 'Personal Trainer' }}</h6>
               <small class="text-muted"><span class="icon-calendar mr-1"></span> {{ \Carbon\Carbon::parse($ptb->booking_date)->format('d M Y') }} &bull; <strong class="text-primary">{{ $ptb->booking_time }}</strong></small>
             </div>
           </div>
@@ -267,7 +267,7 @@
             </div>
             <div>
               <h6 class="font-weight-bold text-dark mb-1" style="font-size: 13.5px;">{{ $cr->gymClass ? $cr->gymClass->name : 'Kelas Gym' }}</h6>
-              <small class="text-muted"><span class="icon-user mr-1"></span> {{ $cr->gymClass && $cr->gymClass->trainer ? $cr->gymClass->trainer->name : 'Instruktur Gym' }} &bull; {{ \Carbon\Carbon::parse($cr->class_date)->format('d M Y') }}</small>
+              <small class="text-muted"><span class="icon-user mr-1"></span> {{ $cr->gymClass && $cr->gymClass->trainer ? $cr->gymClass->trainer->name : 'Trainer Gym' }} &bull; {{ \Carbon\Carbon::parse($cr->class_date)->format('d M Y') }}</small>
             </div>
           </div>
           <div class="ml-2">
@@ -311,7 +311,7 @@
         <div class="alert alert-info text-left small mb-3">
           <strong>Langkah Mudah Aktivasi:</strong>
           <ol class="mb-0 pl-3 mt-1 font-weight-semibold">
-            <li>Kunjungi <strong>Meja Kasir / Resepsionis</strong> di gym.</li>
+            <li>Kunjungi <strong>Meja Resepsionis</strong> di gym.</li>
             <li>Sebutkan nama Anda atau tunjukkan <strong>PIN / Kode Akses</strong> berikut ke Kasir:</li>
           </ol>
         </div>

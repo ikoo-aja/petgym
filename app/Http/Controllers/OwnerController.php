@@ -296,7 +296,7 @@ class OwnerController extends Controller
     {
         $tenant = Auth::user()->tenant;
         if (!$tenant) {
-            return redirect()->back()->with('error', 'Tenant tidak ditemukan.');
+            return redirect()->back()->with('error', 'Data penyewa tidak ditemukan. Silakan muat ulang halaman dan coba lagi.');
         }
 
         $request->validate([
@@ -323,6 +323,14 @@ class OwnerController extends Controller
         }
 
         $tenant->update($data);
+
+        \App\Models\StaffLog::create([
+            'tenant_id'   => $tenant->id,
+            'user_id'     => Auth::id(),
+            'action'      => 'Update Rekening Pembayaran',
+            'description' => "Owner " . Auth::user()->name . " memperbarui rekening pembayaran gym (" . ($data['bank_name'] ?? 'Bank') . " a.n. " . ($data['bank_account_holder'] ?? '-') . ").",
+            'ip_address'  => $request->ip(),
+        ]);
 
         return redirect()->route('owner.settings')->with('success', 'Pengaturan rekening bank & QRIS berhasil disimpan. Data ini otomatis muncul di kasir saat transaksi non-tunai.');
     }

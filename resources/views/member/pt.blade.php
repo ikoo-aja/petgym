@@ -1,6 +1,6 @@
 @extends('layouts.member')
 
-@section('title', 'Pelatih Pribadi')
+@section('title', 'Personal Trainer')
 @section('page_title', 'Personal Trainer')
 @section('page_subtitle', 'Pemesanan sesi latihan bersama instruktur pilihan')
 
@@ -9,7 +9,7 @@
 <div class="card-custom mb-3 mb-md-4">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
     <div>
-      <h6 class="font-weight-bold text-dark mb-1">Status Kuota Sesi Pelatih Aktif</h6>
+      <h6 class="font-weight-bold text-dark mb-1">Status Kuota Sesi Personal Trainer Aktif</h6>
       <p class="text-muted small mb-0">Total sisa sesi latihan yang dapat digunakan untuk penjadwalan latihan.</p>
     </div>
     <div class="mt-2 mt-md-0">
@@ -23,7 +23,7 @@
         <div class="col-12 col-md-4 mb-2">
           <div class="p-3 border rounded bg-light d-flex justify-content-between align-items-center" style="border-radius: 10px !important;">
             <div>
-              <strong class="text-dark d-block" style="font-size: 13.5px;">{{ $q->trainer ? $q->trainer->name : 'Pelatih' }}</strong>
+              <strong class="text-dark d-block" style="font-size: 13.5px;">{{ $q->trainer ? $q->trainer->name : 'Trainer' }}</strong>
               <small class="text-muted">Total Pembelian: {{ $q->total_sessions }} Sesi</small>
             </div>
             <span class="badge badge-primary font-weight-bold">{{ $q->remaining_sessions }} Sesi</span>
@@ -39,7 +39,7 @@
 </div>
 
 <!-- PT Catalog Grid -->
-<h6 class="font-weight-bold text-dark mb-3">Katalog Pelatih Pribadi Resmi Gym</h6>
+<h6 class="font-weight-bold text-dark mb-3">Katalog Personal Trainer Resmi Gym</h6>
 <div class="row mb-3 mb-md-4">
   @forelse($trainers as $t)
     <div class="col-12 col-md-4 mb-3">
@@ -50,7 +50,7 @@
           </div>
           <div>
             <h6 class="font-weight-bold text-dark mb-0">{{ $t->name }}</h6>
-            <small class="text-primary font-weight-bold">{{ $t->specialization ?? 'Pelatih Kebugaran' }}</small>
+            <small class="text-primary font-weight-bold">{{ $t->specialization ?? 'Trainer Kebugaran' }}</small>
           </div>
         </div>
 
@@ -111,7 +111,7 @@
           {{ substr($b->trainer ? $b->trainer->name : 'P', 0, 1) }}
         </div>
         <div>
-          <h6 class="font-weight-bold text-dark mb-1" style="font-size: 13.5px;">{{ $b->trainer ? $b->trainer->name : 'Pelatih Pribadi' }}</h6>
+          <h6 class="font-weight-bold text-dark mb-1" style="font-size: 13.5px;">{{ $b->trainer ? $b->trainer->name : 'Personal Trainer' }}</h6>
           <small class="text-muted"><span class="icon-calendar mr-1"></span> {{ \Carbon\Carbon::parse($b->booking_date)->format('d M Y') }} &bull; <strong class="text-primary">{{ $b->booking_time }}</strong></small>
         </div>
       </div>
@@ -139,7 +139,7 @@
     <div class="modal-content border-0 shadow">
       <div class="modal-header bg-light">
         <div>
-          <h5 class="modal-title font-weight-bold text-dark mb-0" id="buyQuotaTitle">Beli Paket Sesi Pelatih</h5>
+          <h5 class="modal-title font-weight-bold text-dark mb-0" id="buyQuotaTitle">Beli Paket Sesi Personal Trainer</h5>
           <small class="text-muted">Gerbang Pembayaran Digital</small>
         </div>
         <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">&times;</button>

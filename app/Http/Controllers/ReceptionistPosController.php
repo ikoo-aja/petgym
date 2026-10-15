@@ -22,7 +22,7 @@ class ReceptionistPosController extends Controller
         $tenant = $user->tenant;
 
         if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard')->with('warning', 'Fungsi POS Kasir hanya diakses oleh Resepsionis/Kasir. Silakan gunakan menu Langganan Website untuk Pengaturan Sewa Web.');
+            return redirect()->route('admin.dashboard')->with('warning', 'Fungsi POS Kasir hanya dapat diakses oleh Resepsionis. Silakan gunakan menu Langganan Website untuk Pengaturan Sewa Web.');
         }
 
         $members = Member::where('tenant_id', $tenant->id)
@@ -64,7 +64,7 @@ class ReceptionistPosController extends Controller
                 ->first();
 
             if (!$openShift) {
-                return redirect()->back()->with('error', 'Transaksi POS diblokir: Shift kasir Anda belum dibuka (BELUM OPEN KASIR). Silakan buka shift kasir terlebih dahulu di menu Shift & Kasir.');
+                return redirect()->back()->with('error', 'Transaksi POS diblokir: Shift kasir Anda belum dibuka. Silakan buka shift kasir terlebih dahulu di menu Shift & Kasir.');
             }
         }
 
@@ -73,7 +73,7 @@ class ReceptionistPosController extends Controller
             'payment_method' => 'required|in:cash,qris,transfer',
             'type' => 'required|in:membership,inventory,mixed',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'nullable|exists:products,id',
+            'items.*.product_id' => ['nullable', Rule::exists('products', 'id')->where('tenant_id', $tenant->id)],
             'items.*.item_name' => 'required|string',
             'items.*.qty' => 'required|integer|min:1',
             'items.*.price' => 'required|integer|min:0',
@@ -105,14 +105,44 @@ class ReceptionistPosController extends Controller
             return redirect()->back()->with('error', 'Untuk pembelian paket membership gym, Anda wajib memilih data Member terlebih dahulu.');
         }
 
-        $invNumber = '#POS-' . strtoupper($tenant->subdomain ? substr($tenant->subdomain, 0, 3) : 'GYM') . '-' . date('YmdHis') . '-' . rand(100, 999);
-
+        // Verifikasi dan sinkronisasi harga & stok produk langsung dari database (Anti Price Tampering)
+        $processedItems = [];
         $totalAmount = 0;
         foreach ($request->items as $item) {
-            $totalAmount += ($item['qty'] * $item['price']);
+            $prod = null;
+            if (!empty($item['product_id'])) {
+                $prod = Product::where('tenant_id', $tenant->id)->find($item['product_id']);
+            }
+
+            // Gunakan harga resmi database jika produk terdaftar
+            $unitPrice = $prod ? (int) $prod->price : (int) $item['price'];
+            $qty = (int) $item['qty'];
+
+            // Cek ketersediaan stok produk fisik
+            if ($prod && $prod->category !== 'membership') {
+                if ($prod->stock < $qty) {
+                    return redirect()->back()->with('error', "Transaksi gagal: Stok untuk '{$prod->name}' tidak mencukupi (Tersedia: {$prod->stock} pcs, Diminta: {$qty} pcs).");
+                }
+            }
+
+            $subtotal = $qty * $unitPrice;
+            $totalAmount += $subtotal;
+
+            $processedItems[] = [
+                'product'    => $prod,
+                'product_id' => $prod ? $prod->id : null,
+                'item_name'  => $prod ? $prod->name : $item['item_name'],
+                'qty'        => $qty,
+                'price'      => $unitPrice,
+                'subtotal'   => $subtotal,
+                'type'       => $item['type'] ?? ($prod ? $prod->category : null),
+            ];
         }
 
+        $invNumber = '#POS-' . strtoupper($tenant->subdomain ? substr($tenant->subdomain, 0, 3) : 'GYM') . '-' . date('YmdHis') . '-' . rand(100, 999);
+
         $discountAmount = 0;
+        $promoToUpdate = null;
         if ($request->filled('promo_code')) {
             $promo = PromoCode::where('tenant_id', $tenant->id)
                 ->where('code', strtoupper($request->promo_code))
@@ -125,49 +155,57 @@ class ReceptionistPosController extends Controller
                     $discountAmount = $promo->discount_value;
                 }
                 $totalAmount = max(0, $totalAmount - $discountAmount);
-                $promo->increment('used_count');
+                $promoToUpdate = $promo;
             }
         }
 
-        $transaction = PosTransaction::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
-            'member_id' => $request->member_id,
-            'invoice_number' => $invNumber,
-            'total_amount' => $totalAmount,
-            'payment_method' => $request->payment_method,
-            'type' => $request->type,
-            'void_status' => 'none',
-        ]);
+        // Normalisasi tipe transaksi untuk enum MySQL ['membership', 'inventory']
+        $txType = $request->type === 'mixed' ? ($hasMembership ? 'membership' : 'inventory') : $request->type;
 
-        foreach ($request->items as $item) {
-            $subtotal = $item['qty'] * $item['price'];
-            PosTransactionItem::create([
-                'pos_transaction_id' => $transaction->id,
-                'product_id' => $item['product_id'] ?? null,
-                'item_name' => $item['item_name'],
-                'qty' => $item['qty'],
-                'price' => $item['price'],
-                'subtotal' => $subtotal,
+        $transaction = \Illuminate\Support\Facades\DB::transaction(function () use (
+            $tenant, $user, $request, $invNumber, $totalAmount, $txType, $processedItems, $promoToUpdate
+        ) {
+            if ($promoToUpdate) {
+                $promoToUpdate->increment('used_count');
+            }
+
+            $tx = PosTransaction::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'member_id' => $request->member_id,
+                'invoice_number' => $invNumber,
+                'total_amount' => $totalAmount,
+                'payment_method' => $request->payment_method,
+                'type' => $txType,
+                'void_status' => 'none',
             ]);
 
-            if (!empty($item['product_id'])) {
-                $prod = Product::find($item['product_id']);
-                if ($prod && $prod->category !== 'membership') {
-                    $prod->decrement('stock', $item['qty']);
+            foreach ($processedItems as $pItem) {
+                PosTransactionItem::create([
+                    'pos_transaction_id' => $tx->id,
+                    'product_id' => $pItem['product_id'],
+                    'item_name' => $pItem['item_name'],
+                    'qty' => $pItem['qty'],
+                    'price' => $pItem['price'],
+                    'subtotal' => $pItem['subtotal'],
+                ]);
+
+                if ($pItem['product'] && $pItem['product']->category !== 'membership') {
+                    $pItem['product']->decrement('stock', $pItem['qty']);
 
                     StockMutation::create([
                         'tenant_id' => $tenant->id,
-                        'product_id' => $prod->id,
+                        'product_id' => $pItem['product']->id,
                         'user_id' => $user->id,
                         'type' => 'sale_pos',
-                        'qty' => $item['qty'],
+                        'qty' => $pItem['qty'],
                         'notes' => "Penjualan POS Kasir ({$invNumber})",
                     ]);
                 }
             }
-        }
 
+            return $tx;
+        });
         if ($hasMembership && $request->member_id) {
             $member = Member::find($request->member_id);
             if ($member) {

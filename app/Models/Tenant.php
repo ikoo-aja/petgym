@@ -34,6 +34,7 @@ class Tenant extends Model
         'features' => 'array',
         'joined_at' => 'datetime',
         'expires_at' => 'datetime',
+        'bank_account_number' => 'encrypted',
     ];
 
     protected static function booted(): void

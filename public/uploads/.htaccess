@@ -1,0 +1,7 @@
+# Keamanan: Nonaktifkan eksekusi script di direktori upload
+# Mencegah uploaded file (mis. SVG/HTML/script) dieksekusi sebagai kode.
+php_flag engine off
+
+<FilesMatch "\.(php|php3|php4|php5|php7|php8|phtml|pl|py|jsp|asp|aspx|sh|cgi|svg|html|htm|xhtml)$">
+    Require all denied
+</FilesMatch>

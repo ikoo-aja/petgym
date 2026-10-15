@@ -90,7 +90,7 @@
             </div>
 
             <!-- Delete Form -->
-            <form action="{{ route('superadmin.plans.destroy', $plan->id) }}" method="POST" data-confirm="Apakah Anda yakin ingin menghapus paket ini dari database?">
+            <form action="{{ route('superadmin.plans.destroy', $plan->id) }}" method="POST" data-confirm="Hapus paket \"{{ $plan->name }}\" secara permanen? Penyewa yang sedang memakai paket ini tidak terpengaruh, tetapi paket tidak dapat dipilih lagi.">
               @csrf
               @method('DELETE')
               <button type="submit" class="btn btn-link text-danger p-0" style="font-size: 12px; font-weight: bold; text-decoration: none;">
@@ -111,7 +111,7 @@
       </div>
     @empty
       <div class="col-12 py-5 text-center bg-white rounded shadow-sm">
-        <p class="text-muted mb-0">Belum ada paket sewa terdaftar di database.</p>
+        <p class="text-muted mb-0">Belum ada paket sewa terdaftar.</p>
       </div>
     @endforelse
   </div>
@@ -287,15 +287,15 @@
         if (data.status === 'success') {
           if (data.new_status === 'active') {
             badge.removeClass('badge-secondary').addClass('badge-success').text('Aktif');
-            showToast('Paket Diaktifkan', `Status paket "${planName}" berhasil diaktifkan di database.`, 'success');
+            showToast('Paket Diaktifkan', `Status paket "${planName}" berhasil diaktifkan.`, 'success');
           } else {
             badge.removeClass('badge-success').addClass('badge-secondary').text('Diarsipkan');
-            showToast('Paket Diarsipkan', `Status paket "${planName}" diarsipkan di database.`, 'warning');
+            showToast('Paket Diarsipkan', `Status paket "${planName}" diarsipkan.`, 'warning');
           }
         }
       })
       .catch(error => {
-        showToast('Error', 'Gagal memperbarui status paket di database.', 'error');
+        showToast('Gagal', 'Tidak dapat memperbarui status paket. Silakan coba lagi.', 'error');
       });
     });
   });

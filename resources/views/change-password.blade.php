@@ -75,7 +75,7 @@
             <div class="form-group mb-3">
               <label class="font-weight-bold text-dark" style="font-size: 13px;">Kata Sandi Baru</label>
               <div class="input-group">
-                <input type="password" name="new_password" class="form-control" placeholder="Masukkan kata sandi baru" minlength="4" required>
+                <input type="password" name="new_password" class="form-control" placeholder="Masukkan kata sandi baru" minlength="8" required>
                 <div class="input-group-append">
                   <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="togglePw(this)">
                     <i class="icon-eye text-muted"></i>
@@ -87,7 +87,7 @@
             <div class="form-group mb-0">
               <label class="font-weight-bold text-dark" style="font-size: 13px;">Konfirmasi Kata Sandi Baru</label>
               <div class="input-group">
-                <input type="password" name="new_password_confirmation" class="form-control" placeholder="Masukkan ulang kata sandi baru" minlength="4" required>
+                <input type="password" name="new_password_confirmation" class="form-control" placeholder="Masukkan ulang kata sandi baru" minlength="8" required>
                 <div class="input-group-append">
                   <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="togglePw(this)">
                     <i class="icon-eye text-muted"></i>

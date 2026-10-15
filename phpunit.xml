@@ -32,7 +32,8 @@
         <server name="DB_PORT" value="3307" force="true"/>
         <server name="DB_USERNAME" value="root" force="true"/>
         <server name="DB_PASSWORD" value="" force="true"/>
-        <env name="MAIL_MAILER" value="array"/>
+        <env name="MAIL_MAILER" value="array" force="true"/>
+        <server name="MAIL_MAILER" value="array" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>

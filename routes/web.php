@@ -63,13 +63,13 @@ Route::middleware('guest')->group(function () {
 
     // Lupa Password (self-service reset, tanpa campur tangan admin)
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:5,1')->name('password.email');
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
 });
 
-// Route Logout (Bisa diakses via GET & POST, tanpa error 419)
-Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
+// Route Logout (Hanya metode POST dengan proteksi CSRF)
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Verifikasi Email (user yang baru login tapi emailnya belum diverifikasi diarahkan ke sini)
 Route::middleware('auth')->group(function () {
@@ -118,6 +118,7 @@ Route::middleware(['auth', 'verified', 'role:superadmin'])->prefix('superadmin')
     Route::post('/plans/{id}/toggle-status', [SuperadminController::class, 'togglePlanStatus'])->name('superadmin.plans.toggle-status');
     Route::delete('/plans/{id}', [SuperadminController::class, 'destroyPlan'])->name('superadmin.plans.destroy');
     Route::get('/billing', [SuperadminController::class, 'billing'])->name('superadmin.billing');
+    Route::get('/billing/{id}/proof', [SuperadminController::class, 'downloadProof'])->name('superadmin.billing.proof');
     Route::post('/billing/{id}/approve', [SuperadminController::class, 'approveRenewal'])->name('superadmin.billing.approve');
     Route::post('/billing/{id}/reject', [SuperadminController::class, 'rejectRenewal'])->name('superadmin.billing.reject');
     Route::post('/billing/{id}/verify-dp', [SuperadminController::class, 'verifyDpPayment'])->name('superadmin.billing.verify-dp');

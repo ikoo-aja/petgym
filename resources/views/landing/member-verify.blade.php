@@ -91,7 +91,7 @@
         <div class="col-md-8">
           <span class="text-uppercase font-weight-bold small" style="color: var(--brand); letter-spacing: 1.5px;">Portal Member</span>
           <h2 class="font-weight-bold text-dark mt-1 mb-2">Verifikasi Email {{ $tenantName }}</h2>
-          <p class="text-muted small">Sebelum mengakses dasbor anggota, silakan verifikasi alamat email Anda terlebih dahulu.</p>
+          <p class="text-muted small">Sebelum mengakses dasbor member, silakan verifikasi alamat email Anda terlebih dahulu.</p>
         </div>
       </div>
 

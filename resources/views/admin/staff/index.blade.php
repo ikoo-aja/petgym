@@ -88,7 +88,7 @@
                   </form>
                 @endif
                 @if(in_array($st->role, ['manager', 'owner']) && Auth::id() !== $st->id)
-                  <form action="{{ route('admin.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun ini? Pengguna tidak akan dapat mengakses sistem.' : 'Aktifkan kembali akun ini?' }}">
+                  <form action="{{ route('admin.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun ' . $st->name . '? Pengguna tidak akan dapat login atau mengakses sistem hingga diaktifkan kembali.' : 'Aktifkan kembali akun ' . $st->name . '? Pengguna dapat login dan mengakses sistem setelah diaktifkan.' }}">
                     @csrf
                     @if($st->isActive())
                       <button type="submit" class="btn btn-sm btn-outline-warning text-dark font-weight-bold" style="border-radius: 6px;" title="Nonaktifkan Akun">
@@ -103,15 +103,15 @@
                 @endif
                 {{-- Tombol Approval Reset Password jika ada request pending --}}
                 @if($st->latestPendingPasswordReset && Auth::id() !== $st->id)
-                  <form action="{{ route('admin.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui permohonan reset kata sandi? Tautan verifikasi akan dikirimkan ke email terdaftar.');">
+                  <form action="{{ route('admin.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" data-confirm="Setujui permohonan reset kata sandi {{ $st->name }}? Sistem akan mengirimkan tautan verifikasi ke email terdaftar.">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-warning text-dark font-weight-bold" style="border-radius: 6px;" title="Setujui permohonan reset kata sandi">
-                      <i class="icon-key mr-1"></i> Setujui Reset
+                      <i class="icon-key mr-1"></i> Setujui Reset PW
                     </button>
                   </form>
                 @endif
                 @if(Auth::id() !== $st->id)
-                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun {{ $st->name }}?">
+                  <form action="{{ route('admin.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun {{ $st->name }} secara permanen? Akun tidak dapat login kembali dan datanya tidak dapat dipulihkan.">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 6px;">Hapus</button>
@@ -143,14 +143,7 @@
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
-        @if($errors->any())
-        <div class="alert alert-danger py-2 mb-3" style="font-size: 13px; border-radius: 8px;">
-          <strong><i class="icon-exclamation-circle mr-1"></i> Data tidak tersimpan:</strong>
-          <ul class="mb-0 pl-3 mt-1">
-            @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
-          </ul>
-        </div>
-        @endif
+        @include('partials.form-errors')
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Lengkap *</label>
           <input type="text" name="name" class="form-control" placeholder="Contoh: Rina / Joko" required>
@@ -162,7 +155,7 @@
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark" style="font-size: 13px;">Kata Sandi *</label>
           <div class="input-group">
-            <input type="password" name="password" id="staffPassword" class="form-control" required minlength="4">
+            <input type="password" name="password" id="staffPassword" class="form-control" required minlength="8">
             <div class="input-group-append">
               <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="toggleStaffPw(this)">
                 <i class="icon-eye text-muted"></i>

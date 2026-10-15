@@ -2,52 +2,52 @@
 
 @section('title', 'Dashboard Pemilik (Owner)')
 @section('page_title', 'Beranda')
-@section('page_subtitle', 'Ringkasan bisnis, omset, dan pertumbuhan anggota gym')
+@section('page_subtitle', 'Ringkasan bisnis, omset, dan pertumbuhan member gym')
 
 @section('content')
 <!-- Key Performance Indicators (KPI Grid) -->
-<div class="row">
+<div class="row mb-4">
   <div class="col-md-3">
-    <div class="card-custom text-white" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+    <div class="card-custom mb-3 mb-md-0">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset</span>
-        <span class="badge badge-light text-primary font-weight-bold">Harian</span>
+        <span class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset Harian</span>
+        <span class="badge badge-light border text-primary font-weight-bold">Harian</span>
       </div>
-      <h3 class="font-weight-bold text-white mb-1">Rp {{ number_format($revenueToday, 0, ',', '.') }}</h3>
-      <small class="text-white-50">Total transaksi Kasir</small>
+      <h3 class="font-weight-bold text-dark mb-1">Rp {{ number_format($revenueToday, 0, ',', '.') }}</h3>
+      <small class="text-muted">Total transaksi kasir hari ini</small>
     </div>
   </div>
 
   <div class="col-md-3">
-    <div class="card-custom text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
+    <div class="card-custom mb-3 mb-md-0">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset Kasir</span>
-        <span class="badge badge-light text-success font-weight-bold">Bulanan</span>
+        <span class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Omset Bulanan</span>
+        <span class="badge badge-light border text-success font-weight-bold">Bulan Ini</span>
       </div>
-      <h3 class="font-weight-bold text-white mb-1">Rp {{ number_format($revenueMonth, 0, ',', '.') }}</h3>
-      <small class="text-white-50">Dari total {{ $totalTransactionsMonth }} transaksi kasir</small>
+      <h3 class="font-weight-bold text-success mb-1">Rp {{ number_format($revenueMonth, 0, ',', '.') }}</h3>
+      <small class="text-muted">{{ $totalTransactionsMonth }} total transaksi kasir</small>
     </div>
   </div>
 
   <div class="col-md-3">
-    <div class="card-custom text-white" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+    <div class="card-custom mb-3 mb-md-0">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Kunjungan Pelanggan</span>
-        <span class="badge badge-light text-purple font-weight-bold">Presensi</span>
+        <span class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Kunjungan Pelanggan</span>
+        <span class="badge badge-light border text-info font-weight-bold">Presensi</span>
       </div>
-      <h3 class="font-weight-bold text-white mb-1">{{ $checkinsToday }} Pelanggan</h3>
-      <small class="text-white-50">Check-in hari ini</small>
+      <h3 class="font-weight-bold text-dark mb-1">{{ $checkinsToday }} <small class="text-muted" style="font-size: 14px;">kunjungan</small></h3>
+      <small class="text-muted">Check-in member hari ini</small>
     </div>
   </div>
 
   <div class="col-md-3">
-    <div class="card-custom text-white" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+    <div class="card-custom mb-3 mb-md-0">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-white text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Member Aktif</span>
-        <span class="badge badge-light text-warning font-weight-bold">{{ $expiringSoonMembers }} Kadaluarsa 7hr</span>
+        <span class="text-muted text-uppercase font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">Member Aktif</span>
+        <span class="badge badge-light border text-warning font-weight-bold">{{ $expiringSoonMembers }} Sisa &le;7hr</span>
       </div>
-      <h3 class="font-weight-bold text-white mb-1">{{ $activeMembers }} / {{ $totalMembers }}</h3>
-      <small class="text-white-50">Member aktif dari total terdaftar</small>
+      <h3 class="font-weight-bold text-dark mb-1">{{ $activeMembers }} <small class="text-muted" style="font-size: 14px;">/ {{ $totalMembers }}</small></h3>
+      <small class="text-muted">Member aktif dari total terdaftar</small>
     </div>
   </div>
 </div>

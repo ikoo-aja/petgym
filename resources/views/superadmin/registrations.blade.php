@@ -222,7 +222,7 @@
                     <div class="dropdown-divider my-1"></div>
 
                     <!-- 5. Hapus Data -->
-                    <form action="{{ route('superadmin.registrations.destroy', $reg->id) }}" method="POST" data-confirm="Apakah Anda yakin ingin menghapus data calon penyewa {{ $reg->name }} ini?">
+                    <form action="{{ route('superadmin.registrations.destroy', $reg->id) }}" method="POST" data-confirm="Hapus data calon penyewa \"{{ $reg->name }}\"? Data pendaftaran beserta riwayat prospeknya akan hilang permanen.">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="dropdown-item small py-1 text-danger">
@@ -287,7 +287,7 @@
                       </div>
                       <div class="d-flex" style="gap: 8px;">
                         <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
-                        <form action="{{ route('superadmin.password-resets.approve', $reg->pending_reset->id) }}" method="POST" onsubmit="return confirm('Setujui permohonan reset password Admin {{ $reg->pending_reset->admin_name }}? Tautan baru akan dikirimkan ke email {{ $reg->pending_reset->email }}.');">
+                        <form action="{{ route('superadmin.password-resets.approve', $reg->pending_reset->id) }}" method="POST" data-confirm="Setujui permohonan reset kata sandi {{ $reg->pending_reset->admin_name }}? Tautan verifikasi akan dikirimkan ke email {{ $reg->pending_reset->email }}.">
                           @csrf
                           <button type="submit" class="btn btn-success btn-sm font-weight-bold px-3">
                             <span class="icon-check mr-1"></span> Setujui &amp; Kirim Link
@@ -376,7 +376,7 @@
                               </label>
                             </div>
                           @empty
-                            <div class="col-12 text-muted small p-2">Belum ada paket sewa aktif di database.</div>
+                            <div class="col-12 text-muted small p-2">Belum ada paket sewa aktif.</div>
                           @endforelse
                         </div>
                       </div>

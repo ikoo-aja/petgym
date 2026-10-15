@@ -110,7 +110,7 @@
                 @if($req->status === 'pending')
                   <div class="d-inline-flex align-items-center" style="gap: 6px;">
                     <!-- Form Setujui -->
-                    <form action="{{ route('admin.password-resets.approve', $req->id) }}" method="POST" onsubmit="return confirm('Setujui permohonan reset password untuk {{ $req->admin_name }}? Sistem akan mengirimkan tautan reset kata sandi ke email {{ $req->email }}.');">
+                    <form action="{{ route('admin.password-resets.approve', $req->id) }}" method="POST" data-confirm="Setujui permohonan reset kata sandi {{ $req->admin_name }}? Sistem akan mengirimkan tautan verifikasi ke email {{ $req->email }}.">
                       @csrf
                       <button type="submit" class="btn btn-sm btn-success font-weight-bold px-3 py-1" style="border-radius: 6px; font-size: 12px;">
                         <i class="icon-check mr-1"></i> Setujui & Kirim Link

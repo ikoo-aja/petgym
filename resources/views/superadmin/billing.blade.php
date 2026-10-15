@@ -35,7 +35,7 @@
         <thead>
           <tr>
             <th class="text-black font-weight-bold" style="width: 140px;">No. Invoice</th>
-            <th class="text-black font-weight-bold">Gym / Tenant</th>
+            <th class="text-black font-weight-bold">Penyewa (Gym)</th>
             <th class="text-black font-weight-bold">Paket & Durasi</th>
             <th class="text-black font-weight-bold">Nominal Pembayaran</th>
             <th class="text-black font-weight-bold">Tanggal Tagihan</th>
@@ -54,7 +54,7 @@
             $ownerName = $tenant ? $tenant->owner_name : '-';
             $duration = $invoice->duration_months ?: 1;
             $statusVal = strtolower($invoice->status);
-            $proofVal = $invoice->proof_url ? asset($invoice->proof_url) : null;
+            $proofVal = $invoice->proof_url ? route('superadmin.billing.proof', $invoice->id) : null;
           @endphp
           <tr>
             <!-- 1. No Invoice -->
@@ -63,7 +63,7 @@
               <small class="text-muted">{{ $invoice->payment_method ?? 'Transfer Bank' }}</small>
             </td>
 
-            <!-- 2. Gym / Tenant -->
+            <!-- 2. Penyewa (Gym) -->
             <td>
               <strong class="text-dark">{{ $tenantName }}</strong><br>
               <small class="text-muted"><i class="icon-globe mr-1"></i> {{ $subdomain }}</small><br>
@@ -138,7 +138,7 @@
               @if($statusVal === 'pending' || $statusVal === 'dp_pending')
                 <div class="d-inline-flex align-items-center" style="gap: 5px;">
                   <!-- Tombol Setujui Perpanjangan -->
-                  <form action="{{ route('superadmin.billing.approve', $invoice->id) }}" method="POST" onsubmit="return confirm('Setujui pembayaran dan perpanjang masa aktif gym {{ $tenantName }} selama {{ $duration }} bulan?');">
+                  <form action="{{ route('superadmin.billing.approve', $invoice->id) }}" method="POST" data-confirm="Setujui pembayaran dan perpanjang masa aktif {{ $tenantName }} selama {{ $duration }} bulan? Masa aktif penyewa akan langsung bertambah.">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-success py-1 px-3 font-weight-bold" style="font-size: 12px; border-radius: 6px;">
                       <span class="icon-check mr-1"></span> Setujui (+{{ $duration }} bln)
@@ -151,7 +151,7 @@
                       <span class="icon-close"></span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 p-2" style="width: 240px; border-radius: 8px;">
-                      <form action="{{ route('superadmin.billing.reject', $invoice->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menolak pengajuan tagihan ini?');">
+                      <form action="{{ route('superadmin.billing.reject', $invoice->id) }}" method="POST" data-confirm="Tolak pengajuan tagihan {{ $invoice->invoice_number ?? 'ini' }}? Penyewa perlu mengunggah ulang bukti pembayaran.">
                         @csrf
                         <div class="form-group mb-2">
                           <label class="small font-weight-bold text-dark mb-1">Alasan Penolakan:</label>
@@ -217,7 +217,7 @@
             <strong class="text-primary font-weight-bold" id="proofInvoiceNo">#INV-XXX</strong>
           </div>
           <div class="d-flex justify-content-between">
-            <span class="text-muted small">Gym / Tenant:</span>
+            <span class="text-muted small">Penyewa (Gym):</span>
             <strong class="text-dark" id="proofTenantName">Nama Gym</strong>
           </div>
           <div class="d-flex justify-content-between">

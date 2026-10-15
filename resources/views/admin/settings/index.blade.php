@@ -20,7 +20,7 @@
       <div class="row mb-3">
         <div class="col-md-6 mb-3">
           <div class="p-3 border rounded bg-light">
-            <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Nama Gym / Tenant</small>
+            <small class="text-uppercase text-muted font-weight-bold" style="font-size: 10.5px; letter-spacing: 0.5px;">Nama Gym (Penyewa)</small>
             <h5 class="font-weight-bold text-dark mb-0 mt-1">{{ $tenant->name ?? '-' }}</h5>
           </div>
         </div>
@@ -83,7 +83,7 @@
         </div>
 
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Gym / Tenant *</label>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Gym (Penyewa) *</label>
           <input type="text" name="name" class="form-control" value="{{ $tenant->name ?? '' }}" required style="border-radius: 8px;">
         </div>
 

@@ -2,7 +2,7 @@
 
 @section('title', 'Manajemen Loker &mdash; PetGym')
 @section('page_title', 'Manajemen Loker')
-@section('page_subtitle', 'Peminjaman kunci dan pemantauan status loker anggota')
+@section('page_subtitle', 'Peminjaman kunci dan pemantauan status loker member')
 
 @section('content')
 
@@ -101,7 +101,7 @@
             @endif
           </td>
           <td class="text-right">
-            <form action="{{ route('receptionist.lockers.return', $r->locker_id) }}" method="POST" style="display:inline;" data-confirm="Konfirmasi pengembalian kunci loker ini?">
+            <form action="{{ route('receptionist.lockers.return', $r->locker_id) }}" method="POST" style="display:inline;" data-confirm="Kembalikan kunci loker #{{ $r->locker ? $r->locker->locker_number : '-' }} atas nama {{ $r->member ? $r->member->name : 'member' }}? Status loker akan menjadi tersedia.">
               @csrf
               <button type="submit" class="btn btn-sm btn-outline-success font-weight-bold" style="border-radius: 8px;">
                 Kembalikan Loker
@@ -111,7 +111,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="7" class="text-center py-4 text-muted">Semua loker telah dikembalikan. Tidak ada penyewaan aktif saat ini.</td>
+          <td colspan="7" class="text-center py-4 text-muted">Semua loker telah dikembalikan. Tidak ada sewa loker aktif saat ini.</td>
         </tr>
         @endforelse
       </tbody>

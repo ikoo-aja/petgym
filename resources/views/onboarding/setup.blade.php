@@ -47,7 +47,10 @@
       <x-brand-logo type="full" theme="light" size="38" url="none" />
       <div class="d-flex align-items-center">
         <span class="text-muted small mr-3 d-none d-sm-inline">Masuk sebagai: <strong>{{ Auth::user()->name }}</strong> ({{ Auth::user()->email }})</span>
-        <a href="{{ route('logout') }}" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 20px;">Keluar</a>
+        <form action="{{ route('logout') }}" method="POST" class="d-inline m-0">
+          @csrf
+          <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 20px;">Keluar</button>
+        </form>
       </div>
     </div>
   </header>

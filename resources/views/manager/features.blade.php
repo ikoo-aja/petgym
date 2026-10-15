@@ -41,7 +41,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3" style="gap: 12px;">
       <div>
         <h5 class="font-weight-bold text-dark mb-1">Daftar Voucher Promo</h5>
-        <p class="text-muted small mb-0">Kelola voucher potongan harga untuk pendaftaran anggota dan transaksi kasir.</p>
+        <p class="text-muted small mb-0">Kelola voucher potongan harga untuk pendaftaran member dan transaksi kasir.</p>
       </div>
       <button type="button" class="btn btn-sm btn-primary font-weight-bold px-3 py-2" data-toggle="modal" data-target="#addPromoModal" style="border-radius: 8px;">
         <i class="icon-plus mr-1"></i> Tambah Voucher Promo
@@ -100,7 +100,7 @@
                   data-valid_until="{{ $promo->valid_until->format('Y-m-d') }}"
                   data-is_active="{{ $promo->is_active ? '1' : '0' }}"
                   style="border-radius: 6px; font-size: 12px;">Ubah</button>
-                <form action="{{ route('manager.promo.destroy', $promo->id) }}" method="POST" class="d-inline" data-confirm="Hapus voucher promo ini?">
+                <form action="{{ route('manager.promo.destroy', $promo->id) }}" method="POST" class="d-inline" data-confirm="Hapus voucher \"{{ $promo->code }}\" secara permanen? Voucher tidak dapat digunakan lagi untuk transaksi.">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">Hapus</button>
@@ -156,17 +156,17 @@
       </div>
     </div>
 
-    <!-- Evaluasi Trainer / Instruktur -->
+    <!-- Evaluasi Trainer -->
     <div class="col-lg-6 mb-4">
       <div class="card-custom p-4 h-100">
-        <h5 class="font-weight-bold text-dark mb-1"><i class="icon-people text-success mr-1"></i> Keaktifan Instruktur Kelas</h5>
+        <h5 class="font-weight-bold text-dark mb-1"><i class="icon-people text-success mr-1"></i> Keaktifan Trainer Kelas</h5>
         <p class="text-muted small mb-3">Jumlah kelas kebugaran yang dipimpin oleh instruktur pelatih.</p>
 
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="bg-light text-muted" style="font-size: 11px; text-transform: uppercase;">
               <tr>
-                <th>Nama Instruktur</th>
+                <th>Nama Trainer</th>
                 <th>Spesialisasi</th>
                 <th>Kelas Dipimpin</th>
               </tr>
@@ -175,7 +175,7 @@
               @forelse($trainerPerformance as $tp)
                 <tr>
                   <td><strong class="text-dark">{{ $tp->trainer->name ?? 'Trainer #' . $tp->trainer_id }}</strong></td>
-                  <td>{{ $tp->trainer->specialization ?? 'Pelatih Kebugaran' }}</td>
+                  <td>{{ $tp->trainer->specialization ?? 'Trainer Kebugaran' }}</td>
                   <td><span class="badge badge-success font-weight-bold px-2 py-1">{{ $tp->total_classes }} Kelas Aktif</span></td>
                 </tr>
               @empty
@@ -353,7 +353,7 @@
                   data-address="{{ $v->address }}"
                   data-notes="{{ $v->notes }}"
                   style="border-radius: 6px; font-size: 12px;">Ubah</button>
-                <form action="{{ route('manager.vendors.destroy', $v->id) }}" method="POST" class="d-inline" data-confirm="Hapus vendor ini?">
+                <form action="{{ route('manager.vendors.destroy', $v->id) }}" method="POST" class="d-inline" data-confirm="Hapus kontak vendor \"{{ $v->name }}\" secara permanen?">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">Hapus</button>
@@ -409,7 +409,7 @@
   <div class="card-custom p-4 mb-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3" style="gap: 12px;">
       <div>
-        <h5 class="font-weight-bold text-dark mb-1">Peta Visual & Pengelolaan Kapasitas Loker</h5>
+        <h5 class="font-weight-bold text-dark mb-1">Master Loker Gym & Pengelolaan Kapasitas</h5>
         <p class="text-muted small mb-0">Tambah unit loker gym secara satuan atau langsung tentukan jumlah loker massal.</p>
       </div>
       @if(!Auth::user() || !Auth::user()->isOwner())
@@ -495,7 +495,7 @@
               @if(!Auth::user() || !Auth::user()->isOwner())
               <td class="text-right">
                 @if($l->status !== 'terpakai')
-                  <form action="{{ route('manager.lockers.destroy', $l->id) }}" method="POST" class="d-inline" data-confirm="Hapus unit loker nomor #{{ $l->locker_number }} dari sistem?">
+                  <form action="{{ route('manager.lockers.destroy', $l->id) }}" method="POST" class="d-inline" data-confirm="Hapus unit loker #{{ $l->locker_number }} secara permanen? Nomor loker ini tidak dapat digunakan lagi.">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius: 6px;">

@@ -68,7 +68,7 @@ class ManagerClassController extends Controller
             'description' => "Menambahkan kelas baru: {$gymClass->name} pada hari {$gymClass->day} ({$gymClass->duration_minutes} Menit)",
             'ip_address' => $request->ip(),
         ]);
-        return redirect()->route('manager.classes.index')->with('success', 'Jadwal kelas baru berhasil ditambahkan ke database.');
+        return redirect()->route('manager.classes.index')->with('success', 'Jadwal kelas baru berhasil ditambahkan.');
     }
 
     public function updateClass(Request $request, $id)
@@ -111,7 +111,7 @@ class ManagerClassController extends Controller
             'description' => "Memperbarui kelas {$gymClass->name}: Hari {$gymClass->day}, Ruangan {$gymClass->room}, Kuota {$gymClass->max_capacity}",
             'ip_address' => $request->ip(),
         ]);
-        return redirect()->route('manager.classes.index')->with('success', 'Jadwal kelas berhasil diperbarui di database.');
+        return redirect()->route('manager.classes.index')->with('success', 'Jadwal kelas berhasil diperbarui.');
     }
 
     public function destroyClass(Request $request, $id)
@@ -131,7 +131,7 @@ class ManagerClassController extends Controller
             'description' => "Menghapus kelas gym: {$className}",
             'ip_address' => $request->ip(),
         ]);
-        return redirect()->route('manager.classes.index')->with('success', "Jadwal kelas '{$className}' berhasil dihapus dari database.");
+        return redirect()->route('manager.classes.index')->with('success', "Jadwal kelas '{$className}' berhasil dihapus.");
     }
 
     public function storeTrainer(Request $request)
@@ -160,7 +160,7 @@ class ManagerClassController extends Controller
             'description' => "Menambahkan trainer baru: {$trainer->name} ({$trainer->specialization})",
             'ip_address' => $request->ip(),
         ]);
-        return redirect()->route('manager.classes.index')->with('success', "Trainer '{$trainer->name}' berhasil disimpan ke database!");
+        return redirect()->route('manager.classes.index')->with('success', "Trainer '{$trainer->name}' berhasil disimpan.");
     }
 
     public function updateTrainer(Request $request, $id)
@@ -188,7 +188,7 @@ class ManagerClassController extends Controller
             'description' => "Memperbarui data trainer: {$trainer->name}",
             'ip_address' => $request->ip(),
         ]);
-        return redirect()->route('manager.classes.index')->with('success', "Data trainer '{$trainer->name}' berhasil diperbarui di database.");
+        return redirect()->route('manager.classes.index')->with('success', "Data trainer '{$trainer->name}' berhasil diperbarui.");
     }
 
     public function destroyTrainer(Request $request, $id)
@@ -201,6 +201,6 @@ class ManagerClassController extends Controller
         $trainer = Trainer::where('tenant_id', $tenant->id)->findOrFail($id);
         $trainerName = $trainer->name;
         $trainer->delete();
-        return redirect()->route('manager.classes.index')->with('success', "Data trainer '{$trainerName}' berhasil dihapus dari database.");
+        return redirect()->route('manager.classes.index')->with('success', "Data trainer '{$trainerName}' berhasil dihapus.");
     }
 }

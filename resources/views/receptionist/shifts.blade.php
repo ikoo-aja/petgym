@@ -22,7 +22,7 @@
           </div>
         </div>
 
-        <form action="{{ route('receptionist.shifts.end', $openShift->id) }}" method="POST" data-confirm="Yakin ingin menutup shift kasir? Pastikan seluruh uang fisik laci kasir telah dihitung dengan benar.">
+        <form action="{{ route('receptionist.shifts.end', $openShift->id) }}" method="POST" data-confirm="Tutup shift kasir dan catat setoran akhir? Pastikan seluruh uang fisik di laci sudah dihitung. Setelah ditutup, shift tidak dapat dibuka kembali.">
           @csrf
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1" style="font-size:13px;">Nominal Setoran Kas Fisik Akhir (Rp) *</label>

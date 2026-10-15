@@ -126,7 +126,7 @@
         </div>
 
         <div class="form-group mb-3">
-          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Gym / Tenant *</label>
+          <label class="font-weight-bold text-dark" style="font-size: 13px;">Nama Gym (Penyewa) *</label>
           <input type="text" name="name" class="form-control" value="{{ $tenant->name ?? '' }}" required style="border-radius: 8px;">
         </div>
 
@@ -487,7 +487,7 @@
       var rows = $('#featureRows .feature-row');
       if (rows.length >= 6) {
         if (typeof showToast === 'function') {
-          showToast('Peringatan', 'Maksimal 6 fasilitas unggulan.', 'warning');
+          showToast('Perhatian', 'Maksimal 6 fasilitas unggulan.', 'warning');
         } else {
           alert('Maksimal 6 fasilitas unggulan.');
         }
@@ -537,7 +537,7 @@
     $(document).on('click', '.btn-remove-feature', function() {
       if ($('#featureRows .feature-row').length <= 1) {
         if (typeof showToast === 'function') {
-          showToast('Info', 'Minimal harus ada 1 fasilitas.', 'info');
+          showToast('Informasi', 'Minimal harus ada 1 fasilitas.', 'info');
         } else {
           alert('Minimal harus ada 1 fasilitas.');
         }

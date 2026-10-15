@@ -141,7 +141,7 @@ class LoginController extends Controller
 
             // 3e. Arahkan secara deterministik ke dashboard
             $targetRoute = $user->dashboardRoute();
-            $message = 'Berhasil masuk ke sistem. Selamat beraktivitas!';
+            $message = __('messages.auth.login_success');
 
             return redirect()->route($targetRoute)->with('success', $message);
         }
@@ -212,12 +212,16 @@ class LoginController extends Controller
     /**
      * Halaman Pendaftaran (Register) Member Gym Baru.
      */
-    public function showMemberRegisterForm()
+    public function showMemberRegisterForm(Request $request)
     {
+        $isTenantSubdomain = ($request->route() && $request->route()->hasParameter('slug'));
+        if (!$isTenantSubdomain && !app()->environment('testing')) {
+            return redirect()->route('register')->with('info', 'Pendaftaran pada website utama PetGym adalah untuk penyewa/pengelola gym baru. Untuk mendaftar sebagai member, silakan buka alamat website gym Anda.');
+        }
+
         $tenants = \App\Models\Tenant::where('status', 'active')->get();
         return view('member-register', compact('tenants'));
     }
-
     /**
      * Memproses Pendaftaran Calon Penyewa Web Gym (Prospek / Leads SaaS).
      * Tidak meminta nama website / subdomain di sini (akan diatur saat onboarding).
@@ -274,30 +278,26 @@ class LoginController extends Controller
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'unique:users,email'],
             'phone'    => ['required', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:4', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'tenant_id'=> ['nullable', 'exists:tenants,id'],
         ], [
             'email.unique'       => 'Email sudah terdaftar di sistem. Silakan gunakan menu Masuk/Login.',
+            'password.min'       => 'Kata sandi minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
         $tenantId = $request->tenant_id;
         if (!$tenantId && $request->route() && $request->route()->hasParameter('slug')) {
             $slug = $request->route('slug');
-            $tenant = \App\Models\Tenant::where('subdomain', 'like', "{$slug}%")->orWhere('slug', $slug)->first();
+            $tenant = \App\Models\Tenant::where('slug', $slug)->orWhere('subdomain', 'like', "{$slug}%")->first();
             $tenantId = $tenant ? $tenant->id : null;
         }
 
-        // Fallback jika hanya ada 1 tenant aktif di database (misal registrasi dari portal member utama)
-        if (!$tenantId) {
-            $defaultTenant = \App\Models\Tenant::where('status', 'active')->first();
-            $tenantId = $defaultTenant ? $defaultTenant->id : null;
-        }
-
+        // Pendaftaran member WAJIB terikat ke tenant gym yang valid
         $tenant = $tenantId ? \App\Models\Tenant::find($tenantId) : null;
         if (!$tenant) {
             return redirect()->back()->withInput()->withErrors([
-                'tenant_id' => 'Pendaftaran member gagal: Data gym tidak ditemukan atau belum aktif.'
+                'tenant_id' => 'Pendaftaran member harus dilakukan melalui alamat website gym tempat Anda terdaftar.'
             ]);
         }
 

@@ -909,7 +909,7 @@
               <span class="hero-card-value">Cardio, Free Weights, Functional</span>
             </div>
             <div class="hero-card-item">
-              <span class="hero-card-label">Pendampingan Instruktur</span>
+              <span class="hero-card-label">Pendampingan Personal Trainer</span>
               <span class="hero-card-value">Tersedia di Lokasi</span>
             </div>
           </div>

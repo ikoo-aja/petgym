@@ -28,7 +28,7 @@ class ReceptionistCheckInController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+            return redirect()->back()->with('error', 'Anda tidak dapat melakukan perubahan ini karena akun Anda hanya memiliki akses pantau (baca saja). Hubungi pemilik akun utama untuk melakukan perubahan.');
         }
         $tenant = $user->tenant;
         $request->validate(['access_code' => 'required|string']);
@@ -36,7 +36,7 @@ class ReceptionistCheckInController extends Controller
             ->where('access_code', trim($request->access_code))
             ->first();
         if (!$member) {
-            return redirect()->route('receptionist.checkin.index')->with('error', "Kode akses PIN tidak ditemukan atau tidak terdaftar!");
+            return redirect()->route('receptionist.checkin.index')->with('error', "Kode akses PIN tidak dikenali atau belum terdaftar. Periksa kembali PIN member, atau gunakan menu Pendaftaran Member untuk mendaftarkan PIN baru.");
         }
         if ($member->status === 'inactive' || ($member->expired_at && $member->expired_at->isPast())) {
             return redirect()->route('receptionist.checkin.index')->with('error', "Member {$member->name} Gagal Check-in! Masa aktif membership telah habis.");
@@ -55,7 +55,7 @@ class ReceptionistCheckInController extends Controller
             'description' => "Check-in berhasil untuk member: {$member->name} via PIN {$member->access_code}",
             'ip_address' => $request->ip(),
         ]);
-        return redirect()->route('receptionist.checkin.index')->with('success', "CHECK-IN BERHASIL! Selamat datang, {$member->name} (Exp: " . ($member->expired_at ? $member->expired_at->format('d M Y') : 'Aktif') . ")");
+        return redirect()->route('receptionist.checkin.index')->with('success', "Check-in berhasil. Selamat datang, {\$member->name} (berlaku hingga: " . ($member->expired_at ? $member->expired_at->format('d M Y') : 'Aktif') . ")");
     }
 
     public function manualCheckIn(Request $request)
@@ -81,7 +81,7 @@ class ReceptionistCheckInController extends Controller
             'description' => "Check-in manual oleh kasir untuk member: {$member->name}",
             'ip_address' => $request->ip(),
         ]);
-        return redirect()->route('receptionist.checkin.index')->with('success', "CHECK-IN MANUAL BERHASIL! Selamat datang, {$member->name}.");
+        return redirect()->route('receptionist.checkin.index')->with('success', "Check-in manual berhasil. Selamat datang, {\$member->name}.");
     }
 
     public function destroyCheckIn(Request $request, $id)

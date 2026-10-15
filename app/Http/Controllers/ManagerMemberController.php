@@ -19,10 +19,10 @@ class ManagerMemberController extends Controller
     {
         $user = Auth::user();
         if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard')->with('error', 'Akses Ditolak. Akun Admin tidak memiliki izin untuk melihat data member. Akses ini dikelola oleh Manager Gym.');
+            return redirect()->route('admin.dashboard')->with('error', 'Akses Ditolak: Data member hanya dapat dikelola oleh Manager Gym.');
         }
         if ($user->isTrainer()) {
-            return redirect()->route('trainer.dashboard')->with('error', 'Akses Ditolak: Pelatih (Trainer) tidak memiliki izin untuk mengakses data member.');
+            return redirect()->route('trainer.dashboard')->with('error', 'Akses Ditolak: Personal Trainer tidak memiliki izin untuk mengakses data member.');
         }
         $tenant = $user->tenant;
         if (!$tenant) {
@@ -61,7 +61,7 @@ class ManagerMemberController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+            return redirect()->back()->with('error', 'Anda tidak dapat melakukan perubahan ini karena akun Anda hanya memiliki akses pantau (baca saja). Hubungi pemilik akun utama untuk melakukan perubahan.');
         }
         if ($user->isManager()) {
             return redirect()->back()->with('error', 'Pendaftaran member baru hanya dapat diproses melalui menu kasir/POS.');
@@ -73,7 +73,7 @@ class ManagerMemberController extends Controller
             abort(403, 'Akses Ditolak: Pelatih (Trainer) tidak memiliki izin untuk mendaftarkan member.');
         }
         if (!$user->isReceptionist()) {
-            abort(403, 'Akses Ditolak: Hanya Resepsionis/Kasir yang dapat mendaftarkan member baru.');
+            abort(403, 'Akses Ditolak: Hanya Resepsionis yang dapat mendaftarkan member baru.');
         }
 
         $tenant = $user->tenant;
@@ -81,7 +81,7 @@ class ManagerMemberController extends Controller
         // Cek Kuota Member Aktif berdasarkan Paket Tenant
         if ($tenant && !$tenant->canAddMember()) {
             $maxMembers = $tenant->maxMembers();
-            return redirect()->back()->with('error', "Pendaftaran member gagal: Kuota maksimal member aktif untuk {$tenant->plan_name} ({$maxMembers} Member) telah tercapai. Silakan hubungi Admin Gym untuk upgrade paket langganan.");
+            return redirect()->back()->with('error', "Pendaftaran member gagal: Kuota maksimal member aktif untuk {$tenant->plan_name} ({$maxMembers} Member) telah tercapai. Silakan hubungi Admin Gym untuk menaikkan paket langganan.");
         }
 
         // Jika staf adalah resepsionis, pastikan shift kasir sedang aktif
@@ -213,7 +213,7 @@ class ManagerMemberController extends Controller
             'tenant_id' => $tenant->id,
             'user_id' => $user->id,
             'action' => 'Registrasi Member & Pembayaran Kasir',
-            'description' => "Kasir {$user->name} mendaftarkan member baru {$member->name} ({$packageName}) lunas Rp " . number_format($packagePrice, 0, ',', '.') . " [{$invNumber}] PIN Akses: {$accessCode}",
+            'description' => "Kasir {$user->name} mendaftarkan member baru {$member->name} ({$packageName}) lunas Rp " . number_format($packagePrice, 0, ',', '.') . " [{$invNumber}] PIN Akses: " . \App\Helpers\PrivacyHelper::maskCode((string)$accessCode),
             'ip_address' => $request->ip(),
         ]);
 
@@ -254,7 +254,7 @@ class ManagerMemberController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+            return redirect()->back()->with('error', 'Anda tidak dapat melakukan perubahan ini karena akun Anda hanya memiliki akses pantau (baca saja). Hubungi pemilik akun utama untuk melakukan perubahan.');
         }
         if (!$user->isManager() && !$user->isAdmin() && !$user->isSuperadmin()) {
             abort(403, 'Akses Ditolak: Hanya Manager Gym yang dapat menghapus data member.');
@@ -329,6 +329,6 @@ class ManagerMemberController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        return redirect()->back()->with('success', "Akun member {$member->name} berhasil disetujui dan statusnya diubah menjadi AKTIF.");
+        return redirect()->back()->with('success', "Akun member {$member->name} berhasil disetujui dan statusnya diubah menjadi aktif.");
     }
 }

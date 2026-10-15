@@ -5,7 +5,7 @@
 @section('page_subtitle', 'Pengelolaan akun staf operasional lapangan')
 
 @section('content')
-<div class="card border-0 shadow-sm bg-white" style="border-radius: 12px;">
+<div class="card-custom p-0 overflow-hidden">
   <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center">
     <div>
       <h6 class="font-weight-bold text-dark mb-0">Daftar Akun Operasional</h6>
@@ -45,7 +45,7 @@
                 @if($st->role === 'supervisor')
                   <span class="badge badge-primary px-3 py-1 font-weight-bold" style="border-radius: 6px;">Supervisor</span>
                 @elseif($st->role === 'receptionist')
-                  <span class="badge badge-info px-3 py-1 font-weight-bold" style="border-radius: 6px;">Resepsionis / Kasir</span>
+                  <span class="badge badge-info px-3 py-1 font-weight-bold" style="border-radius: 6px;">Resepsionis</span>
                 @elseif($st->role === 'trainer')
                   <span class="badge badge-success px-3 py-1 font-weight-bold" style="border-radius: 6px;">Personal Trainer</span>
                 @else
@@ -74,7 +74,7 @@
                   </form>
                 @endif
                 @if(Auth::id() !== $st->id)
-                  <form action="{{ route('manager.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun staf ini? Pengguna tidak akan bisa login atau membuka shift.' : 'Aktifkan kembali akun staf ini?' }}">
+                  <form action="{{ route('manager.staff.toggle-status', $st->id) }}" method="POST" class="d-inline mr-1" data-confirm="{{ $st->isActive() ? 'Nonaktifkan akun ' . $st->name . '? Pengguna tidak dapat login atau membuka shift kasir hingga diaktifkan kembali.' : 'Aktifkan kembali akun ' . $st->name . '? Pengguna dapat login dan membuka shift kasir setelah diaktifkan.' }}">
                     @csrf
                     @if($st->isActive())
                       <button type="submit" class="btn btn-sm btn-outline-warning text-dark font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;" title="Nonaktifkan Akun">
@@ -89,15 +89,15 @@
                 @endif
                 {{-- Tombol Approval Reset Password jika ada request pending --}}
                 @if($st->latestPendingPasswordReset && Auth::id() !== $st->id)
-                  <form action="{{ route('manager.staff.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" onsubmit="return confirm('Setujui permohonan reset kata sandi? Tautan verifikasi akan dikirimkan ke email terdaftar.');">
+                  <form action="{{ route('manager.staff.password-resets.approve', $st->latestPendingPasswordReset->id) }}" method="POST" class="d-inline mr-1" data-confirm="Setujui permohonan reset kata sandi {{ $st->name }}? Sistem akan mengirimkan tautan verifikasi ke email terdaftar.">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-warning text-dark font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;" title="Setujui permohonan reset kata sandi">
-                      <i class="icon-key mr-1"></i> Setujui Reset
+                      <i class="icon-key mr-1"></i> Setujui Reset PW
                     </button>
                   </form>
                 @endif
                 @if(Auth::id() !== $st->id)
-                <form action="{{ route('manager.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun ini?">
+                <form action="{{ route('manager.staff.destroy', $st->id) }}" method="POST" class="d-inline" data-confirm="Hapus akun {{ $st->name }} secara permanen? Akun tidak dapat login kembali dan datanya tidak dapat dipulihkan.">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold px-2 py-1" style="border-radius: 6px; font-size: 12px;">
@@ -124,21 +124,14 @@
 <!-- Modal Tambah Akun Baru -->
 <div class="modal fade" id="createStaffModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document">
-    <form action="{{ route('manager.staff.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
+    <form action="{{ route('manager.staff.store') }}" method="POST" class="modal-content">
       @csrf
       <div class="modal-header bg-white border-bottom">
         <h5 class="modal-title font-weight-bold text-dark">Registrasi Akun Baru</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body p-4">
-        @if(isset($errors) && $errors->any())
-        <div class="alert alert-danger py-2 mb-3" style="font-size: 13px; border-radius: 8px;">
-          <strong>Data tidak tersimpan:</strong>
-          <ul class="mb-0 pl-3 mt-1">
-            @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
-          </ul>
-        </div>
-        @endif
+        @include('partials.form-errors')
 
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark small mb-1">Nama Lengkap <span class="text-danger">*</span></label>
@@ -153,7 +146,7 @@
         <div class="form-group mb-3">
           <label class="font-weight-bold text-dark small mb-1">Kata Sandi</label>
           <div class="input-group">
-            <input type="password" name="password" id="staffPassword" class="form-control" placeholder="Minimal 4 karakter (atau gunakan auto-generate)">
+            <input type="password" name="password" id="staffPassword" class="form-control" placeholder="Minimal 8 karakter, huruf & angka (atau gunakan auto-generate)">
             <div class="input-group-append">
               <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="toggleStaffPw(this)">
                 <i class="icon-eye text-muted"></i>
@@ -170,7 +163,7 @@
           <label class="font-weight-bold text-dark small mb-1">Role / Peran Akun <span class="text-danger">*</span></label>
           <select name="role" id="staffRole" class="form-control" required>
             <option value="supervisor">Supervisor (Pengawas Operasional)</option>
-            <option value="receptionist">Resepsionis / Kasir</option>
+            <option value="receptionist">Resepsionis</option>
             <option value="trainer">Personal Trainer (PT)</option>
           </select>
         </div>

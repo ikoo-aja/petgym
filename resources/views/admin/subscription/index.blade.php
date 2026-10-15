@@ -198,9 +198,27 @@
 @if(!$pendingInvoice)
 <div class="modal fade text-left" id="renewalModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        @php
+            $sysBilling = $systemBilling ?? \App\Models\SystemSetting::getGroup('billing');
+            $sysSupport = $systemSupport ?? \App\Models\SystemSetting::getGroup('support');
+
+            $bMain = $sysBilling['billing_bank_name'] ?? 'BCA';
+            $bMainAcc = $sysBilling['billing_bank_account'] ?? '883012345678';
+            $bMainFmt = $sysBilling['billing_bank_account_fmt'] ?? '8830-1234-5678';
+            $bOwner = $sysBilling['billing_bank_owner'] ?? 'PT PetGym Digital Indonesia';
+            $bNotes = $sysBilling['billing_bank_notes'] ?? 'Sertakan kode invoice unik saat melakukan transfer pembayaran sewa.';
+
+            $bMandiriAcc = $sysBilling['billing_mandiri_account'] ?? '1370098765432';
+            $bMandiriFmt = $sysBilling['billing_mandiri_account_fmt'] ?? '137-00-9876543-2';
+
+            $bQrisName = $sysBilling['billing_qris_name'] ?? 'QRIS PetGym Instant';
+            $bQrisCode = $sysBilling['billing_qris_code'] ?? 'QRIS-PETGYM';
+
+            $waHelp = $sysSupport['support_whatsapp'] ?? '081234567890';
+            $cleanWaHelp = preg_replace('/[^0-9]/', '', $waHelp);
+        @endphp
         <form action="{{ route('admin.subscription.pay') }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;" id="renewalModalForm">
             @csrf
-
             <!-- Modal Header -->
             <div class="modal-header bg-white border-bottom py-3 px-4 text-dark">
                 <div>
@@ -318,31 +336,36 @@
                             <label class="font-weight-bold text-dark small mb-2 d-block">Pilih Rekening Tujuan Transfer:</label>
                             
                             <div class="d-flex flex-wrap mb-3" style="gap: 8px;">
-                                <button type="button" class="btn btn-sm btn-payment-tab active-pay-tab font-weight-bold px-3 py-1" data-method="Bank Transfer BCA" data-bank="BCA" data-rekening="883012345678" data-rekening-fmt="8830-1234-5678" style="border-radius: 8px; font-size: 12px;">
-                                    Bank BCA
+                                <button type="button" class="btn btn-sm btn-payment-tab active-pay-tab font-weight-bold px-3 py-1" data-method="Bank Transfer {{ $bMain }}" data-bank="{{ $bMain }}" data-rekening="{{ $bMainAcc }}" data-rekening-fmt="{{ $bMainFmt }}" style="border-radius: 8px; font-size: 12px;">
+                                    Bank {{ $bMain }}
                                 </button>
-                                <button type="button" class="btn btn-sm btn-payment-tab font-weight-bold px-3 py-1" data-method="Bank Transfer Mandiri" data-bank="Mandiri" data-rekening="1370098765432" data-rekening-fmt="137-00-9876543-2" style="border-radius: 8px; font-size: 12px;">
+                                @if(!empty($bMandiriAcc))
+                                <button type="button" class="btn btn-sm btn-payment-tab font-weight-bold px-3 py-1" data-method="Bank Transfer Mandiri" data-bank="Mandiri" data-rekening="{{ $bMandiriAcc }}" data-rekening-fmt="{{ $bMandiriFmt }}" style="border-radius: 8px; font-size: 12px;">
                                     Bank Mandiri
                                 </button>
-                                <button type="button" class="btn btn-sm btn-payment-tab font-weight-bold px-3 py-1" data-method="QRIS / E-Wallet" data-bank="QRIS" data-rekening="QRIS-PETGYM" data-rekening-fmt="QRIS PetGym Instant" style="border-radius: 8px; font-size: 12px;">
+                                @endif
+                                <button type="button" class="btn btn-sm btn-payment-tab font-weight-bold px-3 py-1" data-method="{{ $bQrisName }}" data-bank="QRIS" data-rekening="{{ $bQrisCode }}" data-rekening-fmt="{{ $bQrisName }}" style="border-radius: 8px; font-size: 12px;">
                                     QRIS Instant
                                 </button>
                             </div>
-                            <input type="hidden" name="payment_method" id="selectedPaymentMethodVal" value="Bank Transfer BCA">
+                            <input type="hidden" name="payment_method" id="selectedPaymentMethodVal" value="Bank Transfer {{ $bMain }}">
 
                             <!-- Kotak Salin Rekening -->
-                            <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center" style="border-radius: 10px;">
+                            <div class="bg-white p-3 rounded border d-flex justify-content-between align-items-center mb-2" style="border-radius: 10px;">
                                 <div>
-                                    <span class="text-muted small d-block" id="bankNameDisplay">Bank BCA (Transfer Antar Bank / M-Banking)</span>
-                                    <span class="font-weight-bold text-dark h5 mb-0" id="bankNumberDisplay" style="letter-spacing: 0.5px; font-family: monospace;">8830-1234-5678</span>
-                                    <small class="text-muted d-block mt-1">a.n. <strong>PT PetGym Digital Indonesia</strong></small>
+                                    <span class="text-muted small d-block" id="bankNameDisplay">Bank {{ $bMain }} (Transfer Antar Bank / M-Banking)</span>
+                                    <span class="font-weight-bold text-dark h5 mb-0" id="bankNumberDisplay" style="letter-spacing: 0.5px; font-family: monospace;">{{ $bMainFmt }}</span>
+                                    <small class="text-muted d-block mt-1">a.n. <strong>{{ $bOwner }}</strong></small>
                                 </div>
                                 <div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-3 py-2 btn-copy" id="btnCopyRekening" data-copy="883012345678" style="border-radius: 8px; font-size: 12px;">
+                                    <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-3 py-2 btn-copy" id="btnCopyRekening" data-copy="{{ $bMainAcc }}" style="border-radius: 8px; font-size: 12px;">
                                         <i class="icon-copy mr-1"></i> <span class="copy-label">Salin No. Rekening</span>
                                     </button>
                                 </div>
                             </div>
+                            @if(!empty($bNotes))
+                            <small class="text-muted d-block mb-3"><i class="icon-info mr-1"></i> {{ $bNotes }}</small>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -382,9 +405,20 @@
                         <input type="file" name="proof_file" id="proofFileInput" class="d-none" accept="image/jpeg,image/png,image/webp" required>
                     </div>
 
-                    <div class="form-group mb-0">
+                    <div class="form-group mb-3">
                         <label class="font-weight-bold text-dark small">Catatan Tambahan (Opsional)</label>
-                        <input type="text" name="notes" class="form-control form-control-sm" placeholder="Contoh: Transfer dari Rekening BCA a.n. Budi Pratama..." style="border-radius: 8px;">
+                        <input type="text" name="notes" class="form-control form-control-sm" placeholder="Contoh: Transfer dari Rekening a.n. Budi Pratama..." style="border-radius: 8px;">
+                    </div>
+
+                    <!-- Helpdesk WhatsApp CS -->
+                    <div class="p-3 rounded bg-light border d-flex flex-wrap align-items-center justify-content-between" style="gap: 10px; border-radius: 8px;">
+                        <div>
+                            <strong class="text-dark d-block small mb-0">Butuh bantuan konfirmasi perpanjangan sewa?</strong>
+                            <small class="text-muted">Hubungi Customer Service resmi Superadmin PetGym.</small>
+                        </div>
+                        <a href="https://wa.me/{{ $cleanWaHelp }}?text=Halo%20Superadmin%20PetGym,%20saya%20Admin%20dari%20gym%20{{ urlencode($tenant->name) }}%20ingin%20mengonfirmasi%20pembayaran%20sewa." target="_blank" class="btn btn-sm btn-success font-weight-bold px-3" style="border-radius: 6px; font-size: 12px;">
+                            <span class="icon-phone mr-1"></span> WhatsApp CS Superadmin
+                        </a>
                     </div>
                 </div>
 
@@ -553,7 +587,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (selectedPaymentMethodVal) selectedPaymentMethodVal.value = method;
 
-            if (bankNameDisplay) bankNameDisplay.textContent = 'Bank ' + bank + ' (Transfer Superadmin)';
+            if (bank === 'QRIS') {
+                if (bankNameDisplay) bankNameDisplay.textContent = 'QRIS Instant (Scan Semua Aplikasi E-Wallet / M-Banking)';
+            } else {
+                if (bankNameDisplay) bankNameDisplay.textContent = 'Bank ' + bank + ' (Transfer Antar Bank / M-Banking)';
+            }
             if (bankNumberDisplay) bankNumberDisplay.textContent = rekeningFmt;
             if (btnCopyRekening) btnCopyRekening.setAttribute('data-copy', rekening);
         });

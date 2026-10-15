@@ -71,8 +71,8 @@
         <div class="form-group row">
           <label class="col-sm-4 col-form-label text-black font-weight-bold">Kata Sandi Baru <span class="text-danger">*</span></label>
           <div class="col-sm-8">
-            <input type="password" class="form-control @error('new_password') is-invalid @enderror" name="new_password" required minlength="4">
-            <small class="text-muted">Minimal 4 karakter.</small>
+            <input type="password" class="form-control @error('new_password') is-invalid @enderror" name="new_password" required minlength="8">
+            <small class="text-muted">Minimal 8 karakter (kombinasi huruf & angka).</small>
             @error('new_password')
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -81,7 +81,7 @@
         <div class="form-group row">
           <label class="col-sm-4 col-form-label text-black font-weight-bold">Konfirmasi Kata Sandi Baru <span class="text-danger">*</span></label>
           <div class="col-sm-8">
-            <input type="password" class="form-control" name="new_password_confirmation" required minlength="4">
+            <input type="password" class="form-control" name="new_password_confirmation" required minlength="8">
           </div>
         </div>
         <div class="row mt-4">

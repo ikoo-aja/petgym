@@ -8,12 +8,14 @@ use App\Models\Plan;
 use App\Models\Invoice;
 use App\Models\Announcement;
 use App\Models\SystemLog;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\TenantRegistration;
 use App\Models\AdminPasswordResetRequest;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 class SuperadminController extends Controller
@@ -109,10 +111,12 @@ class SuperadminController extends Controller
      */
     public function storeTenant(Request $request)
     {
+        $apex = config('app.tenant_apex', 'localhost');
         $rawSub = strtolower(trim((string) $request->subdomain));
         $slug = str_contains($rawSub, '.') ? explode('.', $rawSub)[0] : $rawSub;
-        $subdomainFormatted = str_contains($rawSub, '.workout.id') ? $rawSub : $rawSub . '.workout.id';
-
+        $subdomainFormatted = (str_ends_with($rawSub, '.' . $apex) || str_ends_with($rawSub, '.workout.id'))
+            ? $rawSub
+            : $rawSub . '.' . $apex;
         $request->merge([
             'subdomain' => $subdomainFormatted,
             'slug'      => $slug,
@@ -250,7 +254,7 @@ class SuperadminController extends Controller
             return response()->json(['status' => 'success']);
         }
 
-        return redirect()->route('superadmin.tenants')->with('success', "Tenant '{$tenantName}' berhasil dihapus dari database!");
+        return redirect()->route('superadmin.tenants')->with('success', "Penyewa '{$tenantName}' berhasil dihapus.");
     }
 
     /**
@@ -261,7 +265,7 @@ class SuperadminController extends Controller
         $tenant = Tenant::findOrFail($id);
         
         $request->validate([
-            'password' => 'nullable|string|min:4',
+            'password' => ['nullable', 'string', \App\Rules\StaffPassword::rule()],
         ]);
 
         // Cari akun admin milik tenant, atau fallback ke user pengelola di tenant tersebut
@@ -277,9 +281,10 @@ class SuperadminController extends Controller
 
         if (!$adminUser) {
             $slug = $tenant->slug ?: (str_contains($tenant->subdomain, '.') ? explode('.', $tenant->subdomain)[0] : $tenant->subdomain);
+            $apex = config('app.tenant_apex', 'localhost');
             $adminUser = User::create([
                 'name' => "Admin {$tenant->name}",
-                'email' => "admin.{$slug}@workout.id",
+                'email' => "admin.{$slug}@" . ($apex === 'localhost' ? 'petgym.local' : $apex),
                 'role' => 'admin',
                 'tenant_id' => $tenant->id,
             ]);
@@ -464,12 +469,58 @@ class SuperadminController extends Controller
     }
 
     /**
+     * SEC-03: Unduh bukti transfer secara aman (hanya Superadmin, dari storage privat).
+     */
+    public function downloadProof(Request $request, $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        if (empty($invoice->proof_url)) {
+            abort(404, 'Bukti pembayaran tidak tersedia.');
+        }
+
+        // Jika berupa URL eksternal (mis. mock di seeder/staging)
+        if (filter_var($invoice->proof_url, FILTER_VALIDATE_URL)) {
+            return redirect()->away($invoice->proof_url);
+        }
+
+        // Normalisasi path: cegah path traversal
+        $relative = ltrim(str_replace('\\', '/', $invoice->proof_url), '/');
+        $candidates = [
+            'proofs/' . basename($relative),
+            $relative,
+            str_replace('uploads/', '', $relative),
+        ];
+
+        foreach ($candidates as $path) {
+            if (str_contains($path, '..')) {
+                continue;
+            }
+            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+                SystemLog::create([
+                    'user_id'     => Auth::id(),
+                    'action'      => 'Unduh Bukti Pembayaran',
+                    'description' => "Superadmin mengunduh bukti pembayaran invoice #{$invoice->invoice_number}.",
+                    'ip_address'  => $request->ip(),
+                ]);
+
+                return \Illuminate\Support\Facades\Storage::disk('local')->download($path);
+            }
+        }
+
+        abort(404, 'Berkas bukti pembayaran tidak ditemukan.');
+    }
+
+    /**
      * Setujui / Approve Perpanjangan Masa Sewa Web oleh Superadmin.
      */
     public function approveRenewal(Request $request, $id)
     {
         $invoice = Invoice::findOrFail($id);
         $tenant = $invoice->tenant;
+        if ($invoice->status === 'paid') {
+            return redirect()->back()->with('error', "Tagihan invoice #{$invoice->invoice_number} sudah berstatus lunas dan telah diproses sebelumnya.");
+        }
 
         $durationMonths = max(1, (int) ($invoice->duration_months ?: 1));
         $daysToAdd = $durationMonths * 30;
@@ -499,7 +550,6 @@ class SuperadminController extends Controller
             'status'  => 'paid',
             'paid_at' => now(),
         ]);
-
         SystemLog::create([
             'user_id'     => Auth::id(),
             'action'      => 'Approve Perpanjangan Sewa',
@@ -574,7 +624,7 @@ class SuperadminController extends Controller
 
         $user = $resetReq->user;
         if (!$user) {
-            return redirect()->back()->with('error', 'Pengguna akun admin tidak ditemukan.');
+            return redirect()->back()->with('error', 'Akun admin tidak ditemukan. Silakan muat ulang halaman dan coba lagi.');
         }
 
         // Kirim link reset password bawaan Laravel
@@ -582,7 +632,7 @@ class SuperadminController extends Controller
             $status = Password::sendResetLink(['email' => $user->email]);
         } catch (\Throwable $e) {
             report($e);
-            return redirect()->back()->with('error', 'Gagal mengirim email tautan reset password. Periksa koneksi SMTP server email.');
+            return redirect()->back()->with('error', 'Tautan reset gagal dikirim karena koneksi ke server email terputus. Hubungi Administrator Sistem untuk memeriksa konfigurasi email.');
         }
 
         $resetReq->update([
@@ -728,14 +778,14 @@ class SuperadminController extends Controller
 
         $request->validate([
             'email'    => ['required', 'email'],
-            'password' => ['required', 'string', 'min:4'],
+            'password' => ['required', 'string', \App\Rules\StaffPassword::rule()],
             'plan_id'  => ['nullable', 'exists:plans,id'],
             'features' => ['nullable', 'array'],
             'notes'    => ['nullable', 'string'],
         ], [
             'email.required'    => 'Email login penyewa wajib diisi.',
             'password.required' => 'Password login awal penyewa wajib diisi.',
-            'password.min'      => 'Password minimal 4 karakter.',
+            'password.min'      => 'Password minimal 8 karakter.',
         ]);
 
         $plan = $request->plan_id ? Plan::find($request->plan_id) : $registration->plan;
@@ -746,11 +796,12 @@ class SuperadminController extends Controller
         $baseSlug = Str::slug($registration->name) ?: 'gym';
         $slug = $baseSlug;
         $counter = 1;
-        while (Tenant::where('subdomain', $slug . '.workout.id')->orWhere('slug', $slug)->exists()) {
+        $apex = config('app.tenant_apex', 'localhost');
+        while (Tenant::where('subdomain', $slug . '.' . $apex)->orWhere('subdomain', $slug . '.workout.id')->orWhere('slug', $slug)->exists()) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
-        $subdomainFormatted = $slug . '.workout.id';
+        $subdomainFormatted = $slug . '.' . $apex;
 
         // 1. Buat Record Tenant di database agar langsung tampil di Kelola Penyewa
         $tenant = Tenant::create([
@@ -1017,7 +1068,13 @@ class SuperadminController extends Controller
      */
     public function settings()
     {
-        return view('superadmin.settings');
+        $billing = SystemSetting::getGroup('billing');
+        $support = SystemSetting::getGroup('support');
+        $maintenance = SystemSetting::getGroup('maintenance');
+        $mail = SystemSetting::getGroup('mail');
+        $settings = SystemSetting::pluck('value', 'key')->toArray();
+
+        return view('superadmin.settings', compact('billing', 'support', 'maintenance', 'mail', 'settings'));
     }
 
     /**
@@ -1025,7 +1082,137 @@ class SuperadminController extends Controller
      */
     public function updateSettings(Request $request)
     {
-        $section = $request->input('section', 'Umum');
+        $section = $request->input('section', 'billing');
+
+        if ($section === 'billing') {
+            $data = $request->validate([
+                'billing_bank_name'       => 'required|string|max:50',
+                'billing_bank_account'    => 'required|string|max:50',
+                'billing_bank_owner'      => 'required|string|max:100',
+                'billing_bank_notes'      => 'nullable|string|max:500',
+                'billing_mandiri_account' => 'nullable|string|max:50',
+                'billing_qris_name'       => 'nullable|string|max:100',
+                'billing_qris_code'       => 'nullable|string|max:100',
+            ]);
+
+            foreach ($data as $key => $val) {
+                SystemSetting::set($key, $val, 'billing');
+            }
+
+            // Format nomor rekening BCA
+            $cleanBca = preg_replace('/[^0-9]/', '', $data['billing_bank_account']);
+            $fmtBca = strlen($cleanBca) >= 10 ? substr($cleanBca, 0, 4) . '-' . substr($cleanBca, 4, 4) . '-' . substr($cleanBca, 8) : $data['billing_bank_account'];
+            SystemSetting::set('billing_bank_account_fmt', $fmtBca, 'billing');
+
+            if (!empty($data['billing_mandiri_account'])) {
+                $cleanMan = preg_replace('/[^0-9]/', '', $data['billing_mandiri_account']);
+                $fmtMan = strlen($cleanMan) >= 13 ? substr($cleanMan, 0, 3) . '-' . substr($cleanMan, 3, 2) . '-' . substr($cleanMan, 5, 7) . '-' . substr($cleanMan, 12) : $data['billing_mandiri_account'];
+                SystemSetting::set('billing_mandiri_account_fmt', $fmtMan, 'billing');
+            }
+
+            SystemLog::create([
+                'user_id'     => Auth::id(),
+                'action'      => 'Update Pengaturan Rekening',
+                'description' => "Superadmin memperbarui rekening pembayaran sewa platform ({$data['billing_bank_name']} {$data['billing_bank_account']}).",
+                'ip_address'  => $request->ip(),
+            ]);
+
+            return redirect()->route('superadmin.settings')->with('success', 'Pengaturan rekening pembayaran sewa platform berhasil disimpan!');
+        }
+
+        if ($section === 'support') {
+            $data = $request->validate([
+                'support_whatsapp' => 'required|string|max:30',
+                'support_email'    => 'required|email|max:100',
+                'support_hours'    => 'nullable|string|max:100',
+            ]);
+
+            foreach ($data as $key => $val) {
+                SystemSetting::set($key, $val, 'support');
+            }
+
+            SystemLog::create([
+                'user_id'     => Auth::id(),
+                'action'      => 'Update Pengaturan Bantuan',
+                'description' => 'Superadmin memperbarui kontak pusat bantuan resmi platform.',
+                'ip_address'  => $request->ip(),
+            ]);
+
+            return redirect()->route('superadmin.settings')->with('success', 'Kontak bantuan resmi platform berhasil disimpan!');
+        }
+
+        if ($section === 'maintenance') {
+            $data = $request->validate([
+                'maintenance_active'        => 'nullable|in:0,1',
+                'maintenance_title'         => 'required|string|max:150',
+                'maintenance_message'       => 'required|string|max:1000',
+                'maintenance_estimated_end' => 'nullable|string|max:100',
+            ]);
+
+            $isActive = $request->has('maintenance_active') && ($request->input('maintenance_active') === '1' || $request->input('maintenance_active') === 1) ? '1' : '0';
+            SystemSetting::set('maintenance_active', $isActive, 'maintenance');
+            SystemSetting::set('maintenance_title', $data['maintenance_title'], 'maintenance');
+            SystemSetting::set('maintenance_message', $data['maintenance_message'], 'maintenance');
+            SystemSetting::set('maintenance_estimated_end', $data['maintenance_estimated_end'] ?? '', 'maintenance');
+
+            $statusText = $isActive === '1' ? 'AKTIF' : 'NONAKTIF';
+            SystemLog::create([
+                'user_id'     => Auth::id(),
+                'action'      => 'Update Mode Maintenance',
+                'description' => "Superadmin mengubah status mode pemeliharaan global menjadi {$statusText}.",
+                'ip_address'  => $request->ip(),
+            ]);
+
+            return redirect()->route('superadmin.settings')->with('success', "Pengaturan mode pemeliharaan platform berhasil disimpan (Status: {$statusText})!");
+        }
+
+        if ($section === 'mail') {
+            $data = $request->validate([
+                'mail_host'         => 'required|string|max:150',
+                'mail_port'         => 'required|numeric',
+                'mail_username'     => 'nullable|string|max:100',
+                'mail_password'     => 'nullable|string|max:100',
+                'mail_encryption'   => 'nullable|string|max:20',
+                'mail_from_name'    => 'required|string|max:100',
+                'mail_from_address' => 'required|email|max:100',
+            ]);
+
+            foreach ($data as $key => $val) {
+                SystemSetting::set($key, $val, 'mail');
+            }
+
+            SystemLog::create([
+                'user_id'     => Auth::id(),
+                'action'      => 'Update Pengaturan Email',
+                'description' => 'Superadmin memperbarui konfigurasi email (SMTP) platform.',
+                'ip_address'  => $request->ip(),
+            ]);
+
+            return redirect()->route('superadmin.settings')->with('success', 'Konfigurasi email platform berhasil disimpan!');
+        }
+
+        if ($section === 'test_mail') {
+            $targetEmail = $request->input('test_email', Auth::user()->email ?? 'admin@petgym.website');
+            try {
+                Mail::raw(
+                    "Halo,\n\nIni adalah email uji coba dari PetGym Platform untuk memverifikasi bahwa konfigurasi gateway SMTP Anda berfungsi dengan baik.\n\nWaktu pengiriman: " . now()->format('d M Y H:i:s') . " WIB\n\nSalam,\nTim PetGym",
+                    function ($msg) use ($targetEmail) {
+                        $msg->to($targetEmail)
+                            ->subject('Uji Coba Koneksi SMTP: ' . config('app.name', 'PetGym'));
+                    }
+                );
+
+                return redirect()->route('superadmin.settings')->with('success', "Email uji coba berhasil dikirim ke {$targetEmail}!");
+            } catch (\Throwable $e) {
+                report($e);
+                return redirect()->route('superadmin.settings')->with('error', 'Gagal mengirim email uji coba. Periksa koneksi dan kredensial SMTP di berkas log server.');
+            }
+        }
+
+        // Fallback untuk section lain
+        foreach ($request->except(['_token', 'section']) as $k => $v) {
+            SystemSetting::set($k, $v, $section);
+        }
 
         SystemLog::create([
             'user_id'     => Auth::id(),

@@ -43,9 +43,9 @@
           <input type="text" name="title" class="form-control" placeholder="Contoh: Pembaruan Sistem Harian & Fitur Baru" required value="{{ old('title') }}">
         </div>
         <div class="form-group mb-3">
-          <label class="text-black font-weight-bold">Pesan Broadcast ke Tenant <span class="text-danger">*</span></label>
+          <label class="text-black font-weight-bold">Pesan Broadcast ke Penyewa <span class="text-danger">*</span></label>
           <!-- Quill Editor -->
-          <div id="editor-container" style="background: #fff; border-radius: 4px;">{!! old('message') !!}</div>
+          <div id="editor-container" style="background: #fff; border-radius: 4px;">{{ old('message') }}</div>
           <!-- Hidden Input for HTML Message -->
           <input type="hidden" name="message" id="message-input">
         </div>
@@ -261,11 +261,11 @@
           showToast('Status Pengumuman', data.message, 'success');
           setTimeout(() => window.location.reload(), 700);
         } else {
-          showToast('Gagal', 'Tidak dapat mengubah status pengumuman.', 'error');
+          showToast('Gagal', 'Tidak dapat mengubah status pengumuman. Silakan coba lagi.', 'error');
         }
       })
       .catch(() => {
-        showToast('Error', 'Terjadi kesalahan jaringan saat memperbarui status.', 'error');
+        showToast('Gagal', 'Perubahan status gagal karena koneksi terputus. Silakan coba lagi.', 'error');
       });
     });
 
@@ -275,11 +275,13 @@
       const id = $(this).data('id');
       const title = $(this).data('title');
 
-      if (!confirm(`Apakah Anda yakin ingin menghapus pengumuman "${title}"?`)) {
-        return;
-      }
-
-      fetch("{{ url('/superadmin/announcements') }}/" + id, {
+      showConfirm({
+        title: 'Konfirmasi Hapus Data',
+        message: `Hapus pengumuman "${title}" secara permanen? Pengumuman yang dihapus tidak dapat dipulihkan.`,
+        confirmText: 'Ya, Hapus',
+        variant: 'danger'
+      }, function() {
+        fetch("{{ url('/superadmin/announcements') }}/" + id, {
         method: 'DELETE',
         headers: {
           'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -293,11 +295,12 @@
           showToast('Berhasil', data.message, 'success');
           $('#row-announcement-' + id).fadeOut(400, function() { $(this).remove(); });
         } else {
-          showToast('Gagal', 'Tidak dapat menghapus pengumuman.', 'error');
+          showToast('Gagal', 'Tidak dapat menghapus pengumuman. Silakan coba lagi.', 'error');
         }
       })
       .catch(() => {
-        showToast('Error', 'Terjadi kesalahan jaringan saat menghapus data.', 'error');
+        showToast('Gagal', 'Penghapusan gagal karena koneksi terputus. Silakan coba lagi.', 'error');
+      });
       });
     });
   });

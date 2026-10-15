@@ -29,15 +29,19 @@
             </td>
             <td>
               @if($s->role == 'admin')
-                <span class="badge badge-primary px-2 py-1">Admin Gym</span>
+                <span class="badge badge-primary px-3 py-1">Admin Gym</span>
+              @elseif($s->role == 'owner')
+                <span class="badge badge-dark px-3 py-1">Pemilik (Owner)</span>
               @elseif($s->role == 'manager')
-                <span class="badge badge-info px-2 py-1">Manager Gym</span>
+                <span class="badge badge-warning text-dark px-3 py-1">Manager Gym</span>
+              @elseif($s->role == 'supervisor')
+                <span class="badge badge-primary px-3 py-1">Supervisor</span>
               @elseif($s->role == 'receptionist')
-                <span class="badge badge-warning px-2 py-1">Resepsionis</span>
+                <span class="badge badge-info px-3 py-1">Resepsionis</span>
               @elseif($s->role == 'trainer')
-                <span class="badge badge-secondary px-2 py-1">Personal Trainer</span>
+                <span class="badge badge-success px-3 py-1">Personal Trainer</span>
               @else
-                <span class="badge badge-dark px-2 py-1">{{ ucfirst($s->role) }}</span>
+                <span class="badge badge-secondary px-3 py-1">{{ ucfirst($s->role) }}</span>
               @endif
             </td>
             <td style="font-size: 12px;" class="text-muted">{{ $s->created_at ? $s->created_at->format('d M Y') : '-' }}</td>
@@ -46,9 +50,7 @@
             </td>
           </tr>
         @empty
-          <tr>
-            <td colspan="5" class="text-center py-4 text-muted">Belum ada akun staf terdaftar.</td>
-          </tr>
+          <x-empty-state colspan="5" :title="__('ui.empty.no_staff')" icon="icon-users" />
         @endforelse
       </tbody>
     </table>

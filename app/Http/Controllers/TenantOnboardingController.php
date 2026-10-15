@@ -66,24 +66,26 @@ class TenantOnboardingController extends Controller
             'subdomain'   => ['required', 'string', 'max:60', 'regex:/^[a-zA-Z0-9\-]+$/'],
             'address'     => ['nullable', 'string', 'max:255'],
             'phone'       => ['nullable', 'string', 'max:30'],
-            'logo'        => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
+            'logo'        => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
         ], [
             'gym_name.required'  => 'Nama toko / bisnis gym wajib diisi.',
             'subdomain.required' => 'Subdomain website wajib diisi.',
             'subdomain.regex'    => 'Subdomain hanya boleh berisi huruf, angka, dan tanda hubung (-), tanpa spasi atau simbol.',
         ]);
 
+        $apex = config('app.tenant_apex', 'localhost');
         $cleanSlug = Str::lower(trim($request->subdomain));
-        $subdomainFormatted = $cleanSlug . '.workout.id';
+        $subdomainFormatted = $cleanSlug . '.' . $apex;
 
         // Validasi keunikan subdomain di database tenants
         $subdomainExists = Tenant::where('subdomain', $subdomainFormatted)
+            ->orWhere('subdomain', $cleanSlug . '.workout.id')
             ->orWhere('slug', $cleanSlug)
             ->exists();
 
         if ($subdomainExists) {
             return back()->withInput()->withErrors([
-                'subdomain' => "Subdomain '{$cleanSlug}.workout.id' sudah digunakan oleh gym lain. Silakan pilih subdomain lain.",
+                'subdomain' => "Subdomain '{$cleanSlug}.{$apex}' sudah digunakan oleh gym lain. Silakan pilih subdomain lain.",
             ]);
         }
 

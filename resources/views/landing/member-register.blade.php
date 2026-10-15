@@ -127,7 +127,7 @@
             <div class="row">
               <div class="col-md-6 form-group mb-3">
                 <label for="password" class="text-dark font-weight-bold small">Kata Sandi *</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="Min. 4 karakter" required style="height: 48px; border-radius: 8px; font-size: 14px;">
+                <input type="password" id="password" name="password" class="form-control" placeholder="Min. 8 karakter" required style="height: 48px; border-radius: 8px; font-size: 14px;">
               </div>
               <div class="col-md-6 form-group mb-3">
                 <label for="password_confirmation" class="text-dark font-weight-bold small">Konfirmasi Kata Sandi *</label>
@@ -152,7 +152,7 @@
 
             <div class="text-center mt-4 pt-3 border-top">
               <span class="text-muted small">Sudah memiliki akun member {{ $tenant->name }}?</span>
-              <a href="{{ route('tenant.login', ['slug' => $tenant->slug]) }}" class="font-weight-bold ml-1" style="color: var(--brand);">Masuk / Login Di Sini</a>
+              <a href="{{ route('tenant.login', ['slug' => $tenant->slug]) }}" class="font-weight-bold ml-1" style="color: var(--brand);">Masuk di Sini</a>
             </div>
           </form>
 

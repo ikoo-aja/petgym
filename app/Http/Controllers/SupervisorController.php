@@ -221,23 +221,47 @@ class SupervisorController extends Controller
         DB::transaction(function () use ($tenant, $transaction) {
             $transaction->update(['void_status' => 'approved']);
 
-            // Kembalikan stok barang jika tipe transaksi inventaris ritel
-            if ($transaction->type === 'inventory') {
-                foreach ($transaction->items as $item) {
-                    if ($item->product_id) {
-                        $prod = Product::where('tenant_id', $tenant->id)->find($item->product_id);
-                        if ($prod) {
-                            $prod->increment('stock', $item->qty);
-                        }
+            // Kembalikan stok barang jika ada item produk
+            foreach ($transaction->items as $item) {
+                if ($item->product_id) {
+                    $prod = Product::where('tenant_id', $tenant->id)->find($item->product_id);
+                    if ($prod && $prod->category !== 'membership') {
+                        $prod->increment('stock', $item->qty);
+
+                        StockMutation::create([
+                            'tenant_id' => $tenant->id,
+                            'product_id' => $prod->id,
+                            'user_id' => Auth::id(),
+                            'type' => 'adjustment',
+                            'qty' => $item->qty,
+                            'notes' => "Pengembalian stok dari void transaksi {$transaction->invoice_number}",
+                        ]);
                     }
                 }
+            }
+
+            // Jika transaksi terkait paket membership, batalkan masa aktif keanggotaan member
+            $member = null;
+            if ($transaction->member_id) {
+                $member = Member::where('tenant_id', $tenant->id)->find($transaction->member_id);
+                if ($member) {
+                    $member->update([
+                        'status' => 'inactive',
+                        'expired_at' => Carbon::now(),
+                    ]);
+                }
+            }
+
+            $desc = "Supervisor menyetujui pembatalan transaksi invoice {$transaction->invoice_number}";
+            if ($member) {
+                $desc .= " dan membatalkan masa aktif membership {$member->name}.";
             }
 
             StaffLog::create([
                 'tenant_id' => $tenant->id,
                 'user_id' => Auth::id(),
                 'action' => 'Persetujuan Pembatalan Transaksi',
-                'description' => "Supervisor menyetujui pembatalan transaksi invoice {$transaction->invoice_number}",
+                'description' => $desc,
                 'ip_address' => request()->ip(),
             ]);
         });
@@ -681,7 +705,7 @@ class SupervisorController extends Controller
     {
         $user = Auth::user();
         if ($user->isOwner()) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan: Akun ini dalam mode pantau (hanya baca).');
+            return redirect()->back()->with('error', 'Anda tidak dapat melakukan perubahan ini karena akun Anda hanya memiliki akses pantau (baca saja). Hubungi pemilik akun utama untuk melakukan perubahan.');
         }
 
         $tenant = $user->tenant;

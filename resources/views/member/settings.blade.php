@@ -2,7 +2,7 @@
 
 @section('title', 'Profil & Pengaturan')
 @section('page_title', 'Profil & Pengaturan')
-@section('page_subtitle', 'Kelola informasi pribadi, keamanan akun, dan preferensi anggota.')
+@section('page_subtitle', 'Kelola informasi pribadi, keamanan akun, dan preferensi member.')
 
 @section('styles')
 <style>
@@ -169,7 +169,7 @@
           <p class="text-muted small mb-1">Masa berlaku hingga: <strong>{{ $member->expired_at ? $member->expired_at->format('d M Y') : '-' }}</strong> (Sisa {{ $member->days_left }} hari)</p>
         @else
           <span class="badge badge-warning px-3 py-1 font-weight-bold mb-2 text-dark">Belum Ada Paket Langganan</span>
-          <p class="text-muted mb-2 font-weight-semibold small">Lakukan aktivasi dan pembayaran di Meja Kasir Gym</p>
+          <p class="text-muted mb-2 font-weight-semibold small">Lakukan aktivasi dan pembayaran di Meja Resepsionis</p>
           <div class="badge badge-light border text-dark px-3 py-2 font-weight-bold mb-2 d-inline-block" style="font-size: 12px; letter-spacing: 1px;">
             PIN AKSES: <span class="text-primary">{{ $member->access_code ?? 'MBR-000000' }}</span>
           </div>
@@ -268,7 +268,7 @@
         </a>
         <a href="{{ route('member.guide') }}" class="setting-list-item">
           <div class="d-flex align-items-center">
-            <span class="setting-icon"><span class="icon-help-with-circle"></span></span>
+            <span class="setting-icon"><span class="icon-help"></span></span>
             <span class="font-weight-semibold" style="font-size: 13.5px;">Panduan Penggunaan Portal</span>
           </div>
           <span class="text-muted">&rsaquo;</span>

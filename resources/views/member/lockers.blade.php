@@ -1,8 +1,8 @@
 @extends('layouts.member')
 
-@section('title', 'Penyewaan Loker')
+@section('title', 'Sewa Loker')
 @section('page_title', 'Manajemen Loker Gym')
-@section('page_subtitle', 'Penyewaan dan nomor unit loker penyimpanan Anda')
+@section('page_subtitle', 'Sewa dan nomor unit loker penyimpanan Anda')
 
 @section('content')
 <!-- Active Rental Card -->
@@ -17,9 +17,9 @@
     <div class="mt-3 mt-md-0 text-md-right">
       <small class="text-muted text-uppercase font-weight-bold d-block mb-1">Kode PIN Akses</small>
       <div class="d-inline-block bg-light text-dark font-weight-bold px-3 py-2 rounded border shadow-sm" style="font-size: 20px; letter-spacing: 4px;">
-        {{ $activeRental->pin_code ?? '849201' }}
+        {{ $activeRental->pin_code ?? '-' }}
       </div>
-      <form action="{{ route('member.lockers.return', $activeRental->id) }}" method="POST" class="mt-2" data-confirm="Selesaikan dan kembalikan loker ini sekarang?">
+      <form action="{{ route('member.lockers.return', $activeRental->id) }}" method="POST" class="mt-2" data-confirm="Kembalikan loker #{{ $activeRental->locker ? $activeRental->locker->locker_number : '-' }} sekarang? Sewa akan berakhir dan loker tersedia kembali untuk member lain.">
         @csrf
         <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold" style="border-radius: 6px;">Kembalikan Loker</button>
       </form>
@@ -54,7 +54,7 @@
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
     <div>
       <h6 class="font-weight-bold text-dark mb-1">Denah Pemilihan Loker Visual</h6>
-      <p class="text-muted small mb-0">Klik pada kotak loker yang tersedia (berwarna hijau) untuk melakukan penyewaan.</p>
+      <p class="text-muted small mb-0">Klik pada kotak loker yang tersedia (berwarna hijau) untuk melakukan sewa.</p>
     </div>
 
     <!-- Status Legend Bar -->
@@ -133,7 +133,7 @@
           @endif
 
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark small">Pilih Durasi Penyewaan</label>
+            <label class="font-weight-bold text-dark small">Pilih Durasi Sewa</label>
             <select name="rental_type" id="modalRentalType" class="form-control" required onchange="updateLockerPrice()">
               <option value="daily" data-price="15000">Harian (1 Hari - Rp 15.000)</option>
               <option value="monthly" data-price="{{ $member->membership_tier === 'premium' ? 0 : 150000 }}" {{ $member->membership_tier === 'premium' ? 'selected' : '' }}>

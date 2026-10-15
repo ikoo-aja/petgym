@@ -2,7 +2,7 @@
 
 @section('title', 'Check-In Absensi &mdash; PetGym')
 @section('page_title', 'Presensi Member')
-@section('page_subtitle', 'Pencatatan kehadiran dan check-in anggota gym')
+@section('page_subtitle', 'Pencatatan kehadiran dan check-in member gym')
 
 @section('content')
 <div class="row">
@@ -106,7 +106,7 @@
                 </td>
                 <td class="text-right">
                   @if(!Auth::user() || !Auth::user()->isOwner())
-                  <form action="{{ route('receptionist.checkin.destroy', $ci->id) }}" method="POST" class="d-inline" data-confirm="Batalkan presensi kunjungan ini?">
+                  <form action="{{ route('receptionist.checkin.destroy', $ci->id) }}" method="POST" class="d-inline" data-confirm="Hapus catatan presensi {{ $ci->member ? $ci->member->name : 'member' }} ini? Riwayat kunjungan akan hilang dan tidak dapat dipulihkan.">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Batalkan</button>

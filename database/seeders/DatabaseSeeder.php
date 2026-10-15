@@ -78,9 +78,23 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Hanya seed data dummy testing jika SEED_DUMMY_DATA bernilai true
+        // Hanya seed data dummy testing jika SEED_DUMMY_DATA bernilai true.
+        // SEC-22: Data dummy memakai password lemah ('1234'). DILARANG dijalankan di produksi.
         $seedDummy = filter_var(env('SEED_DUMMY_DATA', true), FILTER_VALIDATE_BOOLEAN);
+
+        if (app()->environment('production')) {
+            // Di produksi: tolak total seeding data dummy & akun demo.
+            if ($seedDummy) {
+                $this->command?->warn('SEED_DUMMY_DATA diabaikan karena APP_ENV=production (keamanan).');
+            }
+            $this->seedSystemSettings();
+
+            return;
+        }
+
         if (!$seedDummy) {
+            $this->seedSystemSettings();
+
             return;
         }
 
@@ -712,5 +726,40 @@ class DatabaseSeeder extends Seeder
                 'ip_address' => '127.0.0.1',
             ]
         );
+
+        // 17. Pengaturan Sistem Global (SystemSetting) — WAJIB tersedia di semua environment
+        $this->seedSystemSettings();
+    }
+
+    /**
+     * Seed pengaturan sistem global (billing, support, maintenance, mail).
+     * Wajib tersedia di semua environment, termasuk produksi.
+     */
+    private function seedSystemSettings(): void
+    {
+        \App\Models\SystemSetting::set('billing_bank_name', 'BCA', 'billing');
+        \App\Models\SystemSetting::set('billing_bank_account', '883012345678', 'billing');
+        \App\Models\SystemSetting::set('billing_bank_account_fmt', '8830-1234-5678', 'billing');
+        \App\Models\SystemSetting::set('billing_bank_owner', 'PT PetGym Digital Indonesia', 'billing');
+        \App\Models\SystemSetting::set('billing_bank_notes', 'Sertakan kode invoice unik saat melakukan transfer pembayaran sewa.', 'billing');
+        \App\Models\SystemSetting::set('billing_mandiri_account', '1370098765432', 'billing');
+        \App\Models\SystemSetting::set('billing_mandiri_account_fmt', '137-00-9876543-2', 'billing');
+        \App\Models\SystemSetting::set('billing_qris_name', 'QRIS PetGym Instant', 'billing');
+        \App\Models\SystemSetting::set('billing_qris_code', 'QRIS-PETGYM', 'billing');
+
+        \App\Models\SystemSetting::set('support_whatsapp', '081234567890', 'support');
+        \App\Models\SystemSetting::set('support_email', 'support@petgym.website', 'support');
+        \App\Models\SystemSetting::set('support_hours', 'Senin - Sabtu, 08:00 - 20:00 WIB', 'support');
+
+        \App\Models\SystemSetting::set('maintenance_active', '0', 'maintenance');
+        \App\Models\SystemSetting::set('maintenance_title', 'Platform Sedang Dalam Pemeliharaan Terjadwal', 'maintenance');
+        \App\Models\SystemSetting::set('maintenance_message', 'Kami sedang melakukan peningkatan sistem dan infrastruktur server PetGym untuk performa yang lebih optimal.', 'maintenance');
+        \App\Models\SystemSetting::set('maintenance_estimated_end', 'Estimasi selesai: 02:00 WIB', 'maintenance');
+
+        \App\Models\SystemSetting::set('mail_from_name', 'PetGym Platform', 'mail');
+        \App\Models\SystemSetting::set('mail_from_address', 'no-reply@petgym.website', 'mail');
+        \App\Models\SystemSetting::set('mail_host', config('mail.mailers.smtp.host', 'smtp.mailtrap.io'), 'mail');
+        \App\Models\SystemSetting::set('mail_port', (string) config('mail.mailers.smtp.port', '2525'), 'mail');
+        \App\Models\SystemSetting::set('mail_encryption', config('mail.mailers.smtp.encryption', 'tls'), 'mail');
     }
 }

@@ -84,7 +84,7 @@
             </td>
             <td class="text-right">
               @if($r->status === 'confirmed')
-                <form action="{{ route('trainer.rsvps.status', $r->id) }}" method="POST" class="d-inline mr-1" data-confirm="Tandai peserta ini hadir mengikuti kelas?">
+                <form action="{{ route('trainer.rsvps.status', $r->id) }}" method="POST" class="d-inline mr-1" data-confirm="Tandai {{ $r->member ? $r->member->name : 'peserta' }} sebagai hadir di kelas {{ $r->gymClass ? $r->gymClass->name : 'ini' }}?">
                   @csrf
                   <input type="hidden" name="status" value="attended">
                   <button type="submit" class="btn btn-sm btn-success font-weight-bold" style="border-radius: 6px;">
@@ -92,7 +92,7 @@
                   </button>
                 </form>
 
-                <form action="{{ route('trainer.rsvps.status', $r->id) }}" method="POST" class="d-inline" data-confirm="Batalkan pendaftaran RSVP untuk peserta ini?">
+                <form action="{{ route('trainer.rsvps.status', $r->id) }}" method="POST" class="d-inline" data-confirm="Batalkan RSVP {{ $r->member ? $r->member->name : 'peserta' }}? Slot kelas akan dilepas untuk peserta lain.">
                   @csrf
                   <input type="hidden" name="status" value="cancelled">
                   <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">

@@ -15,7 +15,7 @@
         <p class="mb-0 text-muted small">Masa berlaku hingga: <strong>{{ $member->expired_at ? $member->expired_at->format('d M Y') : '-' }}</strong> (Sisa {{ $member->days_left }} hari)</p>
       @else
         <h3 class="font-weight-bold text-warning mb-1">Belum Ada Paket Langganan Aktif</h3>
-        <p class="mb-0 text-muted small">Silakan pilih paket di bawah ini dan lakukan aktivasi pembayaran di <strong>Meja Kasir Gym</strong>.</p>
+        <p class="mb-0 text-muted small">Silakan pilih paket di bawah ini dan lakukan aktivasi pembayaran di <strong>Meja Resepsionis</strong>.</p>
       @endif
     </div>
     <div class="mt-3 mt-md-0 text-md-right">
@@ -154,7 +154,7 @@
         <div class="alert alert-info text-left small mb-3">
           <strong>Langkah Aktivasi di Gym:</strong>
           <ol class="mb-0 pl-3 mt-1 font-weight-semibold">
-            <li>Kunjungi <strong>Meja Kasir / Resepsionis</strong> di gym.</li>
+            <li>Kunjungi <strong>Meja Resepsionis</strong> di gym.</li>
             <li>Tunjukkan atau sebutkan <strong>PIN / Kode Akses</strong> member Anda di bawah ini:</li>
           </ol>
         </div>
@@ -224,7 +224,7 @@
     </div>
 
     <div class="border rounded p-3 mb-2 bg-light" style="border-radius: 10px !important;">
-      <div class="font-weight-bold text-dark mb-2" style="font-size: 13.5px;">Diskon Sesi Pelatih Pribadi</div>
+      <div class="font-weight-bold text-dark mb-2" style="font-size: 13.5px;">Diskon Sesi Personal Trainer</div>
       <div class="row text-center pt-2 border-top" style="font-size: 12px;">
         <div class="col-4 border-right">
           <span class="text-muted d-block small mb-1">Basic</span>
@@ -285,7 +285,7 @@
           <td><span class="badge badge-primary">Prioritas</span></td>
         </tr>
         <tr>
-          <td class="text-left font-weight-bold">Diskon Paket Pelatih Pribadi</td>
+          <td class="text-left font-weight-bold">Diskon Paket Personal Trainer</td>
           <td><span class="badge badge-secondary">-</span></td>
           <td><span class="badge badge-info">10%</span></td>
           <td><span class="badge badge-success">20%</span></td>

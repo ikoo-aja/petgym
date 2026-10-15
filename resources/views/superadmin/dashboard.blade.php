@@ -1,6 +1,6 @@
 @extends('layouts.superadmin')
 
-@section('title', 'Superadmin Dashboard &mdash; Workout')
+@section('title', 'Superadmin Dashboard — PetGym')
 
 @section('page_title', 'Dashboard Ringkasan')
 @section('page_subtitle', 'Selamat datang kembali, ' . (Auth::user()->name ?? 'Superadmin') . '!')
@@ -22,21 +22,7 @@
     </a>
   </div>
   @endif
-  <!-- Alert Banner Permohonan Reset Password Admin -->
-  @if(($pendingPasswordResetsCount ?? 0) > 0)
-  <div class="alert alert-warning border-0 shadow-sm d-flex justify-content-between align-items-center mb-4 p-3" style="border-radius: 12px; border-left: 5px solid #f59e0b !important;">
-    <div class="d-flex align-items-center">
-      <span class="icon-lock mr-3 text-warning" style="font-size: 24px;"></span>
-      <div>
-        <h6 class="mb-0 font-weight-bold text-dark">Ada {{ $pendingPasswordResetsCount }} Permohonan Reset Password Admin Menunggu Approval!</h6>
-        <small class="text-muted">Akun Admin gym mengajukan permohonan pemulihan kata sandi yang membutuhkan verifikasi Superadmin.</small>
-      </div>
-    </div>
-    <a href="{{ route('superadmin.registrations') }}" class="btn btn-warning btn-sm font-weight-bold px-3 text-dark shadow-sm" style="border-radius: 20px;">
-      Tinjau di Daftar Penyewa <span class="icon-arrow-right ml-1"></span>
-    </a>
-  </div>
-  @endif
+
 
   <div class="row">
     <div class="col-md-3 mb-4">
@@ -76,7 +62,7 @@
       <div class="stat-card" style="border-left-color: #17a2b8;">
         <span class="text-muted font-weight-bold">Penyewa Baru (Bulan Ini)</span>
         <div class="stat-number">{{ $newTenantsCount }} Gym</div>
-        <small class="text-muted">Target: 10 Tenant/Bulan</small>
+        <small class="text-muted">Target: 10 Penyewa per Bulan</small>
         <hr class="my-2">
         <a href="{{ route('superadmin.tenants') }}" class="text-info d-inline-flex align-items-center font-weight-bold" style="font-size: 12px; text-decoration: none;">
           Lihat Detail <span class="icon-keyboard_arrow_right ml-1"></span>
@@ -92,7 +78,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="font-weight-bold text-black mb-0">Pertumbuhan Penyewa & Pendapatan (6 Bulan Terakhir)</h5>
           <div class="small text-muted d-flex align-items-center" style="gap: 12px;">
-            <span><span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #ee6e73;"></span> Tenant Baru</span>
+            <span><span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #ee6e73;"></span> Penyewa Baru</span>
             <span><span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #28a745;"></span> Pendapatan (Rp)</span>
           </div>
         </div>

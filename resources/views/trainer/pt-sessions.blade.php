@@ -69,7 +69,7 @@
             </td>
             <td class="text-right">
               @if($b->status === 'scheduled')
-                <form action="{{ route('trainer.pt-sessions.status', $b->id) }}" method="POST" class="d-inline mr-1" data-confirm="Konfirmasi bahwa sesi latihan PT ini telah selesai dilaksanakan?">
+                <form action="{{ route('trainer.pt-sessions.status', $b->id) }}" method="POST" class="d-inline mr-1" data-confirm="Tandai sesi PT bersama {{ $b->member ? $b->member->name : 'member' }} sebagai selesai? Kuota sesi member akan terpotong satu.">
                   @csrf
                   <input type="hidden" name="status" value="completed">
                   <button type="submit" class="btn btn-sm btn-success font-weight-bold" style="border-radius: 6px;">
@@ -77,7 +77,7 @@
                   </button>
                 </form>
 
-                <form action="{{ route('trainer.pt-sessions.status', $b->id) }}" method="POST" class="d-inline" data-confirm="Batalkan jadwal sesi latihan PT ini?">
+                <form action="{{ route('trainer.pt-sessions.status', $b->id) }}" method="POST" class="d-inline" data-confirm="Batalkan sesi PT bersama {{ $b->member ? $b->member->name : 'member' }}? Slot jadwal akan dikosongkan.">
                   @csrf
                   <input type="hidden" name="status" value="cancelled">
                   <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">

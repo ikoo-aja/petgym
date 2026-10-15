@@ -19,7 +19,7 @@
               <th>Kelas</th>
               <th>Hari & Jam</th>
               <th>Ruangan</th>
-              <th>Instruktur / Trainer</th>
+              <th>Trainer</th>
             </tr>
           </thead>
           <tbody>

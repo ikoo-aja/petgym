@@ -1,24 +1,10 @@
 @extends('layouts.layout')
 
 @section('title', 'Beranda Supervisor — PetGym')
-@section('page_title', 'Beranda')
-@section('page_subtitle', 'Ringkasan operasional lapangan dan fasilitas gym')
+@section('page_title', 'Pengawasan Operasional Lapangan')
+@section('page_subtitle', 'Pantau otorisasi kasir, jadwal kerja staf, ketersediaan stok, dan fasilitas gym hari ini')
 
 @section('content')
-<div class="container-fluid p-0">
-
-  <!-- Header Banner -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="font-weight-bold text-dark mb-1">Pengawasan Operasional Lapangan</h3>
-      <p class="text-muted small mb-0">Selamat datang, <strong>{{ $user->name }}</strong>. Pantau otorisasi kasir, jadwal kerja staf, ketersediaan stok, dan fasilitas gym hari ini.</p>
-    </div>
-    <div>
-      <span class="badge badge-info px-3 py-2 font-weight-bold" style="font-size: 13px;">
-        <i class="icon-calendar mr-1"></i> {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-      </span>
-    </div>
-  </div>
 
   <!-- Stat Cards -->
   <div class="row mb-4">
@@ -131,7 +117,7 @@
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
           <div>
             <h6 class="font-weight-bold text-dark mb-0"><i class="icon-check-circle text-danger mr-1"></i> Antrean Otorisasi Pembatalan Transaksi</h6>
-            <small class="text-muted">Persetujuan pembatalan struk dari meja kasir resepsionis</small>
+            <small class="text-muted">Persetujuan pembatalan struk dari meja resepsionis</small>
           </div>
           <a href="/supervisor/features?tab=void" class="btn btn-sm btn-outline-primary font-weight-bold">Buka Modul Pembatalan</a>
         </div>
@@ -160,11 +146,11 @@
                       <td style="max-width: 250px;" class="small text-muted">{{ $pv->void_reason ?? 'Kesalahan input kasir' }}</td>
                       <td class="text-right">
                         <div class="d-flex justify-content-end gap-1">
-                          <form action="{{ route('supervisor.void.approve', $pv->id) }}" method="POST" class="d-inline mr-1" data-confirm="Setujui pembatalan struk ini?">
+                          <form action="{{ route('supervisor.void.approve', $pv->id) }}" method="POST" class="d-inline mr-1" data-confirm="Setujui pembatalan struk {{ $pv->invoice_number ?? 'ini' }}? Stok produk akan dikembalikan dan transaksi ditandai batal.">
                             @csrf
                             <button type="submit" class="btn btn-xs btn-success font-weight-bold" style="border-radius: 6px;">Setujui</button>
                           </form>
-                          <form action="{{ route('supervisor.void.reject', $pv->id) }}" method="POST" class="d-inline" data-confirm="Tolak permohonan pembatalan ini?">
+                          <form action="{{ route('supervisor.void.reject', $pv->id) }}" method="POST" class="d-inline" data-confirm="Tolak pembatalan struk {{ $pv->invoice_number ?? 'ini' }}? Transaksi tetap tercatat sebagai penjualan sah.">
                             @csrf
                             <button type="submit" class="btn btn-xs btn-outline-danger font-weight-bold" style="border-radius: 6px;">Tolak</button>
                           </form>
@@ -187,5 +173,4 @@
     </div>
   </div>
 
-</div>
 @endsection

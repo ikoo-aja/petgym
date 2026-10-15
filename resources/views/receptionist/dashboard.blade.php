@@ -25,27 +25,39 @@
 <!-- Quick Action Buttons for Receptionist -->
 <div class="row mb-4">
   <div class="col-md-3">
-    <a href="{{ route('receptionist.checkin.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-primary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold text-white mb-1"><span class="icon-check"></span> Presensi Member</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Metode PIN dan Manual</p>
+    <a href="{{ route('receptionist.checkin.index') }}" class="card-custom d-block text-decoration-none text-center py-4 h-100" style="transition: transform 0.2s ease, box-shadow 0.2s ease;">
+      <div class="d-inline-flex align-items-center justify-content-center bg-light text-primary rounded-circle mb-2" style="width: 48px; height: 48px; font-size: 22px;">
+        <span class="icon-check"></span>
+      </div>
+      <h6 class="font-weight-bold text-dark mb-1">Presensi Member</h6>
+      <p class="mb-0 text-muted" style="font-size: 12px;">Metode PIN dan Manual</p>
     </a>
   </div>
   <div class="col-md-3">
-    <a href="{{ route('manager.members.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-success text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold text-white mb-1"><span class="icon-person"></span> Pendaftaran Member</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Registrasi dan Buat PIN</p>
+    <a href="{{ route('manager.members.index') }}" class="card-custom d-block text-decoration-none text-center py-4 h-100" style="transition: transform 0.2s ease, box-shadow 0.2s ease;">
+      <div class="d-inline-flex align-items-center justify-content-center bg-light text-success rounded-circle mb-2" style="width: 48px; height: 48px; font-size: 22px;">
+        <span class="icon-person"></span>
+      </div>
+      <h6 class="font-weight-bold text-dark mb-1">Pendaftaran Member</h6>
+      <p class="mb-0 text-muted" style="font-size: 12px;">Registrasi dan Buat PIN</p>
     </a>
   </div>
   <div class="col-md-3">
-    <a href="{{ route('receptionist.pos.index') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-info text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold text-white mb-1"><span class="icon-shopping-cart"></span> Kasir dan Struk</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Transaksi Penjualan Produk</p>
+    <a href="{{ route('receptionist.pos.index') }}" class="card-custom d-block text-decoration-none text-center py-4 h-100" style="transition: transform 0.2s ease, box-shadow 0.2s ease;">
+      <div class="d-inline-flex align-items-center justify-content-center bg-light text-info rounded-circle mb-2" style="width: 48px; height: 48px; font-size: 22px;">
+        <span class="icon-shopping-cart"></span>
+      </div>
+      <h6 class="font-weight-bold text-dark mb-1">Kasir dan Struk</h6>
+      <p class="mb-0 text-muted" style="font-size: 12px;">Transaksi Penjualan Produk</p>
     </a>
   </div>
   <div class="col-md-3">
-    <a href="{{ route('receptionist.lockers') }}" class="card-custom d-block text-decoration-none text-center py-4 bg-secondary text-white" style="border-radius: 12px; transition: transform 0.2s ease;">
-      <h4 class="font-weight-bold text-white mb-1"><span class="icon-settings"></span> Manajemen Loker</h4>
-      <p class="mb-0 text-white-50" style="font-size: 12px;">Peminjaman dan Pengembalian</p>
+    <a href="{{ route('receptionist.lockers') }}" class="card-custom d-block text-decoration-none text-center py-4 h-100" style="transition: transform 0.2s ease, box-shadow 0.2s ease;">
+      <div class="d-inline-flex align-items-center justify-content-center bg-light text-secondary rounded-circle mb-2" style="width: 48px; height: 48px; font-size: 22px;">
+        <span class="icon-settings"></span>
+      </div>
+      <h6 class="font-weight-bold text-dark mb-1">Manajemen Loker</h6>
+      <p class="mb-0 text-muted" style="font-size: 12px;">Peminjaman dan Pengembalian</p>
     </a>
   </div>
 </div>
